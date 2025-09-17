@@ -37,6 +37,7 @@ ul {
   .p-password,
   .p-checkbox,
   .p-button,
+  .p-select,
   .p-inputtext {
     width: 100%;
   }
@@ -60,4 +61,21 @@ ul {
   color: transparent !important;
   padding: 0 !important;
   gap: 0 !important;
+}
+
+.menues {
+  .p-button-label {
+    font-size: 13px;
+    line-height: 12px;
+    text-align: left;
+  }
+}
+
+.breadcrumb-wrapper {
+  .p-breadcrumb {
+    font-size: 13px;
+    padding: 0;
+    background: transparent;
+    margin: 0.5rem 0 !important;
+  }
 }
