@@ -4,7 +4,7 @@
 "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "dev": "ng serve --host grm.snsopmis.com --port 4040 --ssl false",
+    "dev": "ng serve --port 4040 --ssl false",
     "build-staging": "ng build --configuration staging",
     "build-dev": "ng build --configuration development",
     "build-prod": "ng build --configuration production",
