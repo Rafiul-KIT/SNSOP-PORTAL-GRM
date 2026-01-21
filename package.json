@@ -1,10 +1,10 @@
 {
   "name": "snsop-mf-portal-grm",
   "version": "0.0.0",
-"scripts": {
+  "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "dev": "ng serve --port 4040 --ssl false",
+    "dev": "ng serve --port 4040 --ssl true",
     "build-staging": "ng build --configuration staging",
     "build-dev": "ng build --configuration development",
     "build-prod": "ng build --configuration production",
@@ -21,12 +21,18 @@
     "@angular/router": "^20.0.0",
     "@fortawesome/fontawesome-free": "^7.0.0",
     "@primeuix/themes": "^1.2.3",
+    "@types/xlsx": "^0.0.35",
     "axios": "^1.11.0",
     "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.1",
+    "chart.js": "^4.5.1",
+    "jwt-decode": "^4.0.0",
     "ngx-cookie-service": "^20.1.0",
+    "primeicons": "^7.0.0",
     "primeng": "^20.0.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
+    "xlsx": "^0.18.5",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
@@ -43,4 +49,3 @@
     "typescript": "~5.8.2"
   }
 }
-
