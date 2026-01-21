@@ -1,12 +1,18 @@
 export const environment = {
   production: false,
-  domain: "localhost",
-  globalApi: 'http://api.snsopmis.com:8000/services',
+  env: 'local',
+  useHash: false,
+  domain: 'localhost', // or 'snsopmis.local' if you use hosts file trick
+  globalApi: 'https://devgwapp.southsudansafetynet.info/mis_server/', // your Spring Boot backend in dev
   portals: {
-    master: "http://master.snsopmis.com:4010/",
-    beneficiary: "http://beneficiary.snsopmis.com:4020/",
-    payment: "http://payment.snsopmis.com:4030/",
-    grm: "http://grm.snsopmis.com:4040/",
-    report: "http://report.snsopmis.com:4050/",
+    master: 'https://localhost:4010',
+    masterSettings: 'https://localhost:4010/#/user-management/users',
+    surveyCTO: 'https://localhost:4010/#/cto-dashboard',
+    beneficiary: 'https://localhost:4020',
+    payment: 'https://localhost:4030',
+    grm: 'https://localhost:4040',
+    report: 'https://localhost:4050',
   },
+  authBackend: 'https://devgwapp.southsudansafetynet.info/mis_auth',
+  cookie_name:'mis_ta'
 };
