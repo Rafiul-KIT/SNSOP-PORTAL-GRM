@@ -1,1 +1,241 @@
-<p>gbv-management works!</p>
+<div class="breadcrumb-wrapper">
+  <p-breadcrumb class="w-100" [model]="items" [home]="home"></p-breadcrumb>
+</div>
+
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h4 class="mb-0">
+        <i class="bi bi-shield-exclamation me-2"></i>
+        {{ isEditMode ? 'Edit' : 'New' }} GBV Case
+      </h4>
+    </div>
+
+    <div class="card-body">
+      <form [formGroup]="gbvForm" (ngSubmit)="onSave()">
+
+        <!-- Basic Information Section -->
+        <div class="section-block">
+          <h5 class="section-title">
+            <i class="bi bi-info-circle-fill text-primary me-2"></i>
+            Basic Information
+          </h5>
+          <hr>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="serialNumber" class="form-label fw-bold">Serial Number <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="serialNumber" formControlName="serialNumber"
+                       placeholder="Enter serial number"
+                       [class.is-invalid]="isFieldInvalid('serialNumber')">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('serialNumber')">
+                  Serial number is required
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="date" class="form-label fw-bold">Date <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" id="date" formControlName="date"
+                       [class.is-invalid]="isFieldInvalid('date')">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('date')">
+                  Date is required
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location Section -->
+        <div class="section-block mt-4">
+          <h5 class="section-title">
+            <i class="bi bi-geo-alt-fill text-primary me-2"></i>
+            Location Details
+          </h5>
+          <hr>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="state" class="form-label fw-bold">State <span class="text-danger">*</span></label>
+                <select class="form-select" id="state" formControlName="state"
+                        (change)="onStateChange($event)"
+                        [class.is-invalid]="isFieldInvalid('state')">
+                  <option value="">-- Select State --</option>
+                  <option *ngFor="let state of states" [value]="state.id">{{ state.name }}</option>
+                </select>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('state')">
+                  State is required
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="county" class="form-label fw-bold">County <span class="text-danger">*</span></label>
+                <select class="form-select" id="county" formControlName="county"
+                        (change)="onCountyChange($event)"
+                        [class.is-invalid]="isFieldInvalid('county')"
+                        [disabled]="counties.length === 0">
+                  <option value="">-- Select County --</option>
+                  <option *ngFor="let county of counties" [value]="county.id">{{ county.name }}</option>
+                </select>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('county')">
+                  County is required
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="payam" class="form-label fw-bold">Payam <span class="text-danger">*</span></label>
+                <select class="form-select" id="payam" formControlName="payam"
+                        (change)="onPayamChange($event)"
+                        [class.is-invalid]="isFieldInvalid('payam')"
+                        [disabled]="payams.length === 0">
+                  <option value="">-- Select Payam --</option>
+                  <option *ngFor="let payam of payams" [value]="payam.id">{{ payam.name }}</option>
+                </select>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('payam')">
+                  Payam is required
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="boma" class="form-label fw-bold">Boma <span class="text-danger">*</span></label>
+                <select class="form-select" id="boma" formControlName="boma"
+                        [class.is-invalid]="isFieldInvalid('boma')"
+                        [disabled]="bomas.length === 0">
+                  <option value="">-- Select Boma --</option>
+                  <option *ngFor="let boma of bomas" [value]="boma.id">{{ boma.name }}</option>
+                </select>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('boma')">
+                  Boma is required
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Incident Details Section -->
+        <div class="section-block mt-4">
+          <h5 class="section-title">
+            <i class="bi bi-file-earmark-text-fill text-primary me-2"></i>
+            Incident Details
+          </h5>
+          <hr>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="dateOfIncident" class="form-label fw-bold">Date of Incident <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" id="dateOfIncident" formControlName="dateOfIncident"
+                       [class.is-invalid]="isFieldInvalid('dateOfIncident')">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('dateOfIncident')">
+                  Date of incident is required
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="contactFocalPersonName" class="form-label fw-bold">Contact Focal Person Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="contactFocalPersonName" formControlName="contactFocalPersonName"
+                       placeholder="Enter contact person name"
+                       [class.is-invalid]="isFieldInvalid('contactFocalPersonName')">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('contactFocalPersonName')">
+                  Contact person name is required
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <div class="mb-3">
+                <label for="descriptionOfIncident" class="form-label fw-bold">Description of Incident <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="descriptionOfIncident" formControlName="descriptionOfIncident"
+                          rows="4" placeholder="Describe the incident in detail..."
+                          [class.is-invalid]="isFieldInvalid('descriptionOfIncident')"></textarea>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('descriptionOfIncident')">
+                  Description is required
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="incidentReportedBy" class="form-label fw-bold">Incident Reported By <span class="text-danger">*</span></label>
+                <select class="form-select" id="incidentReportedBy" formControlName="incidentReportedBy"
+                        [class.is-invalid]="isFieldInvalid('incidentReportedBy')">
+                  <option value="">-- Select Reporter --</option>
+                  <option *ngFor="let reporter of reporters" [value]="reporter">{{ reporter }}</option>
+                </select>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('incidentReportedBy')">
+                  Reporter is required
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="consentSigned" class="form-label fw-bold">Consent Signed <span class="text-danger">*</span></label>
+                <select class="form-select" id="consentSigned" formControlName="consentSigned"
+                        [class.is-invalid]="isFieldInvalid('consentSigned')">
+                  <option value="">-- Select --</option>
+                  <option *ngFor="let consent of consentOptions" [value]="consent">{{ consent }}</option>
+                </select>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('consentSigned')">
+                  Consent status is required
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attachments Section -->
+        <div class="section-block mt-4">
+          <h5 class="section-title">
+            <i class="bi bi-paperclip text-primary me-2"></i>
+            Attachments
+          </h5>
+          <hr>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="descriptionFile" class="form-label fw-bold">Attach Description Incident</label>
+                <input type="file" class="form-control" id="descriptionFile"
+                       (change)="onFileUpload($event, 'description')" accept=".pdf,.doc,.docx,.jpg,.png">
+                <small class="text-success mt-1" *ngIf="fileDescription">
+                  <i class="bi bi-check-circle-fill me-1"></i> File uploaded successfully
+                </small>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="consentFile" class="form-label fw-bold">Attach Consent Signed</label>
+                <input type="file" class="form-control" id="consentFile"
+                       (change)="onFileUpload($event, 'consent')" accept=".pdf,.doc,.docx,.jpg,.png">
+                <small class="text-success mt-1" *ngIf="fileConsent">
+                  <i class="bi bi-check-circle-fill me-1"></i> File uploaded successfully
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+          <button type="button" class="btn btn-secondary" (click)="onCancel()">
+            <i class="bi bi-x-circle me-2"></i> Cancel
+          </button>
+          <button *ngIf="isEditMode" type="button" class="btn btn-danger" (click)="onDelete()">
+            <i class="bi bi-trash me-2"></i> Delete
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+            <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            <i *ngIf="!isLoading" class="bi bi-check-circle me-2"></i> Save
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
