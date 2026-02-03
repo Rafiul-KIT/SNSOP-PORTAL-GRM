@@ -106,38 +106,8 @@ export class Header {
     return [
       {
         label: 'Dashboard',
-<<<<<<< HEAD
-        link: environment.portals.master,
-        icon: 'fas fa-dashboard',
-      },
-      {
-        label: 'Beneficiary',
-        link: environment.portals.beneficiary,
-        icon: 'fas fa-user-friends',
-      },
-      {
-        label: 'Payment',
-        link: environment.portals.payment,
-        icon: 'fas fa-credit-card',
-      },
-      { label: 'GRM', link: environment.portals.grm, icon: 'fas fa-sitemap' },
-      {
-        label: 'Report',
-        link: environment.portals.report,
-        icon: 'fas fa-chart-line',
-      },
-    ];
-
-    this.menuList = [
-      {
-        label: 'Non-GBV Grievances',
-        icon: 'fas fa-list',
-        routerLink: 'grievances/non-gbv',
-        routerLinkActiveOptions: 'active',
-=======
         icon: 'fas fa-tachometer-alt',
         routerLink: 'dashboard',
->>>>>>> origin/main
       },
       {
         label: 'GBV Grievances',
