@@ -29,8 +29,8 @@ pipeline {
                     echo Node version:
                     node --version
                     echo NPM version:
-                    npm --version
-                    npm install
+                    call npm --version
+                    call npm install
                 '''
             }
         }
@@ -39,7 +39,7 @@ pipeline {
             steps {
                 echo '🏗️ Building Angular application for DEVELOPMENT...'
                 echo 'Base href will be automatically set to /trial/grm/'
-                bat 'npm run build-dev'
+                bat 'call npm run build-dev'
             }
         }
         
