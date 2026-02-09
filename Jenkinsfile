@@ -30,7 +30,7 @@ pipeline {
                     node --version
                     echo NPM version:
                     npm --version
-                    npm ci
+                    npm install
                 '''
             }
         }
@@ -38,7 +38,27 @@ pipeline {
         stage('Build Angular Application') {
             steps {
                 echo '🏗️ Building Angular application for production...'
-                bat 'npm run build -- --configuration production'
+                echo 'Base href will be automatically set to /trial/grm/'
+                bat 'npm run build-prod'
+            }
+        }
+        
+        stage('Verify Build Output') {
+            steps {
+                echo '🔍 Verifying build output...'
+                bat '''
+                    @echo off
+                    echo Checking build directory...
+                    dir dist\\browser
+                    echo.
+                    echo Checking if index.html exists...
+                    if exist "dist\\browser\\index.html" (
+                        echo ✅ Build successful - index.html found
+                    ) else (
+                        echo ❌ Build failed - index.html not found
+                        exit /b 1
+                    )
+                '''
             }
         }
         
@@ -56,11 +76,11 @@ pipeline {
                             echo Removing folder: %%p
                             rmdir "%%p" /s /q 2>nul
                         )
-                        echo Old files deleted successfully!
+                        echo ✅ Old files deleted successfully!
                     ) else (
                         echo Directory does not exist, creating it...
                         mkdir "${TOMCAT_PATH}"
-                        echo Directory created!
+                        echo ✅ Directory created!
                     )
                 """
             }
@@ -71,12 +91,19 @@ pipeline {
                 echo '🚀 Deploying new build to Tomcat...'
                 bat """
                     @echo off
-                    echo Copying files from: ${WORKSPACE}\\dist\\browser
-                    echo To: ${TOMCAT_PATH}
-                    
+                    echo.
+                    echo Source: ${WORKSPACE}\\dist\\browser
+                    echo Target: ${TOMCAT_PATH}
+                    echo.
+                    echo Copying files...
                     xcopy /E /I /Y /Q "${WORKSPACE}\\dist\\browser\\*" "${TOMCAT_PATH}\\"
                     
-                    echo Files copied successfully!
+                    if errorlevel 1 (
+                        echo ❌ File copy failed!
+                        exit /b 1
+                    ) else (
+                        echo ✅ Files copied successfully!
+                    )
                 """
             }
         }
@@ -86,23 +113,24 @@ pipeline {
                 echo '✅ Verifying deployment...'
                 bat """
                     @echo off
+                    echo.
                     echo Checking deployment directory...
                     
                     if exist "${TOMCAT_PATH}\\index.html" (
                         echo.
-                        echo ============================================
+                        echo ================================================
                         echo ✅ DEPLOYMENT SUCCESSFUL!
-                        echo ============================================
+                        echo ================================================
                         echo.
-                        echo Files in deployment directory:
+                        echo Deployed files:
                         dir "${TOMCAT_PATH}" /B
                         echo.
                         exit /b 0
                     ) else (
                         echo.
-                        echo ============================================
+                        echo ================================================
                         echo ❌ DEPLOYMENT FAILED!
-                        echo ============================================
+                        echo ================================================
                         echo index.html not found in: ${TOMCAT_PATH}
                         echo.
                         exit /b 1
@@ -115,34 +143,53 @@ pipeline {
     post {
         success {
             echo ''
-            echo '=================================================='
+            echo '======================================================='
             echo '✅ BUILD AND DEPLOYMENT SUCCESSFUL!'
-            echo '=================================================='
+            echo '======================================================='
             echo ''
             echo "📁 Deployed to: ${TOMCAT_PATH}"
             echo "🌐 Access your app at: http://167.86.68.15/trial/grm/"
             echo ''
-            echo "📊 Build Details:"
+            echo '📊 Build Details:'
             echo "   - Job: ${env.JOB_NAME}"
-            echo "   - Build #${env.BUILD_NUMBER}"
-            echo "   - Duration: ${currentBuild.durationString}"
+            echo "   - Build: #${env.BUILD_NUMBER}"
+            echo "   - Branch: ${env.GIT_BRANCH}"
+            echo "   - Commit: ${env.GIT_COMMIT}"
             echo ''
-            echo '=================================================='
+            echo '🎯 What was deployed:'
+            echo '   - index.html with <base href="/trial/grm/">'
+            echo '   - All compiled JavaScript bundles'
+            echo '   - All CSS stylesheets'
+            echo '   - All assets (images, fonts, etc.)'
+            echo ''
+            echo '======================================================='
         }
         failure {
             echo ''
-            echo '=================================================='
+            echo '======================================================='
             echo '❌ BUILD OR DEPLOYMENT FAILED!'
-            echo '=================================================='
+            echo '======================================================='
             echo ''
-            echo "Check the console output above for errors"
-            echo "Build #${env.BUILD_NUMBER} failed"
+            echo "Job: ${env.JOB_NAME}"
+            echo "Build: #${env.BUILD_NUMBER}"
             echo ''
-            echo '=================================================='
+            echo 'Check the console output above for errors'
+            echo ''
+            echo '======================================================='
         }
         always {
+            echo ''
             echo '🧹 Cleaning up Jenkins workspace...'
             cleanWs()
+            echo '✅ Cleanup complete'
         }
     }
 }
+```
+
+## Also noticed: You're on `dev-jenkins` branch
+
+I see Jenkins is building from the `dev-jenkins` branch:
+```
+Checking out Revision 7e126e3b0ca3139afa138e2cac0aa4a72d6bdb8b (refs/remotes/origin/dev-jenkins)
+Commit message: "test jenkins"
