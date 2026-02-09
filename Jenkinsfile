@@ -37,9 +37,9 @@ pipeline {
         
         stage('Build Angular Application') {
             steps {
-                echo '🏗️ Building Angular application for production...'
+                echo '🏗️ Building Angular application for DEVELOPMENT...'
                 echo 'Base href will be automatically set to /trial/grm/'
-                bat 'npm run build-prod'
+                bat 'npm run build-dev'
             }
         }
         
@@ -144,23 +144,23 @@ pipeline {
         success {
             echo ''
             echo '======================================================='
-            echo '✅ BUILD AND DEPLOYMENT SUCCESSFUL!'
+            echo '✅ DEVELOPMENT BUILD AND DEPLOYMENT SUCCESSFUL!'
             echo '======================================================='
             echo ''
             echo "📁 Deployed to: ${TOMCAT_PATH}"
             echo "🌐 Access your app at: http://167.86.68.15/trial/grm/"
             echo ''
             echo '📊 Build Details:'
+            echo "   - Environment: DEVELOPMENT"
             echo "   - Job: ${env.JOB_NAME}"
             echo "   - Build: #${env.BUILD_NUMBER}"
             echo "   - Branch: ${env.GIT_BRANCH}"
             echo "   - Commit: ${env.GIT_COMMIT}"
             echo ''
-            echo '🎯 What was deployed:'
-            echo '   - index.html with <base href="/trial/grm/">'
-            echo '   - All compiled JavaScript bundles'
-            echo '   - All CSS stylesheets'
-            echo '   - All assets (images, fonts, etc.)'
+            echo '🎯 Development Features Enabled:'
+            echo '   - Source maps enabled'
+            echo '   - No optimization'
+            echo '   - Debug mode'
             echo ''
             echo '======================================================='
         }
@@ -185,11 +185,3 @@ pipeline {
         }
     }
 }
-```
-
-## Also noticed: You're on `dev-jenkins` branch
-
-I see Jenkins is building from the `dev-jenkins` branch:
-```
-Checking out Revision 7e126e3b0ca3139afa138e2cac0aa4a72d6bdb8b (refs/remotes/origin/dev-jenkins)
-Commit message: "test jenkins"
