@@ -115,26 +115,23 @@ pipeline {
                     @echo off
                     echo.
                     echo Checking deployment directory...
-                    
-                    if exist "${TOMCAT_PATH}\\index.html" (
-                        echo.
-                        echo ================================================
-                        echo ✅ DEPLOYMENT SUCCESSFUL!
-                        echo ================================================
-                        echo.
-                        echo Deployed files:
-                        dir "${TOMCAT_PATH}" /B
-                        echo.
-                        exit /b 0
-                    ) else (
-                        echo.
-                        echo ================================================
-                        echo ❌ DEPLOYMENT FAILED!
-                        echo ================================================
-                        echo index.html not found in: ${TOMCAT_PATH}
-                        echo.
-                        exit /b 1
-                    )
+                    if not exist "${TOMCAT_PATH}\\index.html" goto :deploy_failed
+                    echo.
+                    echo ================================================
+                    echo DEPLOYMENT SUCCESSFUL!
+                    echo ================================================
+                    echo.
+                    echo Deployed files:
+                    dir "${TOMCAT_PATH}" /B
+                    echo.
+                    exit /b 0
+                    :deploy_failed
+                    echo.
+                    echo ================================================
+                    echo DEPLOYMENT FAILED!
+                    echo ================================================
+                    echo.
+                    exit /b 1
                 """
             }
         }
