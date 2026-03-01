@@ -56,6 +56,11 @@ interface NonGbvGrievanceDetails {
   status: string; // Assuming status is returned as a string
 }
 
+interface ValueLabelItem {
+  label: string;
+  value: any;
+}
+
 interface AccusedType {
   label: string;
   value: number;
@@ -112,10 +117,10 @@ export class NonGbvProcessDetails implements OnInit {
     { label: 'Resolved', value: 'Resolved' },
     { label: 'Unresolved', value: 'Unresolved' },
   ];
-  genders: LookupItem[] = [];
-  reportingChannels: LookupItem[] = [];
-  grievanceCategories: LookupItem[] = []; // Categories (parent)
-  grievanceTypes: LookupItem[] = []; // Detailed types (child)
+  genders: ValueLabelItem[] = [];
+  reportingChannels: ValueLabelItem[] = [];
+  grievanceCategories: ValueLabelItem[] = []; // Categories (parent)
+  grievanceTypes: ValueLabelItem[] = []; // Detailed types (child)
 
   // Form conditional flags
   furtherActionRequired: boolean = false;
@@ -217,7 +222,7 @@ export class NonGbvProcessDetails implements OnInit {
       if (res?.data?.content?.length) {
         this.grievanceDetails = res.data.content[0];
         // Now load dependent lookups for the initial grievance details display
-        await this.loadGrievanceDependentLookups(this.grievanceDetails);
+        await this.loadGrievanceDependentLookups(this.grievanceDetails!);
       } else {
         this.messageService.add({
           severity: 'warn',

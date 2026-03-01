@@ -5,7 +5,7 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ApiService } from '../../../services/api.service';
 import { LookupItem, LookupService } from '../../../services/lookup.service';
 import { MessageService, MenuItem } from 'primeng/api';
@@ -15,6 +15,11 @@ import { Loader } from '../../../components/loader/loader';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
+
+interface ValueLabelItem {
+  label: string;
+  value: any;
+}
 
 interface NonGbvGrievanceDetails {
   id: number;
@@ -75,21 +80,22 @@ export class NonGbvDetails implements OnInit {
   counties: LookupItem[] = [];
   payams: LookupItem[] = [];
   bomas: LookupItem[] = [];
-  genders: LookupItem[] = [];
-  reportingChannels: LookupItem[] = [];
-  grievanceCategories: LookupItem[] = []; // Categories (parent)
-  grievanceTypes: LookupItem[] = []; // Detailed types (child)
+  genders: ValueLabelItem[] = [];
+  reportingChannels: ValueLabelItem[] = [];
+  grievanceCategories: ValueLabelItem[] = []; // Categories (parent)
+  grievanceTypes: ValueLabelItem[] = []; // Detailed types (child)
 
   // Status options (example, adjust as per actual statuses)
   statusOptions = [
-    { label: 'Pending', value: 1 },
-    { label: 'In Progress', value: 2 },
-    { label: 'Resolved', value: 3 },
-    { label: 'Rejected', value: 4 },
+    { label: 'Pending', value: 'Pending' },
+    { label: 'In Progress', value: 'In Progress' },
+    { label: 'Resolved', value: 'Resolved' },
+    { label: 'Rejected', value: 'Rejected' },
   ];
 
   constructor(
     private route: ActivatedRoute,
+    public router: Router,
     private apiService: ApiService,
     private lookupService: LookupService,
     private cdr: ChangeDetectorRef,
@@ -159,7 +165,7 @@ export class NonGbvDetails implements OnInit {
       if (res?.data?.content?.length) {
         this.grievanceDetails = res.data.content[0];
         // After loading details, load dependent lookups (county, payam, boma, grievance types)
-        await this.loadDependentLookups(this.grievanceDetails);
+        await this.loadDependentLookups(this.grievanceDetails!);
       } else {
         this.messageService.add({
           severity: 'warn',
@@ -244,6 +250,11 @@ export class NonGbvDetails implements OnInit {
 
   getBeneficiaryStatus(isBeneficiary: boolean): string {
     return isBeneficiary ? 'Yes' : 'No';
+  }
+
+  getStatusLabel(statusValue: string | number): string {
+    const status = this.statusOptions.find(s => s.value === statusValue);
+    return status ? status.label : String(statusValue);
   }
 
   // Helper to handle attachment download
