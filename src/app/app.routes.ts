@@ -6,6 +6,11 @@ import { NonGbvManagement } from './pages/non-gbv-management/non-gbv-management'
 import { GrievancesStatusReport } from './pages/grievances-status-report/grievances-status-report';
 import { ExcelImporting } from './pages/excel-importing/excel-importing';
 import { Profile } from './pages/profile/profile';
+import { routeGuard } from './route.guard';
+import { NonGbvList } from './pages/non-gbv-list/non-gbv-list';
+import { NonGbvDetails } from './pages/non-gbv-details/non-gbv-details';
+import { NonGbvProcessList } from './pages/non-gbv-process-list/non-gbv-process-list';
+import { NonGbvProcessDetails } from './pages/non-gbv-process-details/non-gbv-process-details';
 
 export const routes: Routes = [
   {
@@ -16,10 +21,34 @@ export const routes: Routes = [
     component: GBVManagement,
     path: 'gbv-management',
   },
-  {
-    component: NonGbvManagement,
+    {
     path: 'non-gbv-management',
+    children: [
+      {
+        path: 'issue-entry',
+        component: NonGbvManagement,  
+      },
+      {
+        path: 'list',
+        component: NonGbvList,
+       
+      },
+      {
+        path: 'process',
+        component: NonGbvProcessList,
+       
+      },
+      {
+        path: 'details',
+        component: NonGbvDetails,
+      },
+         {
+        path: 'process-details',
+        component: NonGbvProcessDetails,
+      },
+    ],
   },
+
   {
     component: NonGbvManagement,
     path: 'non-gbv-management',
