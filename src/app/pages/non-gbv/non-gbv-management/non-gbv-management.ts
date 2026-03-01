@@ -15,8 +15,8 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { LookupService, LookupItem } from '../../services/lookup.service';
-import { ApiService } from '../../services/api.service';
+import { LookupService, LookupItem } from '../../../services/lookup.service';
+import { ApiService } from '../../../services/api.service';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { MenuItem } from 'primeng/api';
 import Swal from 'sweetalert2';
@@ -44,6 +44,7 @@ import Swal from 'sweetalert2';
 export class NonGbvManagement implements OnInit {
   grievanceForm!: FormGroup;
   today: Date = new Date();
+  isLoading = false;
 
   items: MenuItem[] | undefined;
   home: MenuItem | undefined;
@@ -264,10 +265,11 @@ export class NonGbvManagement implements OnInit {
 
   onSubmit(): void {
     if (this.grievanceForm.valid) {
+      this.isLoading = true;
       const rawValues = this.grievanceForm.getRawValue();
 
       const formData = new FormData();
-      formData.append('id', '0');
+      // formData.append('id', '0');
       formData.append('trackingNumber', '');
       formData.append('stateId', rawValues.stateName);
       formData.append('countyId', rawValues.countyName);
@@ -326,7 +328,7 @@ export class NonGbvManagement implements OnInit {
         })
         .then((res: any) => {
           const result = res?.data;
-          if (result && result.code === 0) {
+          if (result && result.code === 200) {
             Swal.fire({
               title: 'Success!',
               text: result.message || 'Grievance submitted successfully.',
@@ -351,6 +353,10 @@ export class NonGbvManagement implements OnInit {
             icon: 'error',
             confirmButtonColor: '#0d6efd',
           });
+        })
+        .finally(() => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
         });
     } else {
       Object.keys(this.grievanceForm.controls).forEach((key) => {

@@ -1,0 +1,120 @@
+@if (isLoading) {
+  <app-loader></app-loader>
+} @else {
+  <div class="breadcrumb-wrapper">
+    <p-breadcrumb [model]="breadcrumbItems" [home]="breadcrumbHome" class="w-100"></p-breadcrumb>
+  </div>
+
+  <div class="card p-3 mb-2">
+    <form [formGroup]="searchForm" class="row g-3">
+     
+      <!-- State -->
+      <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="states" [filter]="true" optionLabel="name" formControlName="state" (onChange)="onStateChange($event.value)" />
+          <label>State Name</label>
+        </p-floatlabel>
+      </div>
+
+      <!-- County -->
+      <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="counties" [filter]="true" optionLabel="name" formControlName="county" (onChange)="onCountyChange($event.value)" />
+          <label>County Name</label>
+        </p-floatlabel>
+      </div>
+
+      <!-- Payam -->
+      <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="payams" [filter]="true" optionLabel="name" formControlName="payam" (onChange)="onPayamChange($event.value)" />
+          <label>Payam Name</label>
+        </p-floatlabel>
+      </div>
+
+      <!-- Boma -->
+      <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="bomas" [filter]="true" optionLabel="name"  formControlName="boma" />
+          <label>Boma Name</label>
+        </p-floatlabel>
+      </div>
+ <!-- Tracking Number -->
+      <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <input pInputText class="form-control" formControlName="trackingNumber" />
+          <label>Tracking Number</label>
+        </p-floatlabel>
+      </div>
+
+      <!-- Status -->
+      <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="statusOptions" optionLabel="label" optionValue="value" formControlName="status" />
+          <label>Status</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="col-12">
+        <div class="d-grid d-sm-flex justify-content-end align-items-center gap-2">
+          <p-button label="Reset" icon="fas fa-refresh" severity="danger" size="small" [outlined]="true" (onClick)="resetForm()" />
+          <p-button label="Search" icon="fas fa-search" severity="primary" size="small" (onClick)="searchGrievances()" />
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <p-table [value]="grievances" [scrollable]="true" scrollHeight="64vh" [tableStyle]="{ 'min-width': '100%', 'margin-bottom': '5px' }" dataKey="id" [rowTrackBy]="trackById" size="small">
+    <ng-template pTemplate="header">
+      <tr>
+        <th colspan="10" class="text-end">
+          <p class="fw-bold mb-2">
+            Showing <kbd>{{ grievances.length }}</kbd> of
+            <kbd>{{ totalRecords }}</kbd> grievances
+          </p>
+        </th>
+      </tr>
+      <tr>
+        <th class="text-center">Serial</th>
+        <th class="text-center">Tracking Number</th>
+        <th class="text-center">State</th>
+        <th class="text-center">Created At</th>
+        <th class="text-center">Complainant Name</th>
+        <th class="text-center">Reporting Channel</th>
+        <th class="text-center">Beneficiary Status</th>
+        <th class="text-center">Status</th>
+        <th class="text-center">Action</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-item let-i="rowIndex">
+      <tr>
+        <td class="text-center">{{ (currentPage * pageSize) + i + 1 }}</td>
+        <td class="text-center">{{ item.trackingNumber }}</td>
+        <td class="text-center">{{ getStateName(item.stateId) }}</td>
+        <td class="text-center">{{ item.createdAt | date: 'dd/MM/yyyy' }}</td>
+        <td class="text-center">{{ item.complainantName }}</td>
+        <td class="text-center">{{ item.reportingChannel }}</td>
+        <td class="text-center">{{ item.isComplainantBeneficiary === 'YES' ? 'Beneficiary' : 'Non-Beneficiary' }}</td>
+        <td class="text-center">
+          <span [class]="'badge ' + (item.status === 'Resolved' ? 'bg-success' : item.status === 'Rejected' ? 'bg-danger' : 'bg-warning')">
+            {{ getStatusLabel(item.status) }}
+          </span>
+        </td>
+        <td class="text-center">
+          <p-button type="button" icon="fas fa-eye" pTooltip="View Details" tooltipPosition="top" size="small" outlined="true" severity="secondary" class="me-2" />
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="10" class="text-center text-danger">
+          <b>No non-GBV grievances found!</b>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <p-paginator class="paginator-sticky" [rows]="pageSize" [totalRecords]="totalRecords" [rowsPerPageOptions]="[10, 25, 50]" (onPageChange)="onPageChange($event)" [first]="(currentPage) * pageSize" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" />
+}

@@ -155,7 +155,7 @@
         <!-- Form Actions -->
         <div class="d-flex justify-content-end gap-3 mt-5 pt-4 border-top">
           <p-button label="Reset" icon="pi pi-refresh" severity="secondary" (onClick)="onReset()" [outlined]="true" styleClass="p-button-sm"></p-button>
-          <p-button label="Submit Grievance" icon="pi pi-check" (onClick)="onSubmit()" severity="primary" styleClass="p-button-sm"></p-button>
+          <p-button label="Submit Grievance" icon="pi pi-check" (onClick)="onSubmit()" [disabled]="isLoading" [loading]="isLoading" severity="primary" styleClass="p-button-sm"></p-button>
         </div>
       </form>
     </div>

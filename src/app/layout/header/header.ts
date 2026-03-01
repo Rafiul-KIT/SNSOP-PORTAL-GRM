@@ -120,7 +120,7 @@ export class Header {
         icon: 'fas fa-balance-scale-left',
         items: [
           {
-            label: 'Non-GBV Management Issue Entry',
+            label: 'Non GBV Management Issue Entry',
             icon: 'fas fa-plus',
             routerLink: 'non-gbv-management/issue-entry',
           },
@@ -129,7 +129,7 @@ export class Header {
             icon: 'fas fa-list',
             routerLink: 'non-gbv-management/list',
           },
-             {
+           {
             label: 'Non GBV Grievances Process',
             icon: 'fas fa-list',
             routerLink: 'non-gbv-management/process',

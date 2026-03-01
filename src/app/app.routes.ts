@@ -2,15 +2,15 @@ import { Routes } from '@angular/router';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { NotFound } from './components/not-found/not-found';
 import { GBVManagement } from './pages/gbv-management/gbv-management';
-import { NonGbvManagement } from './pages/non-gbv-management/non-gbv-management';
+import { NonGbvManagement } from './pages/non-gbv/non-gbv-management/non-gbv-management';
 import { GrievancesStatusReport } from './pages/grievances-status-report/grievances-status-report';
 import { ExcelImporting } from './pages/excel-importing/excel-importing';
 import { Profile } from './pages/profile/profile';
 import { routeGuard } from './route.guard';
-import { NonGbvList } from './pages/non-gbv-list/non-gbv-list';
-import { NonGbvDetails } from './pages/non-gbv-details/non-gbv-details';
-import { NonGbvProcessList } from './pages/non-gbv-process-list/non-gbv-process-list';
-import { NonGbvProcessDetails } from './pages/non-gbv-process-details/non-gbv-process-details';
+import { NonGbvList } from './pages/non-gbv/non-gbv-list/non-gbv-list';
+import { NonGbvDetails } from './pages/non-gbv/non-gbv-details/non-gbv-details';
+import { NonGbvProcessList } from './pages/non-gbv/non-gbv-process-list/non-gbv-process-list';
+import { NonGbvProcessDetails } from './pages/non-gbv/non-gbv-process-details/non-gbv-process-details';
 
 export const routes: Routes = [
   {
