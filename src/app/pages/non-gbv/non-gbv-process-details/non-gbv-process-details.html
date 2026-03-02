@@ -234,7 +234,7 @@
 
           <!-- Form Actions -->
           <div class="d-flex justify-content-end gap-3 mt-5 pt-4 border-top">
-            <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="router.navigate(['/non-gbv-management/process'])" [outlined]="true" styleClass="p-button-sm"></p-button>
+            <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="onCancel()" [outlined]="true" styleClass="p-button-sm"></p-button>
             <p-button label="Submit Process" icon="pi pi-check" (onClick)="onSubmit()" [disabled]="isSubmitting || processForm.invalid" [loading]="isSubmitting" severity="primary" styleClass="p-button-sm"></p-button>
           </div>
         </form>

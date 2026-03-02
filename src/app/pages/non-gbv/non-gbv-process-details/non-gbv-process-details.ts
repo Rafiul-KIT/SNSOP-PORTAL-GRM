@@ -180,6 +180,9 @@ export class NonGbvProcessDetails implements OnInit {
     this.breadcrumbItems = [{ label: 'Non-GBV Grievance Process' }];
   }
 
+onCancel(): void {
+  this.router.navigate(['/non-gbv-management/process']);
+}
   async loadAllLookups() {
     try {
       const [
