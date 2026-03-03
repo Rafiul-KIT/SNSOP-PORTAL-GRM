@@ -188,28 +188,10 @@ onCancel(): void {
 }
   async loadAllLookups() {
     try {
-      const [
-        statesRes,
-        categoriesRes,
-        reportingChannelsRes,
-        gendersList,
-        // Add other global lookups here
-      ] = await Promise.all([
-        this.lookupService.getOrFetchStateList(),
-        this.apiService.GET('api/grievance/type'),
-        this.apiService.GET('api/grievance/reporting-channel'),
-        this.lookupService.getGenderListbyId(),
-      ]);
-
+      // This page only needs state lookups for accused location chain.
+      const statesRes = await this.lookupService.getOrFetchStateList();
       this.states = statesRes;
-      this.accusedStates = statesRes; // Accused uses same states
-      this.grievanceCategories = categoriesRes?.data?.content
-        .filter((item: any) => item.status === true)
-        .map((item: any) => ({ label: item.details, value: item.id }));
-      this.reportingChannels = reportingChannelsRes?.data?.content
-        .filter((item: any) => item.ngbvChannel === true)
-        .map((item: any) => ({ label: item.detail, value: item.id }));
-      this.genders = gendersList.map((item) => ({ label: item.name, value: parseInt(item.id) }));
+      this.accusedStates = statesRes;
     } catch (error) {
       console.error('Error loading lookups:', error);
       this.messageService.add({
@@ -229,9 +211,6 @@ onCancel(): void {
         this.grievanceDetails = res.data.content[0];
         this.isLoading = false;
         this.cdr.detectChanges();
-
-        // Load dependent lookups in background so page shows immediately.
-        void this.loadGrievanceDependentLookups(this.grievanceDetails!);
       } else {
         this.messageService.add({
           severity: 'warn',
@@ -253,50 +232,6 @@ onCancel(): void {
     this.isLoading = false;
     this.cdr.detectChanges();
   }
-
-  // Load lookups specific to the fetched grievance details for display
-  async loadGrievanceDependentLookups(details: NonGbvGrievanceDetails) {
-    const jobs: Promise<any>[] = [];
-
-    if (details.stateId) {
-      jobs.push(
-        this.lookupService
-          .getCountyListByStateId(String(details.stateId))
-          .then((data) => (this.counties = data))
-      );
-    }
-    if (details.countyId) {
-      jobs.push(
-        this.lookupService
-          .getPayamListByCountyId(String(details.countyId))
-          .then((data) => (this.payams = data))
-      );
-    }
-    if (details.payamId) {
-      jobs.push(
-        this.lookupService
-          .getBomaListByPayamId(String(details.payamId))
-          .then((data) => (this.bomas = data))
-      );
-    }
-    if (details.grievanceTypeId) {
-      jobs.push(
-        this.apiService
-          .GET(`api/grievance/detail-type`, { type: details.grievanceTypeId })
-          .then((res: any) => {
-            if (res?.data?.content) {
-              this.grievanceTypes = res.data.content
-                .filter((item: any) => item.status === true)
-                .map((item: any) => ({ label: item.details, value: item.id }));
-            }
-          })
-      );
-    }
-
-    await Promise.all(jobs);
-    this.cdr.markForCheck();
-  }
-
 
   initForm(): void {
     this.processForm = this.fb.group({
