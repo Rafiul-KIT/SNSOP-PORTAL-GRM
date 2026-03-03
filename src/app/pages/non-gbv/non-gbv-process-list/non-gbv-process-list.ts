@@ -185,13 +185,13 @@ export class NonGbvProcessList implements OnInit {
   private buildSearchBody() {
     const f = this.searchForm.value;
     return {
-      id: f.id || 0, 
+      id: f.id || null, 
       trackingNumber: f.trackingNumber ? f.trackingNumber.trim() : '',
-      stateId: f.state?.id || 0,
-      countyId: f.county?.id || 0,
-      payamId: f.payam?.id || 0,
-      bomaId: f.boma?.id || 0,
-      status: f.status || 0, // Assuming 0 or null is acceptable for empty status
+      stateId: f.state?.id || null,
+      countyId: f.county?.id || null,
+      payamId: f.payam?.id || null,
+      bomaId: f.boma?.id || null,
+      status: f.status || null, // Assuming 0 or null is acceptable for empty status
     };
   }
 
