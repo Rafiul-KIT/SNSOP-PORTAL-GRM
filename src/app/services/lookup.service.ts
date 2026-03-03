@@ -42,6 +42,12 @@ export class LookupService {
   private countyList: LookupItem[] = [];
   private payamList: LookupItem[] = [];
   private bomaList: LookupItem[] = [];
+  private countyByStateCache = new Map<string, LookupItem[]>();
+  private payamByCountyCache = new Map<string, LookupItem[]>();
+  private bomaByPayamCache = new Map<string, LookupItem[]>();
+  private countyByStateInFlight = new Map<string, Promise<LookupItem[]>>();
+  private payamByCountyInFlight = new Map<string, Promise<LookupItem[]>>();
+  private bomaByPayamInFlight = new Map<string, Promise<LookupItem[]>>();
 
   constructor(private api: ApiService) { }
 
@@ -119,14 +125,32 @@ export class LookupService {
     return fromFiltered ? fromFiltered.name : '--';
   }
   getCountyListByStateId(stateId: string): Promise<LookupItem[]> {
-    return this.fetchLookup({
+    const key = String(stateId);
+    const cached = this.countyByStateCache.get(key);
+    if (cached) {
+      this.setCountyList(cached);
+      return Promise.resolve(cached);
+    }
+
+    const inFlight = this.countyByStateInFlight.get(key);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const request = this.fetchLookup({
       lookupType: 'COUNTY',
-      parentId: stateId,
+      parentId: key,
       size: -1,
     }).then((list) => {
       this.setCountyList(list);
+      this.countyByStateCache.set(key, list);
       return list;
+    }).finally(() => {
+      this.countyByStateInFlight.delete(key);
     });
+
+    this.countyByStateInFlight.set(key, request);
+    return request;
   }
 
   // ---------- Payam ----------
@@ -145,14 +169,32 @@ export class LookupService {
   }
 
   getPayamListByCountyId(countyId: string): Promise<LookupItem[]> {
-    return this.fetchLookup({
+    const key = String(countyId);
+    const cached = this.payamByCountyCache.get(key);
+    if (cached) {
+      this.setPayamList(cached);
+      return Promise.resolve(cached);
+    }
+
+    const inFlight = this.payamByCountyInFlight.get(key);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const request = this.fetchLookup({
       lookupType: 'PAYAM',
-      parentId: countyId,
+      parentId: key,
       size: -1,
     }).then((list) => {
       this.setPayamList(list);
+      this.payamByCountyCache.set(key, list);
       return list;
+    }).finally(() => {
+      this.payamByCountyInFlight.delete(key);
     });
+
+    this.payamByCountyInFlight.set(key, request);
+    return request;
   }
 
   // ---------- Boma ----------
@@ -171,14 +213,32 @@ export class LookupService {
   }
 
   getBomaListByPayamId(payamId: string): Promise<LookupItem[]> {
-    return this.fetchLookup({
+    const key = String(payamId);
+    const cached = this.bomaByPayamCache.get(key);
+    if (cached) {
+      this.setBomaList(cached);
+      return Promise.resolve(cached);
+    }
+
+    const inFlight = this.bomaByPayamInFlight.get(key);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const request = this.fetchLookup({
       lookupType: 'BOMA',
-      parentId: payamId,
+      parentId: key,
       size: -1,
     }).then((list) => {
       this.setBomaList(list);
+      this.bomaByPayamCache.set(key, list);
       return list;
+    }).finally(() => {
+      this.bomaByPayamInFlight.delete(key);
     });
+
+    this.bomaByPayamInFlight.set(key, request);
+    return request;
   }
 
   // ---------- Central fetcher ----------

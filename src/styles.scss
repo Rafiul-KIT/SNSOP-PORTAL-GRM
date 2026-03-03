@@ -79,3 +79,10 @@ ul {
     margin: 0.5rem 0 !important;
   }
 }
+
+// Keep PrimeNG overlays clickable above fixed header + scrolling wrapper.
+.p-select-overlay,
+.p-datepicker-panel,
+.p-component-overlay {
+  z-index: 100000 !important;
+}

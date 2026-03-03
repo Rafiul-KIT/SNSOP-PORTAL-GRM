@@ -257,6 +257,28 @@ export class NonGbvDetails implements OnInit {
     return status ? status.label : String(statusValue);
   }
 
+  formatDisplayDate(value: string | null | undefined): string {
+    if (!value) return '';
+
+    const ddMmYyyy = /^(\d{2})-(\d{2})-(\d{4})$/;
+    const match = value.match(ddMmYyyy);
+
+    if (match) {
+      const day = Number(match[1]);
+      const month = Number(match[2]) - 1;
+      const year = Number(match[3]);
+      const date = new Date(year, month, day);
+      return Number.isNaN(date.getTime())
+        ? value
+        : new Intl.DateTimeFormat('en-GB').format(date);
+    }
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime())
+      ? value
+      : new Intl.DateTimeFormat('en-GB').format(date);
+  }
+
   // Helper to handle attachment download
   downloadAttachment(url: string, filename: string): void {
     // Implement download logic here, e.g., using window.open or a more robust approach

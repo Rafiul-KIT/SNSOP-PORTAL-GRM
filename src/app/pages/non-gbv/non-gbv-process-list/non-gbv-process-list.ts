@@ -34,10 +34,15 @@ interface NonGbvGrievance {
   trackingNumber: string;
   stateId: number;
   createdAt: string;
+  createdAtDisplay?: string;
+  stateName?: string;
   complainantName: string;
   reportingChannel: string;
   isComplainantBeneficiary: string;
+  beneficiaryStatus?: string;
   status: string | number;
+  statusLabel?: string;
+  statusBadgeClass?: string;
 }
 
 @Component({
@@ -66,10 +71,13 @@ interface NonGbvGrievance {
 })
 export class NonGbvProcessList implements OnInit {
   isLoading = true;
+  isTableLoading = false;
+  hasInitialLoadCompleted = false;
   searchForm!: FormGroup;
 
   // Geo lookup lists
   states: LookupItem[] = [];
+  stateNameMap: Record<string, string> = {};
   counties: LookupItem[] = [];
   payams: LookupItem[] = [];
   bomas: LookupItem[] = [];
@@ -84,7 +92,7 @@ export class NonGbvProcessList implements OnInit {
 
   // Breadcrumb
   breadcrumbItems: MenuItem[] = [];
-  breadcrumbHome: MenuItem = { icon: 'fas fa-home', routerLink: '/dashboard' };
+  breadcrumbHome: MenuItem = { icon: 'pi pi-home', routerLink: '/dashboard' };
 
   // Status options (example, adjust as per actual statuses)
   statusOptions = [
@@ -129,6 +137,10 @@ export class NonGbvProcessList implements OnInit {
     try {
       await this.lookup.getOrFetchStateList();
       this.states = this.lookup.getStateList();
+      this.stateNameMap = this.states.reduce<Record<string, string>>((acc, s) => {
+        acc[String(s.id)] = s.name;
+        return acc;
+      }, {});
       this.cdr.markForCheck();
     } catch (err) {
       console.error('Lookups loading error:', err);
@@ -196,7 +208,11 @@ export class NonGbvProcessList implements OnInit {
 
   // Data loading
   fetchPage(page: number, size: number) {
-    this.isLoading = true;
+    if (this.hasInitialLoadCompleted) {
+      this.isTableLoading = true;
+    } else {
+      this.isLoading = true;
+    }
     this.cdr.markForCheck(); // Trigger change detection to show loader
 
     const body = this.buildSearchBody();
@@ -207,9 +223,10 @@ export class NonGbvProcessList implements OnInit {
         if (!res || !res.data) throw new Error('Empty or invalid response');
 
         const data = res.data; // The API returns content, pageNumber, pageSize, totalElements directly under 'data'
-        this.grievances = data.content || [];
+        this.grievances = this.enrichGrievances(data.content || []);
         this.totalRecords = data.totalElements || 0;
         this.currentPage = data.pageNumber || 0; // Ensure current page is updated from response
+        this.hasInitialLoadCompleted = true;
 
         if (this.grievances.length === 0) {
           this.messageService.add({
@@ -229,6 +246,7 @@ export class NonGbvProcessList implements OnInit {
       })
       .finally(() => {
         this.isLoading = false;
+        this.isTableLoading = false;
         this.cdr.detectChanges();
       });
   }
@@ -260,6 +278,28 @@ export class NonGbvProcessList implements OnInit {
     this.currentPage = 0;
     this.fetchPage(this.currentPage, this.pageSize);
     this.cdr.markForCheck();
+  }
+
+  formatDisplayDate(value: string | null | undefined): string {
+    if (!value) return '';
+
+    const ddMmYyyy = /^(\d{2})-(\d{2})-(\d{4})$/;
+    const match = value.match(ddMmYyyy);
+
+    if (match) {
+      const day = Number(match[1]);
+      const month = Number(match[2]) - 1;
+      const year = Number(match[3]);
+      const date = new Date(year, month, day);
+      return Number.isNaN(date.getTime())
+        ? value
+        : new Intl.DateTimeFormat('en-GB').format(date);
+    }
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime())
+      ? value
+      : new Intl.DateTimeFormat('en-GB').format(date);
   }
 
   // Helper to get state name for display (assuming stateId in grievance data)
@@ -304,6 +344,20 @@ export class NonGbvProcessList implements OnInit {
     if (label === 'Resolved') return 'bg-success';
     if (label === 'Referred') return 'bg-danger';
     return 'bg-warning';
+  }
+
+  private enrichGrievances(list: NonGbvGrievance[]): NonGbvGrievance[] {
+    return list.map((item) => {
+      const statusLabel = this.getStatusLabel(item.status);
+      return {
+        ...item,
+        createdAtDisplay: this.formatDisplayDate(item.createdAt),
+        stateName: this.stateNameMap[String(item.stateId)] ?? String(item.stateId),
+        beneficiaryStatus: item.isComplainantBeneficiary === 'YES' ? 'Beneficiary' : 'Non-Beneficiary',
+        statusLabel,
+        statusBadgeClass: this.getStatusBadgeClass(item.status),
+      };
+    });
   }
 
   trackById = (_: number, grievance: NonGbvGrievance) => grievance.id;

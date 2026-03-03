@@ -12,7 +12,7 @@
       <!-- State -->
       <div class="col-md-3">
         <p-floatlabel variant="on" class="w-100">
-          <p-select [options]="states" [filter]="true" optionLabel="name" formControlName="state" (onChange)="onStateChange($event.value)" />
+          <p-select [options]="states" [filter]="true" optionLabel="name" appendTo="body" formControlName="state" (onChange)="onStateChange($event.value)" />
           <label>State Name</label>
         </p-floatlabel>
       </div>
@@ -20,7 +20,7 @@
       <!-- County -->
       <div class="col-md-3">
         <p-floatlabel variant="on" class="w-100">
-          <p-select [options]="counties" [filter]="true" optionLabel="name" formControlName="county" (onChange)="onCountyChange($event.value)" />
+          <p-select [options]="counties" [filter]="true" optionLabel="name" appendTo="body" formControlName="county" (onChange)="onCountyChange($event.value)" />
           <label>County Name</label>
         </p-floatlabel>
       </div>
@@ -28,7 +28,7 @@
       <!-- Payam -->
       <div class="col-md-3">
         <p-floatlabel variant="on" class="w-100">
-          <p-select [options]="payams" [filter]="true" optionLabel="name" formControlName="payam" (onChange)="onPayamChange($event.value)" />
+          <p-select [options]="payams" [filter]="true" optionLabel="name" appendTo="body" formControlName="payam" (onChange)="onPayamChange($event.value)" />
           <label>Payam Name</label>
         </p-floatlabel>
       </div>
@@ -36,7 +36,7 @@
       <!-- Boma -->
       <div class="col-md-3">
         <p-floatlabel variant="on" class="w-100">
-          <p-select [options]="bomas" [filter]="true" optionLabel="name" formControlName="boma" />
+          <p-select [options]="bomas" [filter]="true" optionLabel="name" appendTo="body" formControlName="boma" />
           <label>Boma Name</label>
         </p-floatlabel>
       </div>
@@ -50,21 +50,21 @@
       <!-- Status -->
       <div class="col-md-3">
         <p-floatlabel variant="on" class="w-100">
-          <p-select [options]="statusOptions" optionLabel="label" optionValue="value" formControlName="status" />
+          <p-select [options]="statusOptions" optionLabel="label" optionValue="value" appendTo="body" formControlName="status" />
           <label>Status</label>
         </p-floatlabel>
       </div>
 
       <div class="col-12">
         <div class="d-grid d-sm-flex justify-content-end align-items-center gap-2">
-          <p-button label="Reset" icon="fas fa-refresh" severity="danger" size="small" [outlined]="true" (onClick)="resetForm()" />
-          <p-button label="Search" icon="fas fa-search" severity="primary" size="small" (onClick)="searchGrievances()" />
+          <p-button label="Reset" icon="pi pi-refresh" severity="danger" size="small" [outlined]="true" (onClick)="resetForm()" />
+          <p-button label="Search" icon="pi pi-search" severity="primary" size="small" (onClick)="searchGrievances()" />
         </div>
       </div>
     </form>
   </div>
 
-  <p-table [value]="grievances" [scrollable]="true" scrollHeight="64vh" [tableStyle]="{ 'min-width': '100%', 'margin-bottom': '5px' }" dataKey="id" [rowTrackBy]="trackById" size="small">
+  <p-table [value]="grievances" [loading]="isTableLoading" [tableStyle]="{ 'min-width': '100%', 'margin-bottom': '5px' }" dataKey="id" [rowTrackBy]="trackById" size="small">
     <ng-template pTemplate="header">
       <tr>
         <th colspan="10" class="text-end">
@@ -91,18 +91,18 @@
       <tr>
         <td class="text-center">{{ (currentPage * pageSize) + i + 1 }}</td>
         <td class="text-center">{{ item.trackingNumber }}</td>
-        <td class="text-center">{{ getStateName(item.stateId) }}</td>
-        <td class="text-center">{{ item.createdAt | date: 'dd/MM/yyyy' }}</td>
+        <td class="text-center">{{ item.stateName }}</td>
+        <td class="text-center">{{ item.createdAtDisplay }}</td>
         <td class="text-center">{{ item.complainantName }}</td>
         <td class="text-center">{{ item.reportingChannel }}</td>
-        <td class="text-center">{{ item.isComplainantBeneficiary === 'YES' ? 'Beneficiary' : 'Non-Beneficiary' }}</td>
+        <td class="text-center">{{ item.beneficiaryStatus }}</td>
         <td class="text-center">
-          <span [class]="'badge ' + getStatusBadgeClass(item.status)">
-            {{ getStatusLabel(item.status) }}
+          <span [class]="'badge ' + item.statusBadgeClass">
+            {{ item.statusLabel }}
           </span>
         </td>
         <td class="text-center">
-          <p-button type="button" icon="fas fa-eye" pTooltip="View Details" tooltipPosition="top" size="small" outlined="true" severity="secondary" class="me-2" (onClick)="onView(item.id)" />
+          <p-button type="button" icon="pi pi-eye" pTooltip="View Details" tooltipPosition="top" size="small" outlined="true" severity="secondary" class="me-2" (onClick)="onView(item.id)" />
         </td>
       </tr>
     </ng-template>

@@ -98,7 +98,7 @@ export class NonGbvProcessDetails implements OnInit {
   isSubmitting = false;
 
   breadcrumbItems: MenuItem[] = [];
-  breadcrumbHome: MenuItem = { icon: 'fas fa-home', routerLink: '/dashboard' };
+  breadcrumbHome: MenuItem = { icon: 'pi pi-home', routerLink: '/dashboard' };
 
   // Lookups
   states: LookupItem[] = [];
@@ -159,10 +159,13 @@ export class NonGbvProcessDetails implements OnInit {
     }
 
     try {
-      await this.loadAllLookups(); // Load all lookups first
-      await this.fetchGrievanceDetails(this.ngbvGrievanceId);
-      this.initForm(); // Initialize form after details are fetched and lookups loaded
-      this.subscribeToFormChanges(); // Subscribe to form changes for conditional logic
+      // Build the form before any async call can flip template state.
+      this.initForm();
+      this.subscribeToFormChanges();
+      await Promise.all([
+        this.loadAllLookups(),
+        this.fetchGrievanceDetails(this.ngbvGrievanceId),
+      ]);
     } catch (error) {
       console.error('Initialization error:', error);
       this.messageService.add({
@@ -224,8 +227,11 @@ onCancel(): void {
       const res: any = await this.apiService.GET(`api/ngbv-grievance/get?id=${id}`);
       if (res?.data?.content?.length) {
         this.grievanceDetails = res.data.content[0];
-        // Now load dependent lookups for the initial grievance details display
-        await this.loadGrievanceDependentLookups(this.grievanceDetails!);
+        this.isLoading = false;
+        this.cdr.detectChanges();
+
+        // Load dependent lookups in background so page shows immediately.
+        void this.loadGrievanceDependentLookups(this.grievanceDetails!);
       } else {
         this.messageService.add({
           severity: 'warn',
@@ -242,31 +248,52 @@ onCancel(): void {
         detail: 'Failed to fetch grievance details.',
       });
       this.grievanceDetails = null;
-    } finally {
-      this.isLoading = false;
-      this.cdr.detectChanges();
     }
+
+    this.isLoading = false;
+    this.cdr.detectChanges();
   }
 
   // Load lookups specific to the fetched grievance details for display
   async loadGrievanceDependentLookups(details: NonGbvGrievanceDetails) {
+    const jobs: Promise<any>[] = [];
+
     if (details.stateId) {
-      this.lookupService.getCountyListByStateId(String(details.stateId)).then(data => this.counties = data);
+      jobs.push(
+        this.lookupService
+          .getCountyListByStateId(String(details.stateId))
+          .then((data) => (this.counties = data))
+      );
     }
     if (details.countyId) {
-      this.lookupService.getPayamListByCountyId(String(details.countyId)).then(data => this.payams = data);
+      jobs.push(
+        this.lookupService
+          .getPayamListByCountyId(String(details.countyId))
+          .then((data) => (this.payams = data))
+      );
     }
     if (details.payamId) {
-      this.lookupService.getBomaListByPayamId(String(details.payamId)).then(data => this.bomas = data);
+      jobs.push(
+        this.lookupService
+          .getBomaListByPayamId(String(details.payamId))
+          .then((data) => (this.bomas = data))
+      );
     }
     if (details.grievanceTypeId) {
-      const res: any = await this.apiService.GET(`api/grievance/detail-type`, { type: details.grievanceTypeId });
-      if (res?.data?.content) {
-        this.grievanceTypes = res.data.content
-          .filter((item: any) => item.status === true)
-          .map((item: any) => ({ label: item.details, value: item.id }));
-      }
+      jobs.push(
+        this.apiService
+          .GET(`api/grievance/detail-type`, { type: details.grievanceTypeId })
+          .then((res: any) => {
+            if (res?.data?.content) {
+              this.grievanceTypes = res.data.content
+                .filter((item: any) => item.status === true)
+                .map((item: any) => ({ label: item.details, value: item.id }));
+            }
+          })
+      );
     }
+
+    await Promise.all(jobs);
     this.cdr.markForCheck();
   }
 
@@ -309,8 +336,12 @@ onCancel(): void {
   }
 
   subscribeToFormChanges(): void {
+    const furtherActionRequiredControl = this.processForm.get('furtherActionRequired');
+    const investigationCarriedOutControl = this.processForm.get('investigationCarriedOut');
+    const appealLodgedControl = this.processForm.get('appealLodged');
+
     // Further Action Required
-    this.processForm.get('furtherActionRequired')?.valueChanges.subscribe(val => {
+    furtherActionRequiredControl?.valueChanges?.subscribe((val: boolean) => {
       this.furtherActionRequired = val;
       if (val) {
         this.processForm.get('furtherRequiredActionDetails')?.enable();
@@ -325,7 +356,7 @@ onCancel(): void {
     });
 
     // Investigation Carried Out
-    this.processForm.get('investigationCarriedOut')?.valueChanges.subscribe(val => {
+    investigationCarriedOutControl?.valueChanges?.subscribe((val: boolean) => {
       this.investigationCarriedOut = val;
       const investigatorNameControl = this.processForm.get('investigatorName');
       const investigatorDesignationControl = this.processForm.get('investigatorDesignation');
@@ -363,7 +394,7 @@ onCancel(): void {
     });
 
     // Appeal Lodged
-    this.processForm.get('appealLodged')?.valueChanges.subscribe(val => {
+    appealLodgedControl?.valueChanges?.subscribe((val: boolean) => {
       this.appealLodged = val;
       const appealedOnControl = this.processForm.get('appealedOn');
       const appealOutcomeSatisfactoryControl = this.processForm.get('appealOutcomeSatisfactory');
@@ -609,5 +640,27 @@ onCancel(): void {
   getStatusLabel(statusValue: string | number): string {
     const status = this.statusOptions.find(s => s.value === statusValue);
     return status ? status.label : String(statusValue);
+  }
+
+  formatDisplayDate(value: string | null | undefined): string {
+    if (!value) return '';
+
+    const ddMmYyyy = /^(\d{2})-(\d{2})-(\d{4})$/;
+    const match = value.match(ddMmYyyy);
+
+    if (match) {
+      const day = Number(match[1]);
+      const month = Number(match[2]) - 1;
+      const year = Number(match[3]);
+      const date = new Date(year, month, day);
+      return Number.isNaN(date.getTime())
+        ? value
+        : new Intl.DateTimeFormat('en-GB').format(date);
+    }
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime())
+      ? value
+      : new Intl.DateTimeFormat('en-GB').format(date);
   }
 }

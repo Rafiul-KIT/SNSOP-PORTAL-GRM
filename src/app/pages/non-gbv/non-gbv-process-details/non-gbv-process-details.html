@@ -1,6 +1,6 @@
 @if (isLoading) {
   <app-loader></app-loader>
-} @else if (grievanceDetails) {
+} @else if (grievanceDetails && processForm) {
   <div class="breadcrumb-wrapper">
     <p-breadcrumb [model]="breadcrumbItems" [home]="breadcrumbHome" class="w-100"></p-breadcrumb>
   </div>
@@ -9,7 +9,7 @@
     <div class="card shadow-sm mb-5">
       <div class="card-header bg-primary text-white py-3">
         <h4 class="mb-0 fw-bold">
-          <i class="bi bi-gear-fill me-2"></i>
+          <i class="pi pi-cog me-2"></i>
           Process Non-GBV Grievance
           <span class="badge bg-secondary ms-2">{{ grievanceDetails.trackingNumber }}</span>
         </h4>
@@ -19,7 +19,7 @@
         <!-- Grievance Details (Read-only for context) -->
         <div class="section-block mb-4">
           <h5 class="section-title fw-bold text-primary mb-3">
-            <i class="bi bi-file-earmark-text me-2"></i>
+            <i class="pi pi-file me-2"></i>
             Grievance Overview
           </h5>
           <hr>
@@ -34,7 +34,7 @@
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Incident Occurred At:</label>
-              <p>{{ grievanceDetails.incidentOccurredAt | date: 'dd/MM/yyyy' }}</p>
+              <p>{{ formatDisplayDate(grievanceDetails.incidentOccurredAt) }}</p>
             </div>
             <div class="col-12">
               <label class="form-label fw-bold">Description:</label>
@@ -42,7 +42,7 @@
             </div>
           </div>
           <div class="d-flex justify-content-end mt-3">
-            <p-button label="View Full Details" icon="fas fa-eye" severity="info" size="small" [routerLink]="['/non-gbv-management/details', grievanceDetails.id]" outlined="true"></p-button>
+            <p-button label="View Full Details" icon="pi pi-eye" severity="info" size="small" [routerLink]="['/non-gbv-management/details', grievanceDetails.id]" outlined="true"></p-button>
           </div>
         </div>
 
@@ -51,7 +51,7 @@
           <!-- Action Taken Section -->
           <div class="section-block mb-4">
             <h5 class="section-title fw-bold text-primary mb-3">
-              <i class="bi bi-hand-thumbs-up-fill me-2"></i>
+              <i class="pi pi-thumbs-up me-2"></i>
               Action Taken
             </h5>
             <hr>
@@ -77,7 +77,7 @@
           <!-- Feedback to Complainant Section -->
           <div class="section-block mb-4">
             <h5 class="section-title fw-bold text-primary mb-3">
-              <i class="bi bi-chat-dots-fill me-2"></i>
+              <i class="pi pi-comments me-2"></i>
               Feedback to Complainant
             </h5>
             <hr>
@@ -97,7 +97,7 @@
           <!-- Accused Information Section -->
           <div class="section-block mb-4">
             <h5 class="section-title fw-bold text-primary mb-3">
-              <i class="bi bi-person-x-fill me-2"></i>
+              <i class="pi pi-user-minus me-2"></i>
               Accused Information
             </h5>
             <hr>
@@ -108,7 +108,7 @@
               </div>
               <div class="col-md-4">
                 <label class="form-label fw-bold">Accused Type</label>
-                <p-select [options]="accusedTypes" formControlName="accusedType" optionLabel="label" optionValue="value" placeholder="--Select--" class="w-100"></p-select>
+                <p-select [options]="accusedTypes" formControlName="accusedType" optionLabel="label" optionValue="value" appendTo="body" placeholder="--Select--" class="w-100"></p-select>
               </div>
               <div class="col-md-4">
                 <label class="form-label fw-bold">Accused Details</label>
@@ -120,19 +120,19 @@
               </div>
               <div class="col-md-3">
                 <label class="form-label fw-bold">State <span class="text-danger">*</span></label>
-                <p-select [options]="accusedStates" formControlName="accusedState" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onAccusedStateChange($event.value)"></p-select>
+                <p-select [options]="accusedStates" optionLabel="name" formControlName="accusedState" appendTo="body" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onAccusedStateChange($event.value)"></p-select>
               </div>
               <div class="col-md-3">
                 <label class="form-label fw-bold">County <span class="text-danger">*</span></label>
-                <p-select [options]="accusedCounties" formControlName="accusedCounty" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onAccusedCountyChange($event.value)"></p-select>
+                <p-select [options]="accusedCounties" optionLabel="name" formControlName="accusedCounty" appendTo="body" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onAccusedCountyChange($event.value)"></p-select>
               </div>
               <div class="col-md-3">
                 <label class="form-label fw-bold">Payam <span class="text-danger">*</span></label>
-                <p-select [options]="accusedPayams" formControlName="accusedPayam" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onAccusedPayamChange($event.value)"></p-select>
+                <p-select [options]="accusedPayams" optionLabel="name" formControlName="accusedPayam" appendTo="body" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onAccusedPayamChange($event.value)"></p-select>
               </div>
               <div class="col-md-3">
                 <label class="form-label fw-bold">Boma <span class="text-danger">*</span></label>
-                <p-select [options]="accusedBomas" formControlName="accusedBoma" placeholder="--Select--" class="w-100" [filter]="true"></p-select>
+                <p-select [options]="accusedBomas" optionLabel="name" formControlName="accusedBoma" appendTo="body" placeholder="--Select--" class="w-100" [filter]="true"></p-select>
               </div>
             </div>
           </div>
@@ -140,7 +140,7 @@
           <!-- Further Actions & Investigation Section -->
           <div class="section-block mb-4">
             <h5 class="section-title fw-bold text-primary mb-3">
-              <i class="bi bi-search me-2"></i>
+              <i class="pi pi-search me-2"></i>
               Further Actions & Investigation
             </h5>
             <hr>
@@ -195,7 +195,7 @@
           <!-- Appeal Information Section -->
           <div class="section-block mb-4">
             <h5 class="section-title fw-bold text-primary mb-3">
-              <i class="bi bi-flag-fill me-2"></i>
+              <i class="pi pi-flag me-2"></i>
               Appeal Information
             </h5>
             <hr>
@@ -225,7 +225,7 @@
               </div>
               <div class="col-md-4">
                 <label class="form-label fw-bold">Final Status <span class="text-danger">*</span></label>
-                <p-select [options]="statusOptions" formControlName="status" optionLabel="label" optionValue="value" placeholder="--Select--" class="w-100"></p-select>
+                <p-select [options]="statusOptions" formControlName="status" optionLabel="label" optionValue="value" appendTo="body" placeholder="--Select--" class="w-100"></p-select>
                 <small class="text-danger" *ngIf="processForm.get('status')?.invalid && (processForm.get('status')?.touched || processForm.get('status')?.dirty)">Status is required</small>
               </div>
             </div>
