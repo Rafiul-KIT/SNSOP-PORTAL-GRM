@@ -97,12 +97,12 @@
         <td class="text-center">{{ item.reportingChannel }}</td>
         <td class="text-center">{{ item.isComplainantBeneficiary === 'YES' ? 'Beneficiary' : 'Non-Beneficiary' }}</td>
         <td class="text-center">
-          <span [class]="'badge ' + (item.status === 'Resolved' ? 'bg-success' : item.status === 'Rejected' ? 'bg-danger' : 'bg-warning')">
+          <span [class]="'badge ' + getStatusBadgeClass(item.status)">
             {{ getStatusLabel(item.status) }}
           </span>
         </td>
         <td class="text-center">
-          <p-button type="button" icon="fas fa-eye" pTooltip="View Details" tooltipPosition="top" size="small" outlined="true" severity="secondary" class="me-2" />
+          <p-button type="button" icon="fas fa-eye" pTooltip="View Details" tooltipPosition="top" size="small" outlined="true" severity="secondary" class="me-2" (onClick)="onView(item.id)" />
         </td>
       </tr>
     </ng-template>

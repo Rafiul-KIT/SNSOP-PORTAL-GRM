@@ -43,8 +43,16 @@ export const routes: Routes = [
         path: 'details',
         component: NonGbvDetails,
       },
+      {
+        path: 'details/:id',
+        component: NonGbvDetails,
+      },
          {
         path: 'process-details',
+        component: NonGbvProcessDetails,
+      },
+      {
+        path: 'process-details/:id',
         component: NonGbvProcessDetails,
       },
     ],

@@ -37,7 +37,7 @@ interface NonGbvGrievance {
   complainantName: string;
   reportingChannel: string;
   isComplainantBeneficiary: string;
-  status: string;
+  status: string | number;
 }
 
 @Component({
@@ -88,10 +88,9 @@ export class NonGbvList implements OnInit {
 
   // Status options (example, adjust as per actual statuses)
   statusOptions = [
-    { label: 'Pending', value: 1 },
-    { label: 'In Progress', value: 2 },
-    { label: 'Resolved', value: 3 },
-    { label: 'Rejected', value: 4 },
+    { label: 'Unresolved', value: 1 },
+    { label: 'Resolved', value: 5 },
+    { label: 'Referred', value: 15 },
   ];
 
   constructor(
@@ -288,10 +287,28 @@ export class NonGbvList implements OnInit {
   }
 
   // Helper to get status label for display
-  getStatusLabel(statusValue: number): string {
-    const status = this.statusOptions.find(s => s.value === statusValue);
-    return status ? status.label : String(statusValue);
+  getStatusLabel(statusValue: string | number): string {
+    const statusMap: Record<string, string> = {
+      '1': 'Unresolved',
+      '5': 'Resolved',
+      '15': 'Referred',
+      Unresolved: 'Unresolved',
+      Resolved: 'Resolved',
+      Referred: 'Referred',
+    };
+    return statusMap[String(statusValue)] ?? String(statusValue);
+  }
+
+  getStatusBadgeClass(statusValue: string | number): string {
+    const label = this.getStatusLabel(statusValue);
+    if (label === 'Resolved') return 'bg-success';
+    if (label === 'Referred') return 'bg-danger';
+    return 'bg-warning';
   }
 
   trackById = (_: number, grievance: NonGbvGrievance) => grievance.id;
+
+  onView(grievanceId: number): void {
+    this.router.navigate(['/non-gbv-management/details', grievanceId]);
+  }
 }
