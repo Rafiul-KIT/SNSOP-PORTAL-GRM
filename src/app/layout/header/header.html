@@ -15,7 +15,8 @@
   <div class="menues">
     <p-menubar [model]="menuList"></p-menubar>
   </div>
-
+ 
+  
   <div class="portals-option-wrapper {{ showPortalOptions ? 'show' : '' }}" (mouseleave)="showPortalOptions = false">
     <div class="portal-items">
       @for (portal of portalList; track portal) {
