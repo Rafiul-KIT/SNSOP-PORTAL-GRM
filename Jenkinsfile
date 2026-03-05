@@ -37,9 +37,9 @@ pipeline {
         
         stage('Build Angular Application') {
             steps {
-                echo '🏗️ Building Angular application for DEVELOPMENT...'
+                echo ' Building Angular application for DEVELOPMENT...'
                 echo 'Base href will be automatically set to /trial/grm/'
-                bat 'call npm run build-staging
+                bat 'call npm run build-dev'
             }
         }
         
