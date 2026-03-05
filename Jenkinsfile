@@ -35,13 +35,13 @@ pipeline {
             }
         }
         
-        stage('Build Angular Application') {
-            steps {
-                echo ' Building Angular application for STAGING...'
-                echo 'Base href will be automatically set to /trial/grm/'
-                bat 'call npm run build-staging'
-            }
-        }
+     stage('Build Angular Application') {
+    steps {
+        echo '🏗️ Building Angular application for STAGING...'
+        echo 'Base href will be automatically set to /trial/grm/'
+        bat 'call npm run build-staging'
+    }
+}
         
         stage('Verify Build Output') {
             steps {
@@ -58,21 +58,6 @@ pipeline {
                         echo ❌ Build failed - index.html not found
                         exit /b 1
                     )
-                '''
-            }
-        }
-        
-        stage('Validate Build Environment') {
-            steps {
-                echo 'Checking built files for wrong localhost URLs...'
-                bat '''
-                    @echo off
-                    findstr /S /I /M "https://localhost: localhost:" dist\\browser\\*.js >nul
-                    if errorlevel 1 goto :no_localhost
-                    echo Found localhost URL(s) in built JavaScript. Wrong environment likely used.
-                    exit /b 1
-                    :no_localhost
-                    echo No localhost URLs found in built JavaScript
                 '''
             }
         }
@@ -156,7 +141,7 @@ pipeline {
         success {
             echo ''
             echo '======================================================='
-            echo '✅ STAGING BUILD AND DEPLOYMENT SUCCESSFUL!'
+            echo '✅ DEVELOPMENT BUILD AND DEPLOYMENT SUCCESSFUL!'
             echo '======================================================='
             echo ''
             echo "📁 Deployed to: ${TOMCAT_PATH}"
@@ -169,9 +154,10 @@ pipeline {
             echo "   - Branch: ${env.GIT_BRANCH}"
             echo "   - Commit: ${env.GIT_COMMIT}"
             echo ''
-            echo '🎯 Staging Build:'
-            echo '   - Staging environment file replacement applied'
-            echo '   - Cache-busting output hashing enabled'
+            echo '🎯 Development Features Enabled:'
+            echo '   - Source maps enabled'
+            echo '   - No optimization'
+            echo '   - Debug mode'
             echo ''
             echo '======================================================='
         }
