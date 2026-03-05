@@ -53,7 +53,7 @@ interface NonGbvGrievanceDetails {
   grievanceAttachmentFile: string;
   grievanceAttachmentBytes: string;
   grievanceAttachmentFilename: string;
-  status: string; // Assuming status is returned as a string
+  status: string;
 }
 
 interface ValueLabelItem {
@@ -105,10 +105,10 @@ export class NonGbvProcessDetails implements OnInit {
   counties: LookupItem[] = [];
   payams: LookupItem[] = [];
   bomas: LookupItem[] = [];
-  accusedStates: LookupItem[] = []; // for accused
-  accusedCounties: LookupItem[] = []; // for accused
-  accusedPayams: LookupItem[] = []; // for accused
-  accusedBomas: LookupItem[] = []; // for accused
+  accusedStates: LookupItem[] = [];
+  accusedCounties: LookupItem[] = [];
+  accusedPayams: LookupItem[] = [];
+  accusedBomas: LookupItem[] = [];
   accusedTypes: AccusedType[] = [
     { label: 'Individual', value: 1 },
     { label: 'Group', value: 2 },
@@ -119,15 +119,15 @@ export class NonGbvProcessDetails implements OnInit {
   ];
   genders: ValueLabelItem[] = [];
   reportingChannels: ValueLabelItem[] = [];
-  grievanceCategories: ValueLabelItem[] = []; // Categories (parent)
-  grievanceTypes: ValueLabelItem[] = []; // Detailed types (child)
+  grievanceCategories: ValueLabelItem[] = [];
+  grievanceTypes: ValueLabelItem[] = [];
 
   // Form conditional flags
   furtherActionRequired: boolean = false;
   investigationCarriedOut: boolean = false;
   escalatedReferredExternally: boolean = false;
   appealLodged: boolean = false;
-  appealOutcomeSatisfactory: boolean = false; // Not directly used as a flag, but depends on appealLodged
+  appealOutcomeSatisfactory: boolean = false;
 
   // File attachments
   feedbackAttachmentFile: File | null = null;
@@ -159,7 +159,6 @@ export class NonGbvProcessDetails implements OnInit {
     }
 
     try {
-      // Build the form before any async call can flip template state.
       this.initForm();
       this.subscribeToFormChanges();
       await Promise.all([
@@ -183,12 +182,12 @@ export class NonGbvProcessDetails implements OnInit {
     this.breadcrumbItems = [{ label: 'Non-GBV Grievance Process' }];
   }
 
-onCancel(): void {
-  this.router.navigate(['/non-gbv-management/process']);
-}
+  onCancel(): void {
+    this.router.navigate(['/non-gbv-management/process']);
+  }
+
   async loadAllLookups() {
     try {
-      // This page only needs state lookups for accused location chain.
       const statesRes = await this.lookupService.getOrFetchStateList();
       this.states = statesRes;
       this.accusedStates = statesRes;
@@ -199,7 +198,7 @@ onCancel(): void {
         summary: 'Error',
         detail: 'Failed to load lookup data.',
       });
-      throw error; // Re-throw to stop further initialization if lookups fail
+      throw error;
     }
   }
 
@@ -236,27 +235,43 @@ onCancel(): void {
   initForm(): void {
     this.processForm = this.fb.group({
       ngbvGrievanceId: [this.ngbvGrievanceId, Validators.required],
+
+      // Action Taken — required per API
       actionTakenInResponse: ['', Validators.required],
       actionTakenBy: ['', Validators.required],
-      feedbackToComplainant: [''],
+      resolvedOn: [null, Validators.required],
+
+      // Feedback — required per API spec (marked with *)
+      feedbackToComplainant: ['', Validators.required],
       feedbackToComplainantAttachmentUrl: [''],
       feedbackToComplainantAttachmentFile: [null],
+
+      // Accused — all optional per API (no * on accusedStateId etc.)
       accusedName: [''],
       accusedDetails: [''],
       accusedOtherDetails: [''],
+      accusedType: [null],
+      // FIX #2: Removed Validators.required — these are optional per API spec
       accusedState: [null],
       accusedCounty: [{ value: null, disabled: true }],
       accusedPayam: [{ value: null, disabled: true }],
       accusedBoma: [{ value: null, disabled: true }],
-      accusedType: [null],
-      resolvedOn: [null, Validators.required],
+
+      // Further Action
       furtherActionRequired: [false],
       furtherRequiredActionDetails: [{ value: '', disabled: true }],
+
+      // Escalation
       escalatedReferredExternally: [false],
+
+      // Appeal
       appealLodged: [false],
       appealedOn: [{ value: null, disabled: true }],
       appealOutcomeSatisfactory: [{ value: false, disabled: true }],
+      afterAppealClosedOn: [{ value: null, disabled: true }],
       unresolvedRecommendedAction: [''],
+
+      // Investigation
       investigationCarriedOut: [false],
       investigatorName: [{ value: '', disabled: true }],
       investigatorDesignation: [{ value: '', disabled: true }],
@@ -265,9 +280,27 @@ onCancel(): void {
       investigationReportAttachmentUrl: [''],
       investigationReportAttachmentFile: [null],
       actionAfterInvestigation: [''],
-      afterAppealClosedOn: [{ value: null, disabled: true }],
-      status: [null, Validators.required], // Resolved or Unresolved
+
+      // Final Status — required per API
+      status: [null, Validators.required],
     });
+  }
+
+  // FIX #3: Safe date formatter — avoids UTC timezone shift from toISOString()
+  private formatDateForApi(date: Date | string | null | undefined): string {
+    if (!date) return '';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private toIdString(value: LookupItem | string | number | null | undefined): string {
+    if (value === null || value === undefined || value === '') return '';
+    if (typeof value === 'object') return String(value.id ?? '');
+    return String(value);
   }
 
   subscribeToFormChanges(): void {
@@ -278,15 +311,16 @@ onCancel(): void {
     // Further Action Required
     furtherActionRequiredControl?.valueChanges?.subscribe((val: boolean) => {
       this.furtherActionRequired = val;
+      const detailsControl = this.processForm.get('furtherRequiredActionDetails');
       if (val) {
-        this.processForm.get('furtherRequiredActionDetails')?.enable();
-        this.processForm.get('furtherRequiredActionDetails')?.setValidators(Validators.required);
+        detailsControl?.enable();
+        detailsControl?.setValidators(Validators.required);
       } else {
-        this.processForm.get('furtherRequiredActionDetails')?.disable();
-        this.processForm.get('furtherRequiredActionDetails')?.clearValidators();
-        this.processForm.get('furtherRequiredActionDetails')?.setValue('');
+        detailsControl?.disable();
+        detailsControl?.clearValidators();
+        detailsControl?.setValue('');
       }
-      this.processForm.get('furtherRequiredActionDetails')?.updateValueAndValidity();
+      detailsControl?.updateValueAndValidity();
       this.cdr.detectChanges();
     });
 
@@ -420,56 +454,73 @@ onCancel(): void {
     const rawValues = this.processForm.getRawValue();
     const formData = new FormData();
 
+    formData.append('id', '0');
     formData.append('ngbvGrievanceId', String(this.ngbvGrievanceId));
     formData.append('actionTakenInResponse', rawValues.actionTakenInResponse);
     formData.append('actionTakenBy', rawValues.actionTakenBy);
     formData.append('feedbackToComplainant', rawValues.feedbackToComplainant || '');
+
     if (this.feedbackAttachmentFile) {
-      formData.append('feedbackToComplainantAttachmentFile', this.feedbackAttachmentFile, this.feedbackAttachmentFile.name);
+      formData.append(
+        'feedbackToComplainantAttachmentFile',
+        this.feedbackAttachmentFile,
+        this.feedbackAttachmentFile.name
+      );
     }
+
     formData.append('accusedName', rawValues.accusedName || '');
     formData.append('accusedDetails', rawValues.accusedDetails || '');
     formData.append('accusedOtherDetails', rawValues.accusedOtherDetails || '');
-    formData.append('accusedStateId', rawValues.accusedState?.id || '');
-    formData.append('accusedCountyId', rawValues.accusedCounty?.id || '');
-    formData.append('accusedPayamId', rawValues.accusedPayam?.id || '');
-    formData.append('accusedBomaId', rawValues.accusedBoma?.id || '');
-    formData.append('accusedType', rawValues.accusedType || '');
+    formData.append('accusedStateId', this.toIdString(rawValues.accusedState));
+    formData.append('accusedCountyId', this.toIdString(rawValues.accusedCounty));
+    formData.append('accusedPayamId', this.toIdString(rawValues.accusedPayam));
+    formData.append('accusedBomaId', this.toIdString(rawValues.accusedBoma));
+    formData.append(
+      'accusedType',
+      rawValues.accusedType !== null && rawValues.accusedType !== undefined
+        ? String(rawValues.accusedType)
+        : ''
+    );
 
-    const resolvedDate = rawValues.resolvedOn ? new Date(rawValues.resolvedOn).toISOString().split('T')[0] : '';
-    formData.append('resolvedOn', resolvedDate);
+    // FIX #3: Use formatDateForApi to avoid UTC timezone shift
+    formData.append('resolvedOn', this.formatDateForApi(rawValues.resolvedOn));
 
-    formData.append('furtherActionRequired', String(rawValues.furtherActionRequired));
+    formData.append('furtherActionRequired', String(rawValues.furtherActionRequired ?? false));
     formData.append('furtherRequiredActionDetails', rawValues.furtherRequiredActionDetails || '');
-    formData.append('escalatedReferredExternally', String(rawValues.escalatedReferredExternally));
-    formData.append('appealLodged', String(rawValues.appealLodged));
+    formData.append('escalatedReferredExternally', String(rawValues.escalatedReferredExternally ?? false));
+    formData.append('appealLodged', String(rawValues.appealLodged ?? false));
 
-    const appealedOnDate = rawValues.appealedOn ? new Date(rawValues.appealedOn).toISOString().split('T')[0] : '';
-    formData.append('appealedOn', appealedOnDate);
+    // FIX #3: Use formatDateForApi for all date fields
+    formData.append('appealedOn', this.formatDateForApi(rawValues.appealedOn));
 
-    formData.append('appealOutcomeSatisfactory', String(rawValues.appealOutcomeSatisfactory));
+    formData.append('appealOutcomeSatisfactory', String(rawValues.appealOutcomeSatisfactory ?? false));
     formData.append('unresolvedRecommendedAction', rawValues.unresolvedRecommendedAction || '');
-    formData.append('investigationCarriedOut', String(rawValues.investigationCarriedOut));
+    formData.append('investigationCarriedOut', String(rawValues.investigationCarriedOut ?? false));
     formData.append('investigatorName', rawValues.investigatorName || '');
     formData.append('investigatorDesignation', rawValues.investigatorDesignation || '');
 
-    const investigationCompletedOnDate = rawValues.investigationCompletedOn ? new Date(rawValues.investigationCompletedOn).toISOString().split('T')[0] : '';
-    formData.append('investigationCompletedOn', investigationCompletedOnDate);
+    // FIX #3: Use formatDateForApi for all date fields
+    formData.append('investigationCompletedOn', this.formatDateForApi(rawValues.investigationCompletedOn));
 
     formData.append('investigationFindings', rawValues.investigationFindings || '');
+
     if (this.investigationReportAttachmentFile) {
-      formData.append('investigationReportAttachment', this.investigationReportAttachmentFile, this.investigationReportAttachmentFile.name);
+      formData.append(
+        'investigationReportAttachment',
+        this.investigationReportAttachmentFile,
+        this.investigationReportAttachmentFile.name
+      );
     }
+
     formData.append('actionAfterInvestigation', rawValues.actionAfterInvestigation || '');
 
-    const afterAppealClosedOnDate = rawValues.afterAppealClosedOn ? new Date(rawValues.afterAppealClosedOn).toISOString().split('T')[0] : '';
-    formData.append('afterAppealClosedOn', afterAppealClosedOnDate);
+    // FIX #3: Use formatDateForApi for all date fields
+    formData.append('afterAppealClosedOn', this.formatDateForApi(rawValues.afterAppealClosedOn));
+
     formData.append('status', rawValues.status);
 
     this.apiService
-      .POST('api/ngbv-grievance/process', formData, 'global', {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
+      .POST('api/ngbv-grievance/process', formData, 'global')
       .then((res: any) => {
         const result = res?.data;
         if (result && result.code === 200) {
@@ -479,7 +530,7 @@ onCancel(): void {
             icon: 'success',
             confirmButtonColor: '#0d6efd',
           });
-          this.router.navigate(['/non-gbv-management/process']); // Navigate back to list
+          this.router.navigate(['/non-gbv-management/process']);
         } else {
           Swal.fire({
             title: 'Failed',
@@ -522,7 +573,6 @@ onCancel(): void {
     this.cdr.detectChanges();
   }
 
-  // Helper functions to get names from IDs (similar to NonGbvDetails)
   getStateName(id: number | string): string {
     const item = this.states.find((s) => s.id === String(id));
     return item ? item.name : String(id);
@@ -573,7 +623,7 @@ onCancel(): void {
   }
 
   getStatusLabel(statusValue: string | number): string {
-    const status = this.statusOptions.find(s => s.value === statusValue);
+    const status = this.statusOptions.find((s) => s.value === statusValue);
     return status ? status.label : String(statusValue);
   }
 

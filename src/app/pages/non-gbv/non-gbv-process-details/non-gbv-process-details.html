@@ -42,7 +42,9 @@
             </div>
           </div>
           <div class="d-flex justify-content-end mt-3">
-            <p-button label="View Full Details" icon="pi pi-eye" severity="info" size="small" [routerLink]="['/non-gbv-management/details', grievanceDetails.id]" outlined="true"></p-button>
+            <p-button label="View Full Details" icon="pi pi-eye" severity="info" size="small"
+              [routerLink]="['/non-gbv-management/details', grievanceDetails.id]" outlined="true">
+            </p-button>
           </div>
         </div>
 
@@ -58,23 +60,35 @@
             <div class="row g-3">
               <div class="col-12">
                 <label class="form-label fw-bold">Action Taken in Response <span class="text-danger">*</span></label>
-                <textarea pTextarea formControlName="actionTakenInResponse" rows="3" class="w-100" placeholder="Describe actions taken..."></textarea>
-                <small class="text-danger" *ngIf="processForm.get('actionTakenInResponse')?.invalid && (processForm.get('actionTakenInResponse')?.touched || processForm.get('actionTakenInResponse')?.dirty)">Action is required</small>
+                <textarea pTextarea formControlName="actionTakenInResponse" rows="3" class="w-100"
+                  placeholder="Describe actions taken..."></textarea>
+                <small class="text-danger"
+                  *ngIf="processForm.get('actionTakenInResponse')?.invalid && (processForm.get('actionTakenInResponse')?.touched || processForm.get('actionTakenInResponse')?.dirty)">
+                  Action is required
+                </small>
               </div>
               <div class="col-md-4">
                 <label class="form-label fw-bold">Action Taken By <span class="text-danger">*</span></label>
                 <input type="text" pInputText formControlName="actionTakenBy" class="w-100" />
-                <small class="text-danger" *ngIf="processForm.get('actionTakenBy')?.invalid && (processForm.get('actionTakenBy')?.touched || processForm.get('actionTakenBy')?.dirty)">Action taker is required</small>
+                <small class="text-danger"
+                  *ngIf="processForm.get('actionTakenBy')?.invalid && (processForm.get('actionTakenBy')?.touched || processForm.get('actionTakenBy')?.dirty)">
+                  Action taker is required
+                </small>
               </div>
               <div class="col-md-4">
                 <label class="form-label fw-bold">Resolved On <span class="text-danger">*</span></label>
-                <p-datepicker formControlName="resolvedOn" [showIcon]="true" appendTo="body" class="w-100" dateFormat="dd/mm/yy"></p-datepicker>
-                <small class="text-danger" *ngIf="processForm.get('resolvedOn')?.invalid && (processForm.get('resolvedOn')?.touched || processForm.get('resolvedOn')?.dirty)">Resolved date is required</small>
+                <p-datepicker formControlName="resolvedOn" [showIcon]="true" appendTo="body" class="w-100"
+                  dateFormat="dd/mm/yy"></p-datepicker>
+                <small class="text-danger"
+                  *ngIf="processForm.get('resolvedOn')?.invalid && (processForm.get('resolvedOn')?.touched || processForm.get('resolvedOn')?.dirty)">
+                  Resolved date is required
+                </small>
               </div>
             </div>
           </div>
 
           <!-- Feedback to Complainant Section -->
+          <!-- FIX #1: Added required asterisk and validation message to match Validators.required -->
           <div class="section-block mb-4">
             <h5 class="section-title fw-bold text-primary mb-3">
               <i class="pi pi-comments me-2"></i>
@@ -83,18 +97,27 @@
             <hr>
             <div class="row g-3">
               <div class="col-12">
-                <label class="form-label fw-bold">Feedback Details</label>
-                <textarea pTextarea formControlName="feedbackToComplainant" rows="3" class="w-100" placeholder="Provide feedback details..."></textarea>
+                <label class="form-label fw-bold">Feedback Details <span class="text-danger">*</span></label>
+                <textarea pTextarea formControlName="feedbackToComplainant" rows="3" class="w-100"
+                  placeholder="Provide feedback details..."></textarea>
+                <small class="text-danger"
+                  *ngIf="processForm.get('feedbackToComplainant')?.invalid && (processForm.get('feedbackToComplainant')?.touched || processForm.get('feedbackToComplainant')?.dirty)">
+                  Feedback is required
+                </small>
               </div>
               <div class="col-md-6">
                 <label class="form-label fw-bold">Attachment</label>
-                <p-fileUpload mode="basic" chooseLabel="Choose File" [auto]="false" (onSelect)="onFeedbackAttachmentSelect($event)" [multiple]="false" accept="image/*,.pdf" [maxFileSize]="1000000" styleClass="w-100"></p-fileUpload>
+                <p-fileUpload mode="basic" chooseLabel="Choose File" [auto]="false"
+                  (onSelect)="onFeedbackAttachmentSelect($event)" [multiple]="false" accept="image/*,.pdf"
+                  [maxFileSize]="1000000" styleClass="w-100">
+                </p-fileUpload>
                 <small class="p-error" *ngIf="feedbackAttachmentFile">{{ feedbackAttachmentFile.name }}</small>
               </div>
             </div>
           </div>
 
           <!-- Accused Information Section -->
+          <!-- FIX #2: Removed required asterisks and validation messages from optional location fields -->
           <div class="section-block mb-4">
             <h5 class="section-title fw-bold text-primary mb-3">
               <i class="pi pi-user-minus me-2"></i>
@@ -108,7 +131,9 @@
               </div>
               <div class="col-md-4">
                 <label class="form-label fw-bold">Accused Type</label>
-                <p-select [options]="accusedTypes" formControlName="accusedType" optionLabel="label" optionValue="value" appendTo="body" placeholder="--Select--" class="w-100"></p-select>
+                <p-select [options]="accusedTypes" formControlName="accusedType" optionLabel="label"
+                  optionValue="value" appendTo="body" placeholder="--Select--" class="w-100">
+                </p-select>
               </div>
               <div class="col-md-4">
                 <label class="form-label fw-bold">Accused Details</label>
@@ -116,23 +141,36 @@
               </div>
               <div class="col-12">
                 <label class="form-label fw-bold">Other Accused Details</label>
-                <textarea pTextarea formControlName="accusedOtherDetails" rows="2" class="w-100" placeholder="Other details..."></textarea>
+                <textarea pTextarea formControlName="accusedOtherDetails" rows="2" class="w-100"
+                  placeholder="Other details..."></textarea>
+              </div>
+              <!-- FIX #2: Removed Validators.required from accused location — no asterisks, no error messages -->
+              <div class="col-md-3">
+                <label class="form-label fw-bold">State</label>
+                <p-select [options]="accusedStates" optionLabel="name" formControlName="accusedState"
+                  appendTo="body" placeholder="--Select--" class="w-100" [filter]="true"
+                  (onChange)="onAccusedStateChange($event.value)">
+                </p-select>
               </div>
               <div class="col-md-3">
-                <label class="form-label fw-bold">State <span class="text-danger">*</span></label>
-                <p-select [options]="accusedStates" optionLabel="name" formControlName="accusedState" appendTo="body" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onAccusedStateChange($event.value)"></p-select>
+                <label class="form-label fw-bold">County</label>
+                <p-select [options]="accusedCounties" optionLabel="name" formControlName="accusedCounty"
+                  appendTo="body" placeholder="--Select--" class="w-100" [filter]="true"
+                  (onChange)="onAccusedCountyChange($event.value)">
+                </p-select>
               </div>
               <div class="col-md-3">
-                <label class="form-label fw-bold">County <span class="text-danger">*</span></label>
-                <p-select [options]="accusedCounties" optionLabel="name" formControlName="accusedCounty" appendTo="body" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onAccusedCountyChange($event.value)"></p-select>
+                <label class="form-label fw-bold">Payam</label>
+                <p-select [options]="accusedPayams" optionLabel="name" formControlName="accusedPayam"
+                  appendTo="body" placeholder="--Select--" class="w-100" [filter]="true"
+                  (onChange)="onAccusedPayamChange($event.value)">
+                </p-select>
               </div>
               <div class="col-md-3">
-                <label class="form-label fw-bold">Payam <span class="text-danger">*</span></label>
-                <p-select [options]="accusedPayams" optionLabel="name" formControlName="accusedPayam" appendTo="body" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onAccusedPayamChange($event.value)"></p-select>
-              </div>
-              <div class="col-md-3">
-                <label class="form-label fw-bold">Boma <span class="text-danger">*</span></label>
-                <p-select [options]="accusedBomas" optionLabel="name" formControlName="accusedBoma" appendTo="body" placeholder="--Select--" class="w-100" [filter]="true"></p-select>
+                <label class="form-label fw-bold">Boma</label>
+                <p-select [options]="accusedBomas" optionLabel="name" formControlName="accusedBoma"
+                  appendTo="body" placeholder="--Select--" class="w-100" [filter]="true">
+                </p-select>
               </div>
             </div>
           </div>
@@ -152,7 +190,10 @@
               <div class="col-md-6" *ngIf="furtherActionRequired">
                 <label class="form-label fw-bold">Further Required Action Details <span class="text-danger">*</span></label>
                 <textarea pTextarea formControlName="furtherRequiredActionDetails" rows="2" class="w-100"></textarea>
-                <small class="text-danger" *ngIf="processForm.get('furtherRequiredActionDetails')?.invalid && (processForm.get('furtherRequiredActionDetails')?.touched || processForm.get('furtherRequiredActionDetails')?.dirty)">Details are required</small>
+                <small class="text-danger"
+                  *ngIf="processForm.get('furtherRequiredActionDetails')?.invalid && (processForm.get('furtherRequiredActionDetails')?.touched || processForm.get('furtherRequiredActionDetails')?.dirty)">
+                  Details are required
+                </small>
               </div>
               <div class="col-md-6">
                 <label class="form-label fw-bold d-block mb-2">Investigation Carried Out?</label>
@@ -162,27 +203,46 @@
                 <div class="col-md-4">
                   <label class="form-label fw-bold">Investigator Name <span class="text-danger">*</span></label>
                   <input type="text" pInputText formControlName="investigatorName" class="w-100" />
-                  <small class="text-danger" *ngIf="processForm.get('investigatorName')?.invalid && (processForm.get('investigatorName')?.touched || processForm.get('investigatorName')?.dirty)">Name is required</small>
+                  <small class="text-danger"
+                    *ngIf="processForm.get('investigatorName')?.invalid && (processForm.get('investigatorName')?.touched || processForm.get('investigatorName')?.dirty)">
+                    Name is required
+                  </small>
                 </div>
                 <div class="col-md-4">
                   <label class="form-label fw-bold">Investigator Designation <span class="text-danger">*</span></label>
                   <input type="text" pInputText formControlName="investigatorDesignation" class="w-100" />
-                  <small class="text-danger" *ngIf="processForm.get('investigatorDesignation')?.invalid && (processForm.get('investigatorDesignation')?.touched || processForm.get('investigatorDesignation')?.dirty)">Designation is required</small>
+                  <small class="text-danger"
+                    *ngIf="processForm.get('investigatorDesignation')?.invalid && (processForm.get('investigatorDesignation')?.touched || processForm.get('investigatorDesignation')?.dirty)">
+                    Designation is required
+                  </small>
                 </div>
                 <div class="col-md-4">
                   <label class="form-label fw-bold">Investigation Completed On <span class="text-danger">*</span></label>
-                  <p-datepicker formControlName="investigationCompletedOn" [showIcon]="true" appendTo="body" class="w-100" dateFormat="dd/mm/yy"></p-datepicker>
-                  <small class="text-danger" *ngIf="processForm.get('investigationCompletedOn')?.invalid && (processForm.get('investigationCompletedOn')?.touched || processForm.get('investigationCompletedOn')?.dirty)">Date is required</small>
+                  <p-datepicker formControlName="investigationCompletedOn" [showIcon]="true" appendTo="body"
+                    class="w-100" dateFormat="dd/mm/yy">
+                  </p-datepicker>
+                  <small class="text-danger"
+                    *ngIf="processForm.get('investigationCompletedOn')?.invalid && (processForm.get('investigationCompletedOn')?.touched || processForm.get('investigationCompletedOn')?.dirty)">
+                    Date is required
+                  </small>
                 </div>
                 <div class="col-12">
                   <label class="form-label fw-bold">Investigation Findings <span class="text-danger">*</span></label>
                   <textarea pTextarea formControlName="investigationFindings" rows="3" class="w-100"></textarea>
-                  <small class="text-danger" *ngIf="processForm.get('investigationFindings')?.invalid && (processForm.get('investigationFindings')?.touched || processForm.get('investigationFindings')?.dirty)">Findings are required</small>
+                  <small class="text-danger"
+                    *ngIf="processForm.get('investigationFindings')?.invalid && (processForm.get('investigationFindings')?.touched || processForm.get('investigationFindings')?.dirty)">
+                    Findings are required
+                  </small>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label fw-bold">Investigation Report Attachment</label>
-                  <p-fileUpload mode="basic" chooseLabel="Choose File" [auto]="false" (onSelect)="onInvestigationReportAttachmentSelect($event)" [multiple]="false" accept="image/*,.pdf" [maxFileSize]="1000000" styleClass="w-100"></p-fileUpload>
-                  <small class="p-error" *ngIf="investigationReportAttachmentFile">{{ investigationReportAttachmentFile.name }}</small>
+                  <p-fileUpload mode="basic" chooseLabel="Choose File" [auto]="false"
+                    (onSelect)="onInvestigationReportAttachmentSelect($event)" [multiple]="false"
+                    accept="image/*,.pdf" [maxFileSize]="1000000" styleClass="w-100">
+                  </p-fileUpload>
+                  <small class="p-error" *ngIf="investigationReportAttachmentFile">
+                    {{ investigationReportAttachmentFile.name }}
+                  </small>
                 </div>
                 <div class="col-12">
                   <label class="form-label fw-bold">Action After Investigation</label>
@@ -207,8 +267,13 @@
               <ng-container *ngIf="appealLodged">
                 <div class="col-md-6">
                   <label class="form-label fw-bold">Appealed On <span class="text-danger">*</span></label>
-                  <p-datepicker formControlName="appealedOn" [showIcon]="true" appendTo="body" class="w-100" dateFormat="dd/mm/yy"></p-datepicker>
-                  <small class="text-danger" *ngIf="processForm.get('appealedOn')?.invalid && (processForm.get('appealedOn')?.touched || processForm.get('appealedOn')?.dirty)">Appeal date is required</small>
+                  <p-datepicker formControlName="appealedOn" [showIcon]="true" appendTo="body" class="w-100"
+                    dateFormat="dd/mm/yy">
+                  </p-datepicker>
+                  <small class="text-danger"
+                    *ngIf="processForm.get('appealedOn')?.invalid && (processForm.get('appealedOn')?.touched || processForm.get('appealedOn')?.dirty)">
+                    Appeal date is required
+                  </small>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label fw-bold d-block mb-2">Appeal Outcome Satisfactory?</label>
@@ -216,7 +281,9 @@
                 </div>
                 <div class="col-md-6">
                   <label class="form-label fw-bold">After Appeal Closed On</label>
-                  <p-datepicker formControlName="afterAppealClosedOn" [showIcon]="true" appendTo="body" class="w-100" dateFormat="dd/mm/yy"></p-datepicker>
+                  <p-datepicker formControlName="afterAppealClosedOn" [showIcon]="true" appendTo="body"
+                    class="w-100" dateFormat="dd/mm/yy">
+                  </p-datepicker>
                 </div>
               </ng-container>
               <div class="col-12">
@@ -225,17 +292,26 @@
               </div>
               <div class="col-md-4">
                 <label class="form-label fw-bold">Final Status <span class="text-danger">*</span></label>
-                <p-select [options]="statusOptions" formControlName="status" optionLabel="label" optionValue="value" appendTo="body" placeholder="--Select--" class="w-100"></p-select>
-                <small class="text-danger" *ngIf="processForm.get('status')?.invalid && (processForm.get('status')?.touched || processForm.get('status')?.dirty)">Status is required</small>
+                <p-select [options]="statusOptions" formControlName="status" optionLabel="label"
+                  optionValue="value" appendTo="body" placeholder="--Select--" class="w-100">
+                </p-select>
+                <small class="text-danger"
+                  *ngIf="processForm.get('status')?.invalid && (processForm.get('status')?.touched || processForm.get('status')?.dirty)">
+                  Status is required
+                </small>
               </div>
             </div>
           </div>
 
-
           <!-- Form Actions -->
           <div class="d-flex justify-content-end gap-3 mt-5 pt-4 border-top">
-            <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="onCancel()" [outlined]="true" styleClass="p-button-sm"></p-button>
-            <p-button label="Submit Process" icon="pi pi-check" (onClick)="onSubmit()" [disabled]="isSubmitting || processForm.invalid" [loading]="isSubmitting" severity="primary" styleClass="p-button-sm"></p-button>
+            <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="onCancel()"
+              [outlined]="true" styleClass="p-button-sm">
+            </p-button>
+            <p-button label="Submit Process" icon="pi pi-check" (onClick)="onSubmit()"
+              [disabled]="isSubmitting || processForm.invalid" [loading]="isSubmitting" severity="primary"
+              styleClass="p-button-sm">
+            </p-button>
           </div>
         </form>
       </div>
