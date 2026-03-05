@@ -68,12 +68,11 @@ pipeline {
                 bat '''
                     @echo off
                     findstr /S /I /M "https://localhost: localhost:" dist\\browser\\*.js >nul
-                    if %errorlevel%==0 (
-                        echo Found localhost URL(s) in built JavaScript. Wrong environment likely used.
-                        exit /b 1
-                    ) else (
-                        echo No localhost URLs found in built JavaScript
-                    )
+                    if errorlevel 1 goto :no_localhost
+                    echo Found localhost URL(s) in built JavaScript. Wrong environment likely used.
+                    exit /b 1
+                    :no_localhost
+                    echo No localhost URLs found in built JavaScript
                 '''
             }
         }
