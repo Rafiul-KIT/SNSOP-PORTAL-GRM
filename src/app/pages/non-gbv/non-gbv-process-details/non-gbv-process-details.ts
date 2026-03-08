@@ -142,6 +142,7 @@ interface AccusedType {
   styleUrl: './non-gbv-process-details.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
+
 export class NonGbvProcessDetails implements OnInit {
   ngbvGrievanceId: number | null = null;
   grievanceDetails: NonGbvGrievanceDetails | null = null;
