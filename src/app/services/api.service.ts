@@ -53,7 +53,9 @@ export class ApiService {
           config.headers = config.headers ?? {};
           config.headers['Authorization'] = `Bearer ${fresh}`;
         }
-        if (!config.headers?.['Content-Type']) {
+        
+        // Only set application/json if Content-Type is not already set AND data is NOT FormData
+        if (!config.headers?.['Content-Type'] && !(config.data instanceof FormData)) {
           config.headers = config.headers ?? {};
           config.headers['Content-Type'] = 'application/json';
         }

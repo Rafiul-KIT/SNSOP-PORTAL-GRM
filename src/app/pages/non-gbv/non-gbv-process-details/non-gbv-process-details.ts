@@ -25,9 +25,56 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { SelectModule } from 'primeng/select';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
-import Swal from 'sweetalert2';
+import { TableModule } from 'primeng/table';
 import { FileUploadModule } from 'primeng/fileupload';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { TooltipModule } from 'primeng/tooltip';
+import Swal from 'sweetalert2';
+
+interface NonGbvProcessHistoryItem {
+  id: number;
+  accusedType: string;
+  escalatedReferredExternally: boolean;
+  furtherActionRequired: boolean;
+  resolvedOn: string;
+  appealLodged: boolean;
+  actionTakenBy: string;
+}
+
+interface NonGbvProcessHistoryDetail {
+  id: number;
+  ngbvGrievanceId: number;
+  actionTakenInResponse: string;
+  actionTakenBy: string;
+  feedbackToComplainant: string;
+  feedbackToComplainantAttachmentUrl: string;
+  accusedName: string;
+  accusedDetails: string;
+  accusedOtherDetails: string;
+  accusedStateId: number;
+  accusedCountyId: number;
+  accusedPayamId: number;
+  accusedBomaId: number;
+  accusedType: number;
+  resolvedOn: string;
+  furtherActionRequired: boolean;
+  furtherRequiredActionDetails: string;
+  escalatedReferredExternally: boolean;
+  appealLodged: boolean;
+  appealedOn: string;
+  appealOutcomeSatisfactory: boolean;
+  unresolvedRecommendedAction: string;
+  investigationCarriedOut: boolean;
+  investigatorName: string;
+  investigatorDesignation: string;
+  investigationCompletedOn: string;
+  investigationFindings: string;
+  investigationReportAttachmentUrl: string;
+  actionAfterInvestigation: string;
+  afterAppealClosedOn: string;
+  status: string;
+}
 
 interface NonGbvGrievanceDetails {
   id: number;
@@ -86,6 +133,9 @@ interface AccusedType {
     FileUploadModule,
     InputNumberModule,
     DialogModule,
+    TableModule,
+    ProgressSpinnerModule,
+    TooltipModule,
   ],
   providers: [MessageService],
   templateUrl: './non-gbv-process-details.html',
@@ -99,6 +149,14 @@ export class NonGbvProcessDetails implements OnInit {
   isLoading = true;
   isSubmitting = false;
   displayProcessDialog = false;
+  isFurtherActionAllowed = true;
+
+  // Process History
+  processHistory: NonGbvProcessHistoryItem[] = [];
+  selectedHistoryDetail: NonGbvProcessHistoryDetail | null = null;
+  displayHistoryDetailDialog = false;
+  isLoadingHistory = false;
+  isLoadingHistoryDetail = false;
 
   breadcrumbItems: MenuItem[] = [];
   breadcrumbHome: MenuItem = { icon: 'pi pi-home', routerLink: '/dashboard' };
@@ -167,6 +225,7 @@ export class NonGbvProcessDetails implements OnInit {
       await Promise.all([
         this.loadAllLookups(),
         this.fetchGrievanceDetails(this.ngbvGrievanceId),
+        this.fetchProcessHistory(this.ngbvGrievanceId),
       ]);
     } catch (error) {
       console.error('Initialization error:', error);
@@ -178,6 +237,48 @@ export class NonGbvProcessDetails implements OnInit {
       this.isLoading = false;
     } finally {
       this.cdr.detectChanges();
+    }
+  }
+
+  async fetchProcessHistory(id: number) {
+    this.isLoadingHistory = true;
+    try {
+      const res: any = await this.apiService.GET(`api/ngbv-grievance/process/history/list?ngbvGrievanceId=${id}`);
+      if (res?.data?.content) {
+        this.processHistory = res.data.content;
+        const latestHistory = [...this.processHistory].sort((a, b) => b.id - a.id)[0];
+        this.isFurtherActionAllowed = latestHistory ? latestHistory.furtherActionRequired : true;
+      }
+    } catch (error) {
+      console.error('Error fetching process history:', error);
+    } finally {
+      this.isLoadingHistory = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  get isProcessFormDisabled(): boolean {
+    return this.grievanceDetails?.status === 'Resolved' || !this.isFurtherActionAllowed;
+  }
+
+  async viewProcessHistoryDetail(historyId: number) {
+    this.isLoadingHistoryDetail = true;
+    this.displayHistoryDetailDialog = true;
+    try {
+      const res: any = await this.apiService.GET(`api/ngbv-grievance/process/history?ngbvGrievanceDetailId=${historyId}`);
+      if (res?.data?.content?.length) {
+        this.selectedHistoryDetail = res.data.content[0];
+      }
+    } catch (error) {
+      console.error('Error fetching history detail:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to fetch history details.',
+      });
+    } finally {
+      this.isLoadingHistoryDetail = false;
+      this.cdr.markForCheck();
     }
   }
 
@@ -500,7 +601,7 @@ export class NonGbvProcessDetails implements OnInit {
     const rawValues = this.processForm.getRawValue();
     const formData = new FormData();
 
-    formData.append('id', '0');
+    formData.append('id', '');
     formData.append('ngbvGrievanceId', String(this.ngbvGrievanceId));
     formData.append('actionTakenInResponse', rawValues.actionTakenInResponse);
     formData.append('actionTakenBy', rawValues.actionTakenBy);
@@ -566,10 +667,14 @@ export class NonGbvProcessDetails implements OnInit {
     formData.append('status', rawValues.status);
 
     this.apiService
-      .POST('api/ngbv-grievance/process', formData, 'global')
+      .POST('api/ngbv-grievance/process', formData, 'global', {
+        headers: { 'Content-Type': undefined }
+      })
       .then((res: any) => {
         const result = res?.data;
-        if (result && result.code === 200) {
+          console.log("ssdfsdf",result);
+        // Check for both result.code (standard success) or result.statusCode (if API returns that)
+        if ((result && result.code === 200) || (result && result.statusCode === 200) || (result && result.success === true)) {
           Swal.fire({
             title: 'Success!',
             text: result.message || 'Grievance processed successfully.',
@@ -578,8 +683,10 @@ export class NonGbvProcessDetails implements OnInit {
           });
           this.router.navigate(['/non-gbv-management/process']);
         } else {
+          console.log("ssdfsdf",result);
+       
           Swal.fire({
-            title: 'Failed',
+            title: 'Process Failed',
             text: result?.message || 'Failed to process grievance.',
             icon: 'error',
             confirmButtonColor: '#0d6efd',
@@ -588,9 +695,14 @@ export class NonGbvProcessDetails implements OnInit {
       })
       .catch((err: any) => {
         console.error('Error processing grievance', err);
+        
+        // Extract the specific error message from the API response if available
+        const errorMessage = err.response?.data?.message || 'An error occurred while processing the grievance.';
+        const errorTitle = err.response?.data?.title || 'Error!';
+        
         Swal.fire({
-          title: 'Error!',
-          text: 'An error occurred while processing the grievance.',
+          title: errorTitle,
+          text: errorMessage,
           icon: 'error',
           confirmButtonColor: '#0d6efd',
         });

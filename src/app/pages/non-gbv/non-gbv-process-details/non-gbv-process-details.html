@@ -151,6 +151,55 @@
           </div>
         </div>
       </div>
+
+      <!-- Process History Section -->
+      <div class="section-block mb-4">
+        <h5 class="section-title fw-bold text-primary mb-3">
+          <i class="pi pi-history me-2"></i>
+          Process History
+        </h5>
+        <hr>
+        <p-table [value]="processHistory" [loading]="isLoadingHistory" [rowHover]="true" [rows]="5"
+          [paginator]="true" responsiveLayout="scroll" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Action Taken By</th>
+              <th>Resolved On</th>
+              <th>Accused Type</th>
+              <th>Further Action</th>
+              <th>Appeal Lodged</th>
+              <th class="text-center">Action</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-history>
+            <tr>
+              <td>{{ history.actionTakenBy }}</td>
+              <td>{{ formatDisplayDate(history.resolvedOn) }}</td>
+              <td>{{ history.accusedType }}</td>
+              <td>
+                <span class="badge" [ngClass]="history.furtherActionRequired ? 'bg-info' : 'bg-secondary'">
+                  {{ history.furtherActionRequired ? 'Yes' : 'No' }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="history.appealLodged ? 'bg-warning' : 'bg-secondary'">
+                  {{ history.appealLodged ? 'Yes' : 'No' }}
+                </span>
+              </td>
+              <td class="text-center">
+                <p-button icon="pi pi-eye" severity="info" [text]="true" rounded="true"
+                  (onClick)="viewProcessHistoryDetail(history.id)" pTooltip="View Detail"></p-button>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="6" class="text-center p-4 text-muted">No process history found for this grievance.</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
       <!-- Complaint Process Section -->
       <div class="section-block mb-4">
         <h5 class="section-title fw-bold text-primary mb-3">
@@ -158,17 +207,28 @@
           Complaint Process
         </h5>
         <hr>
-        <div class="p-4 border rounded bg-light cursor-pointer hover-shadow" (click)="displayProcessDialog = true"
+        <div class="p-4 border rounded bg-light" 
+          [ngClass]="{'cursor-pointer hover-shadow': !isProcessFormDisabled, 'bg-secondary-subtle opacity-75': isProcessFormDisabled}"
+          (click)="!isProcessFormDisabled && (displayProcessDialog = true)"
           style="transition: all 0.3s ease;">
           <div class="row align-items-center">
             <div class="col-md-9">
-              <p class="mb-1 text-muted">Click to enter or update process details such as action taken, feedback, and
-                investigation.</p>
+              <p class="mb-1 text-muted">
+                {{ grievanceDetails.status === 'Resolved'
+                    ? 'This grievance is already resolved and cannot be processed further.'
+                    : (!isFurtherActionAllowed
+                        ? 'Further action is not required, so process form is disabled.'
+                        : 'Click to enter or update process details such as action taken, feedback, and investigation.') }}
+              </p>
               <div class="mt-2">
                 @if (processForm.get('actionTakenBy')?.value) {
                 <span class="badge bg-success me-2">Details Entered</span>
                 <small class="text-secondary">Process initialized by:
                   <strong>{{processForm.get('actionTakenBy')?.value}}</strong></small>
+                } @else if (isProcessFormDisabled && grievanceDetails.status === 'Resolved') {
+                  <span class="badge bg-success">Resolved</span>
+                } @else if (isProcessFormDisabled && !isFurtherActionAllowed) {
+                  <span class="badge bg-secondary">Further Action Not Required</span>
                 } @else {
                 <span class="badge bg-warning">No Process Details Added</span>
                 }
@@ -176,14 +236,14 @@
             </div>
             <div class="col-md-3 text-end">
               <p-button label="Open Process Form" icon="pi pi-external-link" severity="primary" [outlined]="true"
-                size="small" (onClick)="$event.stopPropagation(); displayProcessDialog = true"></p-button>
+                size="small"
+                [disabled]="isProcessFormDisabled"
+                [pTooltip]="grievanceDetails.status === 'Resolved' ? 'Grievance is resolved' : (!isFurtherActionAllowed ? 'Further action is not required' : '')"
+                (onClick)="$event.stopPropagation(); displayProcessDialog = true"></p-button>
             </div>
           </div>
         </div>
       </div>
-
- 
-
     </div>
   </div>
 </div>
@@ -312,7 +372,7 @@
       </h5>
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label fw-bold d-block mb-2">Further Action Required?</label>
+          <label class="form-label fw-bold d-block mb-2">Further Action Required? <span class="text-danger">*</span></label>
           <p-checkbox formControlName="furtherActionRequired" binary="true" label="Yes" />
         </div>
         <div class="col-md-6" *ngIf="furtherActionRequired">
@@ -324,7 +384,7 @@
           </small>
         </div>
         <div class="col-md-6">
-          <label class="form-label fw-bold d-block mb-2">Investigation Carried Out?</label>
+          <label class="form-label fw-bold d-block mb-2">Investigation Carried Out? <span class="text-danger">*</span></label>
           <p-checkbox formControlName="investigationCarriedOut" binary="true" label="Yes" />
         </div>
         <ng-container *ngIf="investigationCarriedOut">
@@ -372,7 +432,7 @@
       </h5>
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label fw-bold d-block mb-2">Appeal Lodged?</label>
+          <label class="form-label fw-bold d-block mb-2">Appeal Lodged? <span class="text-danger">*</span></label>
           <p-checkbox formControlName="appealLodged" binary="true" label="Yes" />
         </div>
         <ng-container *ngIf="appealLodged">
@@ -408,10 +468,84 @@
   </form>
 
   <ng-template pTemplate="footer">
-    <p-button label="Discard" icon="pi pi-times" (onClick)="displayProcessDialog = false" severity="secondary"
-      [text]="true"></p-button>
-    <p-button label="Save Process Details" icon="pi pi-check" (onClick)="displayProcessDialog = false"
-      severity="primary"></p-button>
+    <div class="d-flex justify-content-between w-100">
+      <p-button label="Discard" icon="pi pi-times" (onClick)="displayProcessDialog = false" severity="secondary"
+        [text]="true"></p-button>
+      <div class="d-flex gap-2">
+        <p-button label="Reset Form" icon="pi pi-refresh" (onClick)="onReset()" severity="warn" [outlined]="true"></p-button>
+        <p-button label="Save & Submit Process" icon="pi pi-check" (onClick)="onSubmit()"
+          [disabled]="isSubmitting || processForm.invalid" [loading]="isSubmitting" severity="primary"></p-button>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- History Detail Dialog -->
+<p-dialog header="Process History Detail" [(visible)]="displayHistoryDetailDialog" [modal]="true"
+  [style]="{ width: '70vw' }" [breakpoints]="{ '960px': '90vw' }" [draggable]="false" [resizable]="false">
+  <div *ngIf="isLoadingHistoryDetail" class="text-center p-5">
+    <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4"></p-progressSpinner>
+    <p class="mt-2">Loading details...</p>
+  </div>
+
+  <div *ngIf="!isLoadingHistoryDetail && selectedHistoryDetail" class="history-detail-content p-3">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <label class="fw-bold text-muted small d-block">Action Taken By</label>
+        <p class="fw-medium">{{ selectedHistoryDetail.actionTakenBy }}</p>
+      </div>
+      <div class="col-md-6">
+        <label class="fw-bold text-muted small d-block">Resolved On</label>
+        <p class="fw-medium">{{ formatDisplayDate(selectedHistoryDetail.resolvedOn) }}</p>
+      </div>
+      <div class="col-12">
+        <label class="fw-bold text-muted small d-block">Action Taken In Response</label>
+        <p class="fw-medium text-break">{{ selectedHistoryDetail.actionTakenInResponse }}</p>
+      </div>
+      <div class="col-12">
+        <label class="fw-bold text-muted small d-block">Feedback To Complainant</label>
+        <p class="fw-medium text-break">{{ selectedHistoryDetail.feedbackToComplainant }}</p>
+      </div>
+      
+      <div class="col-12 border-top pt-3 mt-4">
+        <h6 class="fw-bold text-primary mb-3">Investigation Details</h6>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="fw-bold text-muted small d-block">Investigator</label>
+            <p class="fw-medium">{{ selectedHistoryDetail.investigatorName || 'N/A' }}</p>
+          </div>
+          <div class="col-md-4">
+            <label class="fw-bold text-muted small d-block">Completed On</label>
+            <p class="fw-medium">{{ formatDisplayDate(selectedHistoryDetail.investigationCompletedOn) || 'N/A' }}</p>
+          </div>
+          <div class="col-12">
+            <label class="fw-bold text-muted small d-block">Investigation Findings</label>
+            <p class="fw-medium">{{ selectedHistoryDetail.investigationFindings || 'N/A' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 border-top pt-3 mt-4">
+        <h6 class="fw-bold text-primary mb-3">Final Outcome</h6>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="fw-bold text-muted small d-block">Final Status</label>
+            <span [class]="'badge ' + (selectedHistoryDetail.status === 'Resolved' ? 'bg-success' : 'bg-warning')">
+              {{ selectedHistoryDetail.status }}
+            </span>
+          </div>
+          <div class="col-md-4">
+            <label class="fw-bold text-muted small d-block">Appeal Lodged</label>
+            <p class="fw-medium">{{ selectedHistoryDetail.appealLodged ? 'Yes' : 'No' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Close" icon="pi pi-times" (onClick)="displayHistoryDetailDialog = false"
+      severity="secondary"></p-button>
   </ng-template>
 </p-dialog>
 

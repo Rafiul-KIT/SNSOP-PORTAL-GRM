@@ -86,3 +86,8 @@ ul {
 .p-component-overlay {
   z-index: 100000 !important;
 }
+
+/* Ensure SweetAlert is always on top of everything */
+.swal2-container {
+  z-index: 110000 !important;
+}
