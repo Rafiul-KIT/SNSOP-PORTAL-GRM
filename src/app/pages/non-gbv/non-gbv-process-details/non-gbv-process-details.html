@@ -1,324 +1,422 @@
 @if (isLoading) {
-  <app-loader></app-loader>
+<app-loader></app-loader>
 } @else if (grievanceDetails && processForm) {
-  <div class="breadcrumb-wrapper">
-    <p-breadcrumb [model]="breadcrumbItems" [home]="breadcrumbHome" class="w-100"></p-breadcrumb>
-  </div>
+<div class="breadcrumb-wrapper">
+  <p-breadcrumb [model]="breadcrumbItems" [home]="breadcrumbHome" class="w-100"></p-breadcrumb>
+</div>
 
-  <div class="container mt-4">
-    <div class="card shadow-sm mb-5">
-      <div class="card-header bg-primary text-white py-3">
-        <h4 class="mb-0 fw-bold">
-          <i class="pi pi-cog me-2"></i>
-          Process Non-GBV Grievance
-          <span class="badge bg-secondary ms-2">{{ grievanceDetails.trackingNumber }}</span>
-        </h4>
-      </div>
+<div class="container mt-4">
+  <div class="card shadow-sm mb-5">
+    <div class="card-header bg-primary text-white py-3">
+      <h4 class="mb-0 fw-bold">
+        <i class="pi pi-cog me-2"></i>
+        Process Non-GBV Grievance
+        <span class="badge bg-secondary ms-2">{{ grievanceDetails.trackingNumber }}</span>
+      </h4>
+    </div>
 
-      <div class="card-body p-4">
-        <!-- Grievance Details (Read-only for context) -->
-        <div class="section-block mb-4">
-          <h5 class="section-title fw-bold text-primary mb-3">
-            <i class="pi pi-file me-2"></i>
-            Grievance Overview
-          </h5>
-          <hr>
-          <div class="row g-3">
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Tracking Number:</label>
-              <p>{{ grievanceDetails.trackingNumber }}</p>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Complainant Name:</label>
-              <p>{{ grievanceDetails.complainantName }}</p>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Incident Occurred At:</label>
-              <p>{{ formatDisplayDate(grievanceDetails.incidentOccurredAt) }}</p>
-            </div>
-            <div class="col-12">
-              <label class="form-label fw-bold">Description:</label>
-              <p class="text-break">{{ grievanceDetails.grievanceDescription }}</p>
-            </div>
+    <div class="card-body p-4">
+      <!-- General Information Section -->
+      <div class="section-block mb-4">
+        <h5 class="section-title fw-bold text-primary mb-3">
+          <i class="pi pi-info-circle me-2"></i>
+          General Information
+        </h5>
+        <hr>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-bold">ID:</label>
+            <p>{{ grievanceDetails.id }}</p>
           </div>
-          <div class="d-flex justify-content-end mt-3">
-            <p-button label="View Full Details" icon="pi pi-eye" severity="info" size="small"
-              [routerLink]="['/non-gbv-management/details', grievanceDetails.id]" outlined="true">
-            </p-button>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Tracking Number:</label>
+            <p>{{ grievanceDetails.trackingNumber }}</p>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Incident Occurred At:</label>
+            <p>{{ formatDisplayDate(grievanceDetails.incidentOccurredAt) }}</p>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">State Name:</label>
+            <p>{{ getStateName(grievanceDetails.stateId) }}</p>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">County/Municipality Name:</label>
+            <p>{{ getCountyName(grievanceDetails.countyId, counties) }}</p>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Payam/Block Name:</label>
+            <p>{{ getPayamName(grievanceDetails.payamId, payams) }}</p>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Boma/Quarter Council Name:</label>
+            <p>{{ getBomaName(grievanceDetails.bomaId, bomas) }}</p>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Status:</label>
+            <p>
+              <span [class]="'badge ' + (grievanceDetails.status === 'Resolved' ? 'bg-success' : grievanceDetails.status === 'Rejected' ? 'bg-danger' : 'bg-warning')">
+                {{ getStatusLabel(grievanceDetails.status) }}
+              </span>
+            </p>
           </div>
         </div>
-
-        <form [formGroup]="processForm" (ngSubmit)="onSubmit()">
-
-          <!-- Action Taken Section -->
-          <div class="section-block mb-4">
-            <h5 class="section-title fw-bold text-primary mb-3">
-              <i class="pi pi-thumbs-up me-2"></i>
-              Action Taken
-            </h5>
-            <hr>
-            <div class="row g-3">
-              <div class="col-12">
-                <label class="form-label fw-bold">Action Taken in Response <span class="text-danger">*</span></label>
-                <textarea pTextarea formControlName="actionTakenInResponse" rows="3" class="w-100"
-                  placeholder="Describe actions taken..."></textarea>
-                <small class="text-danger"
-                  *ngIf="processForm.get('actionTakenInResponse')?.invalid && (processForm.get('actionTakenInResponse')?.touched || processForm.get('actionTakenInResponse')?.dirty)">
-                  Action is required
-                </small>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label fw-bold">Action Taken By <span class="text-danger">*</span></label>
-                <input type="text" pInputText formControlName="actionTakenBy" class="w-100" />
-                <small class="text-danger"
-                  *ngIf="processForm.get('actionTakenBy')?.invalid && (processForm.get('actionTakenBy')?.touched || processForm.get('actionTakenBy')?.dirty)">
-                  Action taker is required
-                </small>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label fw-bold">Resolved On <span class="text-danger">*</span></label>
-                <p-datepicker formControlName="resolvedOn" [showIcon]="true" appendTo="body" class="w-100"
-                  dateFormat="dd/mm/yy"></p-datepicker>
-                <small class="text-danger"
-                  *ngIf="processForm.get('resolvedOn')?.invalid && (processForm.get('resolvedOn')?.touched || processForm.get('resolvedOn')?.dirty)">
-                  Resolved date is required
-                </small>
-              </div>
-            </div>
-          </div>
-
-          <!-- Feedback to Complainant Section -->
-          <!-- FIX #1: Added required asterisk and validation message to match Validators.required -->
-          <div class="section-block mb-4">
-            <h5 class="section-title fw-bold text-primary mb-3">
-              <i class="pi pi-comments me-2"></i>
-              Feedback to Complainant
-            </h5>
-            <hr>
-            <div class="row g-3">
-              <div class="col-12">
-                <label class="form-label fw-bold">Feedback Details <span class="text-danger">*</span></label>
-                <textarea pTextarea formControlName="feedbackToComplainant" rows="3" class="w-100"
-                  placeholder="Provide feedback details..."></textarea>
-                <small class="text-danger"
-                  *ngIf="processForm.get('feedbackToComplainant')?.invalid && (processForm.get('feedbackToComplainant')?.touched || processForm.get('feedbackToComplainant')?.dirty)">
-                  Feedback is required
-                </small>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Attachment</label>
-                <p-fileUpload mode="basic" chooseLabel="Choose File" [auto]="false"
-                  (onSelect)="onFeedbackAttachmentSelect($event)" [multiple]="false" accept="image/*,.pdf"
-                  [maxFileSize]="1000000" styleClass="w-100">
-                </p-fileUpload>
-                <small class="p-error" *ngIf="feedbackAttachmentFile">{{ feedbackAttachmentFile.name }}</small>
-              </div>
-            </div>
-          </div>
-
-          <!-- Accused Information Section -->
-          <!-- FIX #2: Removed required asterisks and validation messages from optional location fields -->
-          <div class="section-block mb-4">
-            <h5 class="section-title fw-bold text-primary mb-3">
-              <i class="pi pi-user-minus me-2"></i>
-              Accused Information
-            </h5>
-            <hr>
-            <div class="row g-3">
-              <div class="col-md-4">
-                <label class="form-label fw-bold">Accused Name</label>
-                <input type="text" pInputText formControlName="accusedName" class="w-100" />
-              </div>
-              <div class="col-md-4">
-                <label class="form-label fw-bold">Accused Type</label>
-                <p-select [options]="accusedTypes" formControlName="accusedType" optionLabel="label"
-                  optionValue="value" appendTo="body" placeholder="--Select--" class="w-100">
-                </p-select>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label fw-bold">Accused Details</label>
-                <input type="text" pInputText formControlName="accusedDetails" class="w-100" />
-              </div>
-              <div class="col-12">
-                <label class="form-label fw-bold">Other Accused Details</label>
-                <textarea pTextarea formControlName="accusedOtherDetails" rows="2" class="w-100"
-                  placeholder="Other details..."></textarea>
-              </div>
-              <!-- FIX #2: Removed Validators.required from accused location — no asterisks, no error messages -->
-              <div class="col-md-3">
-                <label class="form-label fw-bold">State</label>
-                <p-select [options]="accusedStates" optionLabel="name" formControlName="accusedState"
-                  appendTo="body" placeholder="--Select--" class="w-100" [filter]="true"
-                  (onChange)="onAccusedStateChange($event.value)">
-                </p-select>
-              </div>
-              <div class="col-md-3">
-                <label class="form-label fw-bold">County</label>
-                <p-select [options]="accusedCounties" optionLabel="name" formControlName="accusedCounty"
-                  appendTo="body" placeholder="--Select--" class="w-100" [filter]="true"
-                  (onChange)="onAccusedCountyChange($event.value)">
-                </p-select>
-              </div>
-              <div class="col-md-3">
-                <label class="form-label fw-bold">Payam</label>
-                <p-select [options]="accusedPayams" optionLabel="name" formControlName="accusedPayam"
-                  appendTo="body" placeholder="--Select--" class="w-100" [filter]="true"
-                  (onChange)="onAccusedPayamChange($event.value)">
-                </p-select>
-              </div>
-              <div class="col-md-3">
-                <label class="form-label fw-bold">Boma</label>
-                <p-select [options]="accusedBomas" optionLabel="name" formControlName="accusedBoma"
-                  appendTo="body" placeholder="--Select--" class="w-100" [filter]="true">
-                </p-select>
-              </div>
-            </div>
-          </div>
-
-          <!-- Further Actions & Investigation Section -->
-          <div class="section-block mb-4">
-            <h5 class="section-title fw-bold text-primary mb-3">
-              <i class="pi pi-search me-2"></i>
-              Further Actions & Investigation
-            </h5>
-            <hr>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label fw-bold d-block mb-2">Further Action Required?</label>
-                <p-checkbox formControlName="furtherActionRequired" binary="true" label="Yes" />
-              </div>
-              <div class="col-md-6" *ngIf="furtherActionRequired">
-                <label class="form-label fw-bold">Further Required Action Details <span class="text-danger">*</span></label>
-                <textarea pTextarea formControlName="furtherRequiredActionDetails" rows="2" class="w-100"></textarea>
-                <small class="text-danger"
-                  *ngIf="processForm.get('furtherRequiredActionDetails')?.invalid && (processForm.get('furtherRequiredActionDetails')?.touched || processForm.get('furtherRequiredActionDetails')?.dirty)">
-                  Details are required
-                </small>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold d-block mb-2">Investigation Carried Out?</label>
-                <p-checkbox formControlName="investigationCarriedOut" binary="true" label="Yes" />
-              </div>
-              <ng-container *ngIf="investigationCarriedOut">
-                <div class="col-md-4">
-                  <label class="form-label fw-bold">Investigator Name <span class="text-danger">*</span></label>
-                  <input type="text" pInputText formControlName="investigatorName" class="w-100" />
-                  <small class="text-danger"
-                    *ngIf="processForm.get('investigatorName')?.invalid && (processForm.get('investigatorName')?.touched || processForm.get('investigatorName')?.dirty)">
-                    Name is required
-                  </small>
-                </div>
-                <div class="col-md-4">
-                  <label class="form-label fw-bold">Investigator Designation <span class="text-danger">*</span></label>
-                  <input type="text" pInputText formControlName="investigatorDesignation" class="w-100" />
-                  <small class="text-danger"
-                    *ngIf="processForm.get('investigatorDesignation')?.invalid && (processForm.get('investigatorDesignation')?.touched || processForm.get('investigatorDesignation')?.dirty)">
-                    Designation is required
-                  </small>
-                </div>
-                <div class="col-md-4">
-                  <label class="form-label fw-bold">Investigation Completed On <span class="text-danger">*</span></label>
-                  <p-datepicker formControlName="investigationCompletedOn" [showIcon]="true" appendTo="body"
-                    class="w-100" dateFormat="dd/mm/yy">
-                  </p-datepicker>
-                  <small class="text-danger"
-                    *ngIf="processForm.get('investigationCompletedOn')?.invalid && (processForm.get('investigationCompletedOn')?.touched || processForm.get('investigationCompletedOn')?.dirty)">
-                    Date is required
-                  </small>
-                </div>
-                <div class="col-12">
-                  <label class="form-label fw-bold">Investigation Findings <span class="text-danger">*</span></label>
-                  <textarea pTextarea formControlName="investigationFindings" rows="3" class="w-100"></textarea>
-                  <small class="text-danger"
-                    *ngIf="processForm.get('investigationFindings')?.invalid && (processForm.get('investigationFindings')?.touched || processForm.get('investigationFindings')?.dirty)">
-                    Findings are required
-                  </small>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">Investigation Report Attachment</label>
-                  <p-fileUpload mode="basic" chooseLabel="Choose File" [auto]="false"
-                    (onSelect)="onInvestigationReportAttachmentSelect($event)" [multiple]="false"
-                    accept="image/*,.pdf" [maxFileSize]="1000000" styleClass="w-100">
-                  </p-fileUpload>
-                  <small class="p-error" *ngIf="investigationReportAttachmentFile">
-                    {{ investigationReportAttachmentFile.name }}
-                  </small>
-                </div>
-                <div class="col-12">
-                  <label class="form-label fw-bold">Action After Investigation</label>
-                  <textarea pTextarea formControlName="actionAfterInvestigation" rows="3" class="w-100"></textarea>
-                </div>
-              </ng-container>
-            </div>
-          </div>
-
-          <!-- Appeal Information Section -->
-          <div class="section-block mb-4">
-            <h5 class="section-title fw-bold text-primary mb-3">
-              <i class="pi pi-flag me-2"></i>
-              Appeal Information
-            </h5>
-            <hr>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label fw-bold d-block mb-2">Appeal Lodged?</label>
-                <p-checkbox formControlName="appealLodged" binary="true" label="Yes" />
-              </div>
-              <ng-container *ngIf="appealLodged">
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">Appealed On <span class="text-danger">*</span></label>
-                  <p-datepicker formControlName="appealedOn" [showIcon]="true" appendTo="body" class="w-100"
-                    dateFormat="dd/mm/yy">
-                  </p-datepicker>
-                  <small class="text-danger"
-                    *ngIf="processForm.get('appealedOn')?.invalid && (processForm.get('appealedOn')?.touched || processForm.get('appealedOn')?.dirty)">
-                    Appeal date is required
-                  </small>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold d-block mb-2">Appeal Outcome Satisfactory?</label>
-                  <p-checkbox formControlName="appealOutcomeSatisfactory" binary="true" label="Yes" />
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">After Appeal Closed On</label>
-                  <p-datepicker formControlName="afterAppealClosedOn" [showIcon]="true" appendTo="body"
-                    class="w-100" dateFormat="dd/mm/yy">
-                  </p-datepicker>
-                </div>
-              </ng-container>
-              <div class="col-12">
-                <label class="form-label fw-bold">Unresolved Recommended Action</label>
-                <textarea pTextarea formControlName="unresolvedRecommendedAction" rows="3" class="w-100"></textarea>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label fw-bold">Final Status <span class="text-danger">*</span></label>
-                <p-select [options]="statusOptions" formControlName="status" optionLabel="label"
-                  optionValue="value" appendTo="body" placeholder="--Select--" class="w-100">
-                </p-select>
-                <small class="text-danger"
-                  *ngIf="processForm.get('status')?.invalid && (processForm.get('status')?.touched || processForm.get('status')?.dirty)">
-                  Status is required
-                </small>
-              </div>
-            </div>
-          </div>
-
-          <!-- Form Actions -->
-          <div class="d-flex justify-content-end gap-3 mt-5 pt-4 border-top">
-            <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="onCancel()"
-              [outlined]="true" styleClass="p-button-sm">
-            </p-button>
-            <p-button label="Submit Process" icon="pi pi-check" (onClick)="onSubmit()"
-              [disabled]="isSubmitting || processForm.invalid" [loading]="isSubmitting" severity="primary"
-              styleClass="p-button-sm">
-            </p-button>
-          </div>
-        </form>
       </div>
+
+      <!-- Complaint Details Section -->
+      <div class="section-block mb-4">
+        <h5 class="section-title fw-bold text-primary mb-3">
+          <i class="pi pi-comments me-2"></i>
+          Complaint Details
+        </h5>
+        <hr>
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-bold">Description of Complaint / Allegation / Issue:</label>
+            <p class="text-break">{{ grievanceDetails.grievanceDescription }}</p>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Reporting Channel:</label>
+            <p>{{ getReportingChannelName(grievanceDetails.reportingChannelId) }}</p>
+          </div>
+          <div class="col-md-4" *ngIf="grievanceDetails.reportingChannelOther">
+            <label class="form-label fw-bold">Other Reporting Channel:</label>
+            <p>{{ grievanceDetails.reportingChannelOther }}</p>
+          </div>
+          <div class="col-md-4" *ngIf="grievanceDetails.grievanceAttachmentUrl">
+            <label class="form-label fw-bold">Attachment:</label>
+            <div>
+              <a [href]="grievanceDetails.grievanceAttachmentUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                <i class="pi pi-download me-2"></i> {{ grievanceDetails.grievanceAttachmentFilename || 'Download Attachment' }}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grievance Classification Section -->
+      <div class="section-block mb-4">
+        <h5 class="section-title fw-bold text-primary mb-3">
+          <i class="pi pi-tags me-2"></i>
+          Grievance Classification
+        </h5>
+        <hr>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Category of Grievance:</label>
+            <p>{{ getGrievanceCategoryName(grievanceDetails.grievanceTypeId) }}</p>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Type of Grievance:</label>
+            <p>{{ getGrievanceTypeName(grievanceDetails.grievanceDetailTypeId) }}</p>
+          </div>
+          <div class="col-md-4" *ngIf="grievanceDetails.grievanceTypeOtherDesc">
+            <label class="form-label fw-bold">Type Of Grievance (Other):</label>
+            <p>{{ grievanceDetails.grievanceTypeOtherDesc }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Complainant Information Section -->
+      <div class="section-block mb-4">
+        <h5 class="section-title fw-bold text-primary mb-3">
+          <i class="pi pi-user me-2"></i>
+          Complainant Information
+        </h5>
+        <hr>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Complainant's Name:</label>
+            <p>{{ grievanceDetails.complainantName }}</p>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Contact Number:</label>
+            <p>{{ grievanceDetails.complainantContact }}</p>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Physical Address:</label>
+            <p>{{ grievanceDetails.complainantPhysicalAddress }}</p>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Gender:</label>
+            <p>{{ getGenderName(grievanceDetails.complainantGender) }}</p>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Age:</label>
+            <p>{{ grievanceDetails.complainantAge }}</p>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">SNSOP Beneficiary:</label>
+            <p>{{ getBeneficiaryStatus(grievanceDetails.complainantBeneficiary) }}</p>
+          </div>
+        </div>
+      </div>
+      <!-- Complaint Process Section -->
+      <div class="section-block mb-4">
+        <h5 class="section-title fw-bold text-primary mb-3">
+          <i class="pi pi-briefcase me-2"></i>
+          Complaint Process
+        </h5>
+        <hr>
+        <div class="p-4 border rounded bg-light cursor-pointer hover-shadow" (click)="displayProcessDialog = true"
+          style="transition: all 0.3s ease;">
+          <div class="row align-items-center">
+            <div class="col-md-9">
+              <p class="mb-1 text-muted">Click to enter or update process details such as action taken, feedback, and
+                investigation.</p>
+              <div class="mt-2">
+                @if (processForm.get('actionTakenBy')?.value) {
+                <span class="badge bg-success me-2">Details Entered</span>
+                <small class="text-secondary">Process initialized by:
+                  <strong>{{processForm.get('actionTakenBy')?.value}}</strong></small>
+                } @else {
+                <span class="badge bg-warning">No Process Details Added</span>
+                }
+              </div>
+            </div>
+            <div class="col-md-3 text-end">
+              <p-button label="Open Process Form" icon="pi pi-external-link" severity="primary" [outlined]="true"
+                size="small" (onClick)="$event.stopPropagation(); displayProcessDialog = true"></p-button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+ 
+
     </div>
   </div>
+</div>
+
+<!-- Process Details Dialog -->
+<p-dialog header="Enter Process Details" [(visible)]="displayProcessDialog" [modal]="true" [style]="{ width: '80vw' }"
+  [breakpoints]="{ '960px': '95vw' }" [draggable]="false" [resizable]="false" styleClass="p-fluid">
+
+  <form [formGroup]="processForm" class="mt-3">
+    <!-- Action Taken Section -->
+    <div class="section-block mb-4">
+      <h5 class="section-title fw-bold text-primary mb-3">
+        <i class="pi pi-thumbs-up me-2"></i>
+        Action Taken
+      </h5>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label fw-bold">Action Taken in Response <span class="text-danger">*</span></label>
+          <textarea pTextarea formControlName="actionTakenInResponse" rows="3" class="w-100"
+            placeholder="Describe actions taken..."></textarea>
+          <small class="text-danger"
+            *ngIf="processForm.get('actionTakenInResponse')?.invalid && (processForm.get('actionTakenInResponse')?.touched || processForm.get('actionTakenInResponse')?.dirty)">
+            Action is required
+          </small>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold">Action Taken By <span class="text-danger">*</span></label>
+          <input type="text" pInputText formControlName="actionTakenBy" class="w-100" />
+          <small class="text-danger"
+            *ngIf="processForm.get('actionTakenBy')?.invalid && (processForm.get('actionTakenBy')?.touched || processForm.get('actionTakenBy')?.dirty)">
+            Action taker is required
+          </small>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold">Resolved On <span class="text-danger">*</span></label>
+          <p-datepicker formControlName="resolvedOn" [showIcon]="true" appendTo="body" class="w-100"
+            dateFormat="dd/mm/yy"></p-datepicker>
+          <small class="text-danger"
+            *ngIf="processForm.get('resolvedOn')?.invalid && (processForm.get('resolvedOn')?.touched || processForm.get('resolvedOn')?.dirty)">
+            Resolved date is required
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feedback Section -->
+    <div class="section-block mb-4">
+      <h5 class="section-title fw-bold text-primary mb-3">
+        <i class="pi pi-comments me-2"></i>
+        Feedback to Complainant
+      </h5>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label fw-bold">Feedback Details <span class="text-danger">*</span></label>
+          <textarea pTextarea formControlName="feedbackToComplainant" rows="3" class="w-100"
+            placeholder="Provide feedback details..."></textarea>
+          <small class="text-danger"
+            *ngIf="processForm.get('feedbackToComplainant')?.invalid && (processForm.get('feedbackToComplainant')?.touched || processForm.get('feedbackToComplainant')?.dirty)">
+            Feedback is required
+          </small>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold">Attachment</label>
+          <p-fileUpload mode="basic" chooseLabel="Choose File" [auto]="false"
+            (onSelect)="onFeedbackAttachmentSelect($event)" [multiple]="false" accept="image/*,.pdf"
+            [maxFileSize]="1000000" styleClass="w-100">
+          </p-fileUpload>
+          <small class="p-error" *ngIf="feedbackAttachmentFile">{{ feedbackAttachmentFile.name }}</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accused Information Section -->
+    <div class="section-block mb-4">
+      <h5 class="section-title fw-bold text-primary mb-3">
+        <i class="pi pi-user-minus me-2"></i>
+        Accused Information
+      </h5>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-bold">Accused Name</label>
+          <input type="text" pInputText formControlName="accusedName" class="w-100" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold">Accused Type</label>
+          <p-select [options]="accusedTypes" formControlName="accusedType" optionLabel="label" optionValue="value"
+            appendTo="body" placeholder="--Select--" class="w-100">
+          </p-select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold">Accused Details</label>
+          <input type="text" pInputText formControlName="accusedDetails" class="w-100" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-bold">State</label>
+          <p-select [options]="accusedStates" optionLabel="name" formControlName="accusedState" appendTo="body"
+            placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onAccusedStateChange($event.value)">
+          </p-select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-bold">County</label>
+          <p-select [options]="accusedCounties" optionLabel="name" formControlName="accusedCounty" appendTo="body"
+            placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onAccusedCountyChange($event.value)">
+          </p-select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-bold">Payam</label>
+          <p-select [options]="accusedPayams" optionLabel="name" formControlName="accusedPayam" appendTo="body"
+            placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onAccusedPayamChange($event.value)">
+          </p-select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-bold">Boma</label>
+          <p-select [options]="accusedBomas" optionLabel="name" formControlName="accusedBoma" appendTo="body"
+            placeholder="--Select--" class="w-100" [filter]="true">
+          </p-select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Further Actions & Investigation Section -->
+    <div class="section-block mb-4">
+      <h5 class="section-title fw-bold text-primary mb-3">
+        <i class="pi pi-search me-2"></i>
+        Investigation & Further Actions
+      </h5>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-bold d-block mb-2">Further Action Required?</label>
+          <p-checkbox formControlName="furtherActionRequired" binary="true" label="Yes" />
+        </div>
+        <div class="col-md-6" *ngIf="furtherActionRequired">
+          <label class="form-label fw-bold">Further Required Action Details <span class="text-danger">*</span></label>
+          <textarea pTextarea formControlName="furtherRequiredActionDetails" rows="2" class="w-100"></textarea>
+          <small class="text-danger"
+            *ngIf="processForm.get('furtherRequiredActionDetails')?.invalid && (processForm.get('furtherRequiredActionDetails')?.touched || processForm.get('furtherRequiredActionDetails')?.dirty)">
+            Details are required
+          </small>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold d-block mb-2">Investigation Carried Out?</label>
+          <p-checkbox formControlName="investigationCarriedOut" binary="true" label="Yes" />
+        </div>
+        <ng-container *ngIf="investigationCarriedOut">
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Investigator Name <span class="text-danger">*</span></label>
+            <input type="text" pInputText formControlName="investigatorName" class="w-100" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Investigator Designation <span class="text-danger">*</span></label>
+            <input type="text" pInputText formControlName="investigatorDesignation" class="w-100" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Investigation Completed On <span class="text-danger">*</span></label>
+            <p-datepicker formControlName="investigationCompletedOn" [showIcon]="true" appendTo="body" class="w-100"
+              dateFormat="dd/mm/yy">
+            </p-datepicker>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-bold">Investigation Findings <span class="text-danger">*</span></label>
+            <textarea pTextarea formControlName="investigationFindings" rows="3" class="w-100"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Investigation Report Attachment</label>
+            <p-fileUpload mode="basic" chooseLabel="Choose File" [auto]="false"
+              (onSelect)="onInvestigationReportAttachmentSelect($event)" [multiple]="false" accept="image/*,.pdf"
+              [maxFileSize]="1000000" styleClass="w-100">
+            </p-fileUpload>
+            <small class="p-error" *ngIf="investigationReportAttachmentFile">
+              {{ investigationReportAttachmentFile.name }}
+            </small>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-bold">Action After Investigation</label>
+            <textarea pTextarea formControlName="actionAfterInvestigation" rows="3" class="w-100"></textarea>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Appeal Information Section -->
+    <div class="section-block mb-4">
+      <h5 class="section-title fw-bold text-primary mb-3">
+        <i class="pi pi-flag me-2"></i>
+        Appeal Information
+      </h5>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-bold d-block mb-2">Appeal Lodged?</label>
+          <p-checkbox formControlName="appealLodged" binary="true" label="Yes" />
+        </div>
+        <ng-container *ngIf="appealLodged">
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Appealed On <span class="text-danger">*</span></label>
+            <p-datepicker formControlName="appealedOn" [showIcon]="true" appendTo="body" class="w-100"
+              dateFormat="dd/mm/yy">
+            </p-datepicker>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold d-block mb-2">Appeal Outcome Satisfactory?</label>
+            <p-checkbox formControlName="appealOutcomeSatisfactory" binary="true" label="Yes" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">After Appeal Closed On</label>
+            <p-datepicker formControlName="afterAppealClosedOn" [showIcon]="true" appendTo="body" class="w-100"
+              dateFormat="dd/mm/yy">
+            </p-datepicker>
+          </div>
+        </ng-container>
+        <div class="col-12">
+          <label class="form-label fw-bold">Unresolved Recommended Action</label>
+          <textarea pTextarea formControlName="unresolvedRecommendedAction" rows="3" class="w-100"></textarea>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold">Final Status <span class="text-danger">*</span></label>
+          <p-select [options]="statusOptions" formControlName="status" optionLabel="label" optionValue="value"
+            appendTo="body" placeholder="--Select--" class="w-100">
+          </p-select>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Discard" icon="pi pi-times" (onClick)="displayProcessDialog = false" severity="secondary"
+      [text]="true"></p-button>
+    <p-button label="Save Process Details" icon="pi pi-check" (onClick)="displayProcessDialog = false"
+      severity="primary"></p-button>
+  </ng-template>
+</p-dialog>
+
 } @else {
-  <div class="alert alert-warning m-4" role="alert">
-    No grievance details found for the provided ID to process.
-  </div>
+<div class="alert alert-warning m-4" role="alert">
+  No grievance details found for the provided ID to process.
+</div>
 }

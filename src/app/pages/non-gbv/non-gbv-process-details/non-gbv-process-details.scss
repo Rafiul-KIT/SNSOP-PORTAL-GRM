@@ -1,0 +1,47 @@
+.breadcrumb-wrapper {
+  background-color: #f8f9fa;
+  padding: 10px 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.section-title {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 5px;
+  
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background-color: var(--primary-color);
+  }
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.hover-shadow:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  border-color: var(--primary-color) !important;
+  background-color: #fff !important;
+}
+
+.section-block {
+  background: #fff;
+  border-radius: 8px;
+}
+
+:host ::v-deep {
+  .p-dialog-content {
+    padding: 1.5rem;
+  }
+  
+  .p-card {
+    border: none;
+    box-shadow: none;
+  }
+}

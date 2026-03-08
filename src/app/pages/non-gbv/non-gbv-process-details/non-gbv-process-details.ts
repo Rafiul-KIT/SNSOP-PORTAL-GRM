@@ -24,6 +24,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { DatePickerModule } from 'primeng/datepicker';
 import { SelectModule } from 'primeng/select';
 import { CheckboxModule } from 'primeng/checkbox';
+import { DialogModule } from 'primeng/dialog';
 import Swal from 'sweetalert2';
 import { FileUploadModule } from 'primeng/fileupload';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -84,6 +85,7 @@ interface AccusedType {
     CheckboxModule,
     FileUploadModule,
     InputNumberModule,
+    DialogModule,
   ],
   providers: [MessageService],
   templateUrl: './non-gbv-process-details.html',
@@ -96,6 +98,7 @@ export class NonGbvProcessDetails implements OnInit {
   processForm!: FormGroup;
   isLoading = true;
   isSubmitting = false;
+  displayProcessDialog = false;
 
   breadcrumbItems: MenuItem[] = [];
   breadcrumbHome: MenuItem = { icon: 'pi pi-home', routerLink: '/dashboard' };
@@ -188,9 +191,27 @@ export class NonGbvProcessDetails implements OnInit {
 
   async loadAllLookups() {
     try {
-      const statesRes = await this.lookupService.getOrFetchStateList();
+      const [
+        statesRes,
+        categoriesRes,
+        reportingChannelsRes,
+        gendersList,
+      ] = await Promise.all([
+        this.lookupService.getOrFetchStateList(),
+        this.apiService.GET('api/grievance/type'),
+        this.apiService.GET('api/grievance/reporting-channel'),
+        this.lookupService.getGenderListbyId(),
+      ]);
+
       this.states = statesRes;
       this.accusedStates = statesRes;
+      this.grievanceCategories = categoriesRes?.data?.content
+        .filter((item: any) => item.status === true)
+        .map((item: any) => ({ label: item.details, value: item.id }));
+      this.reportingChannels = reportingChannelsRes?.data?.content
+        .filter((item: any) => item.ngbvChannel === true)
+        .map((item: any) => ({ label: item.detail, value: item.id }));
+      this.genders = gendersList.map((item) => ({ label: item.name, value: parseInt(item.id) }));
     } catch (error) {
       console.error('Error loading lookups:', error);
       this.messageService.add({
@@ -208,6 +229,7 @@ export class NonGbvProcessDetails implements OnInit {
       const res: any = await this.apiService.GET(`api/ngbv-grievance/get?id=${id}`);
       if (res?.data?.content?.length) {
         this.grievanceDetails = res.data.content[0];
+        await this.loadDependentLookups(this.grievanceDetails!);
         this.isLoading = false;
         this.cdr.detectChanges();
       } else {
@@ -230,6 +252,30 @@ export class NonGbvProcessDetails implements OnInit {
 
     this.isLoading = false;
     this.cdr.detectChanges();
+  }
+
+  async loadDependentLookups(details: NonGbvGrievanceDetails) {
+    const promises: Promise<any>[] = [];
+    if (details.stateId) {
+      promises.push(this.lookupService.getCountyListByStateId(String(details.stateId)).then(res => this.counties = res));
+    }
+    if (details.countyId) {
+      promises.push(this.lookupService.getPayamListByCountyId(String(details.countyId)).then(res => this.payams = res));
+    }
+    if (details.payamId) {
+      promises.push(this.lookupService.getBomaListByPayamId(String(details.payamId)).then(res => this.bomas = res));
+    }
+    if (details.grievanceTypeId) {
+      promises.push(this.apiService.GET(`api/grievance/detail-type`, { type: details.grievanceTypeId }).then((res: any) => {
+        if (res?.data?.content) {
+          this.grievanceTypes = res.data.content
+            .filter((item: any) => item.status === true)
+            .map((item: any) => ({ label: item.details, value: item.id }));
+        }
+      }));
+    }
+    await Promise.all(promises);
+    this.cdr.markForCheck();
   }
 
   initForm(): void {
