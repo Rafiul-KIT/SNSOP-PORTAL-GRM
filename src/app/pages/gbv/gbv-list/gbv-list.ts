@@ -28,14 +28,14 @@ import {
 } from '../../../services/lookup.service';
 import { ApiService } from '../../../services/api.service';
 import { Loader } from '../../../components/loader/loader';
+import Swal from 'sweetalert2';
 
 interface GbvGrievance {
   id: number;
   trackingNumber: string;
-  stateId: number;
-  createdAt: string;
-  createdAtDisplay?: string;
-  stateName?: string;
+  grievanceType: string;
+  incidentOccurredAt: string;
+  incidentOccurredAtDisplay?: string;
   complainantName: string;
   reportingChannel: string;
   isComplainantBeneficiary: string;
@@ -85,6 +85,7 @@ export class GbvList implements OnInit {
   // Grievance data
   grievances: GbvGrievance[] = [];
   totalRecords = 0;
+  archivingId: number | null = null;
 
   // Pagination
   currentPage = 0; // 0-based
@@ -218,7 +219,7 @@ export class GbvList implements OnInit {
     const body = this.buildSearchBody();
 
     this.api
-      .POST(`/api/gbv/list?page=${page}&size=${size}`, body)
+      .POST(`/api/gbv-grievance/list?page=${page}&size=${size}`, body)
       .then((res: any) => {
         if (!res || !res.data) throw new Error('Empty or invalid response');
 
@@ -331,8 +332,7 @@ export class GbvList implements OnInit {
       const statusLabel = this.getStatusLabel(item.status);
       return {
         ...item,
-        createdAtDisplay: this.formatDisplayDate(item.createdAt),
-        stateName: this.stateNameMap[String(item.stateId)] ?? String(item.stateId),
+        incidentOccurredAtDisplay: this.formatDisplayDate(item.incidentOccurredAt),
         beneficiaryStatus: item.isComplainantBeneficiary === 'YES' ? 'Beneficiary' : 'Non-Beneficiary',
         statusLabel,
         statusBadgeClass: this.getStatusBadgeClass(item.status),
@@ -344,5 +344,55 @@ export class GbvList implements OnInit {
 
   onView(grievanceId: number): void {
     this.router.navigate(['/gbv-management/details', grievanceId]);
+  }
+
+  onArchive(gbvGrievanceId: number): void {
+    Swal.fire({
+      title: 'Archive this grievance?',
+      text: 'This grievance will be moved to archive.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, archive it',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      this.archivingId = gbvGrievanceId;
+      this.cdr.markForCheck();
+
+      this.api
+        .PUT(`/api/gbv-grievance/archive?gbvGrievanceId=${gbvGrievanceId}`)
+        .then((res: any) => {
+          const data = res?.data;
+          if (data?.code === 200) {
+            Swal.fire({
+              title: 'Archived!',
+              text: data?.message || 'GBV grievance archived successfully.',
+              icon: 'success',
+              confirmButtonColor: '#0d6efd',
+            });
+            this.fetchPage(this.currentPage, this.pageSize);
+          } else {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Archive Failed',
+              detail: data?.message || 'Failed to archive GBV grievance.',
+            });
+          }
+        })
+        .catch((err) => {
+          console.error('Archive GBV grievance error:', err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'An error occurred while archiving GBV grievance.',
+          });
+        })
+        .finally(() => {
+          this.archivingId = null;
+          this.cdr.markForCheck();
+        });
+    });
   }
 }
