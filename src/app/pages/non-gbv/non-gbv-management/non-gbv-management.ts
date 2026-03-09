@@ -168,7 +168,7 @@ export class NonGbvManagement implements OnInit {
       countyName: [null, Validators.required],
       payamName: [null, Validators.required],
       bomaName: [null, Validators.required],
-      description: ['', Validators.required],
+      description: [''],
       attachment: [null],
       reportingChannel: [null, Validators.required],
       otherReportingChannel: [''],
@@ -184,6 +184,24 @@ export class NonGbvManagement implements OnInit {
       typeOfGrievance: [null],
       typeOfGrievanceOther: [''],
     });
+  }
+
+  isOtherReportingChannelSelected(): boolean {
+    const selectedId = this.grievanceForm.get('reportingChannel')?.value;
+    if (!selectedId) return false;
+
+    const selected = this.reportingChannels.find((channel) => channel.value === selectedId);
+    return selected?.label?.toLowerCase?.().includes('other') ?? false;
+  }
+
+  private formatDateForApi(value: Date | string | null | undefined): string {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   loadStates(): void {
@@ -269,17 +287,14 @@ export class NonGbvManagement implements OnInit {
       const rawValues = this.grievanceForm.getRawValue();
 
       const formData = new FormData();
-      // formData.append('id', '0');
+      formData.append('id', '0');
       formData.append('trackingNumber', '');
       formData.append('stateId', rawValues.stateName);
       formData.append('countyId', rawValues.countyName);
       formData.append('payamId', rawValues.payamName);
       formData.append('bomaId', rawValues.bomaName);
 
-      // Format date to YYYY-MM-DD
-      const incidentDate = rawValues.dateComplaint
-        ? new Date(rawValues.dateComplaint).toISOString().split('T')[0]
-        : '';
+      const incidentDate = this.formatDateForApi(rawValues.dateComplaint);
       formData.append('incidentOccurredAt', incidentDate);
 
       formData.append('reportingChannelId', rawValues.reportingChannel);
@@ -312,7 +327,9 @@ export class NonGbvManagement implements OnInit {
         'grievanceTypeOtherDesc',
         rawValues.typeOfGrievanceOther || ''
       );
-      formData.append('grievanceDescription', rawValues.description);
+      formData.append('grievanceDescription', rawValues.description || '');
+      formData.append('grievanceAttachmentUrl', '');
+      formData.append('grievanceAttachmentBytes', '');
 
       if (rawValues.attachment) {
         formData.append('grievanceAttachmentFile', rawValues.attachment);
@@ -320,6 +337,8 @@ export class NonGbvManagement implements OnInit {
           'grievanceAttachmentFilename',
           rawValues.attachment.name
         );
+      } else {
+        formData.append('grievanceAttachmentFilename', '');
       }
 
       this.apiService

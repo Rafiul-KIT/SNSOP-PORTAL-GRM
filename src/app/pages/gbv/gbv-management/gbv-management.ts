@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import {
   FormBuilder,
   FormGroup,
@@ -11,29 +11,27 @@ import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { DatePickerModule } from 'primeng/datepicker';
-import { FileUploadModule } from 'primeng/fileupload';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { LookupService, LookupItem } from '../../../services/lookup.service';
+import { LookupService } from '../../../services/lookup.service';
 import { ApiService } from '../../../services/api.service';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { MenuItem } from 'primeng/api';
 import Swal from 'sweetalert2';
-import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-gbv-management',
   standalone: true,
   imports: [
     CommonModule,
+    NgIf,
     ReactiveFormsModule,
     CardModule,
     SelectModule,
     InputTextModule,
     TextareaModule,
     DatePickerModule,
-    FileUploadModule,
     SelectButtonModule,
     ButtonModule,
     InputNumberModule,
@@ -46,71 +44,85 @@ export class GBVManagement implements OnInit {
   gbvForm!: FormGroup;
   today: Date = new Date();
   isLoading = false;
-  isEditMode = false;
-  gbvId: number = 0;
 
   items: MenuItem[] | undefined;
   home: MenuItem | undefined;
 
-  // Dropdown options
   states: any[] = [];
   counties: any[] = [];
   payams: any[] = [];
   bomas: any[] = [];
-  reporters = [
-    { label: 'Survivor', value: 'Survivor' },
-    { label: 'Family Member', value: 'Family Member' },
-    { label: 'Other', value: 'Other' },
+
+  reportingChannels: any[] = [];
+  genders: any[] = [];
+  incidentReporters = [
+    { label: 'Survivor', value: 1 },
+    { label: 'Family Member', value: 2 },
+    { label: 'Other', value: 3 },
   ];
-  consentOptions = [
-    { label: 'Yes', value: 'YES' },
-    { label: 'No', value: 'NO' },
+  beneficiaryOptions = [
+    { label: 'Yes', value: true },
+    { label: 'No', value: false },
+  ];
+  yesNoOptions = [
+    { label: 'Yes', value: true },
+    { label: 'No', value: false },
   ];
 
-  fileDescription: any = null;
-  fileConsent: any = null;
+  grievanceAttachmentFile: File | null = null;
+  consentAttachmentFile: File | null = null;
 
   constructor(
     private fb: FormBuilder,
     private lookupService: LookupService,
     private apiService: ApiService,
-    private cdr: ChangeDetectorRef,
-    private route: ActivatedRoute,
-    private router: Router
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
+    this.items = [{ label: 'GBV Management' }];
     this.home = { icon: 'pi pi-home', routerLink: '/dashboard' };
+
     this.initForm();
     this.loadStates();
-
-    this.route.params.subscribe((params) => {
-      this.gbvId = +params['id'];
-      if (this.gbvId) {
-        this.isEditMode = true;
-        this.items = [{ label: 'Edit GBV Case' }];
-        this.loadGBVData();
-      } else {
-        this.items = [{ label: 'New GBV Case' }];
-      }
-    });
+    this.loadGenders();
+    this.loadReportingChannels();
   }
 
   initForm(): void {
     this.gbvForm = this.fb.group({
-      serialNumber: ['', Validators.required],
-      date: [this.today, Validators.required],
-      state: [null, Validators.required],
-      county: [{ value: null, disabled: true }, Validators.required],
-      payam: [{ value: null, disabled: true }, Validators.required],
-      boma: [{ value: null, disabled: true }, Validators.required],
-      dateOfIncident: [null, Validators.required],
+      id: [0],
+      trackingNumber: [{ value: '', disabled: true }],
+      stateId: [null, Validators.required],
+      countyId: [null, Validators.required],
+      payamId: [null, Validators.required],
+      bomaId: [null, Validators.required],
+      incidentOccurredAt: [null, Validators.required],
       contactFocalPersonName: ['', Validators.required],
-      descriptionOfIncident: ['', Validators.required],
-      incidentReportedBy: [null, Validators.required],
-      consentSigned: [null, Validators.required],
-      fileDescription: [null],
-      fileConsent: [null],
+      incidentReportedBy: [null],
+      incidentReportedByOtherDesc: [''],
+      reportingChannelId: [null, Validators.required],
+      reportingChannelOther: [''],
+      complainantContactNumber: [''],
+      complainantGender: [null, Validators.required],
+      ageOfSurvivor: [null, [Validators.required, Validators.min(0)]],
+      complainantBeneficiary: [true],
+      complainantBeneficiarySelectionCriteria: [null],
+      suspectKnown: [null],
+      suspectAssociatedWithProject: [null],
+      suspectDetails: [''],
+      recommendedReferralServiceId: [null],
+      grievanceDescription: ['', Validators.required],
+      grievanceAttachmentUrl: [''],
+      grievanceAttachmentFile: [null],
+      grievanceAttachmentBytes: [''],
+      grievanceAttachmentFilename: [''],
+      verbalConsentGranted: [null],
+      consentSigned: [null],
+      consentFormAttachmentUrl: [''],
+      consentFormAttachmentFile: [null],
+      consentFormAttachmentBytes: [''],
+      consentFormAttachmentFilename: [''],
     });
   }
 
@@ -118,70 +130,36 @@ export class GBVManagement implements OnInit {
     this.lookupService.getOrFetchStateList().then((data) => {
       this.states = data.map((item) => ({
         label: item.name,
-        value: parseInt(item.id),
+        value: parseInt(item.id, 10),
       }));
       this.cdr.detectChanges();
     });
   }
 
-  loadGBVData(): void {
-    this.isLoading = true;
-    this.apiService.GET(`api/gbv/details/${this.gbvId}`).then(async (response) => {
-      const data = response.data;
-      
-      // Handle dependent dropdowns first
-      if (data.state) {
-        await this.loadCounties(data.state);
-        if (data.county) {
-          await this.loadPayams(data.county);
-          if (data.payam) {
-            await this.loadBomas(data.payam);
-          }
-        }
-      }
+  loadGenders(): void {
+    const data = this.lookupService.getGenderListbyId();
+    this.genders = data.map((item) => ({
+      label: item.name,
+      value: parseInt(item.id, 10),
+    }));
+  }
 
-      this.gbvForm.patchValue({
-        ...data,
-        date: data.date ? new Date(data.date) : null,
-        dateOfIncident: data.dateOfIncident ? new Date(data.dateOfIncident) : null,
+  loadReportingChannels(): void {
+    this.apiService
+      .GET('api/grievance/reporting-channel')
+      .then((res: any) => {
+        const data = res?.data?.content || [];
+        this.reportingChannels = data
+          .filter((item: any) => item.gbvChannel === true || item.gbvChannel === undefined)
+          .map((item: any) => ({
+            label: item.detail,
+            value: item.id,
+          }));
+        this.cdr.detectChanges();
+      })
+      .catch((err: any) => {
+        console.error('Error fetching reporting channels', err);
       });
-
-      this.isLoading = false;
-      this.cdr.detectChanges();
-    }).catch(error => {
-      this.isLoading = false;
-      console.error('Error fetching GBV data', error);
-    });
-  }
-
-  async loadCounties(stateId: any) {
-    const data = await this.lookupService.getCountyListByStateId(stateId.toString());
-    this.counties = data.map((item) => ({
-      label: item.name,
-      value: parseInt(item.id),
-    }));
-    this.gbvForm.get('county')?.enable();
-    this.cdr.detectChanges();
-  }
-
-  async loadPayams(countyId: any) {
-    const data = await this.lookupService.getPayamListByCountyId(countyId.toString());
-    this.payams = data.map((item) => ({
-      label: item.name,
-      value: parseInt(item.id),
-    }));
-    this.gbvForm.get('payam')?.enable();
-    this.cdr.detectChanges();
-  }
-
-  async loadBomas(payamId: any) {
-    const data = await this.lookupService.getBomaListByPayamId(payamId.toString());
-    this.bomas = data.map((item) => ({
-      label: item.name,
-      value: parseInt(item.id),
-    }));
-    this.gbvForm.get('boma')?.enable();
-    this.cdr.detectChanges();
   }
 
   onStateChange(event: any): void {
@@ -189,13 +167,18 @@ export class GBVManagement implements OnInit {
     this.counties = [];
     this.payams = [];
     this.bomas = [];
-    this.gbvForm.patchValue({ county: null, payam: null, boma: null });
-    this.gbvForm.get('county')?.disable();
-    this.gbvForm.get('payam')?.disable();
-    this.gbvForm.get('boma')?.disable();
+    this.gbvForm.patchValue({ countyId: null, payamId: null, bomaId: null });
 
     if (stateId) {
-      this.loadCounties(stateId);
+      this.lookupService.getCountyListByStateId(stateId.toString()).then((data) => {
+        this.counties = data.map((item) => ({
+          label: item.name,
+          value: parseInt(item.id, 10),
+        }));
+        this.cdr.detectChanges();
+      });
+    } else {
+      this.cdr.detectChanges();
     }
   }
 
@@ -203,101 +186,85 @@ export class GBVManagement implements OnInit {
     const countyId = event.value;
     this.payams = [];
     this.bomas = [];
-    this.gbvForm.patchValue({ payam: null, boma: null });
-    this.gbvForm.get('payam')?.disable();
-    this.gbvForm.get('boma')?.disable();
+    this.gbvForm.patchValue({ payamId: null, bomaId: null });
 
     if (countyId) {
-      this.loadPayams(countyId);
+      this.lookupService.getPayamListByCountyId(countyId.toString()).then((data) => {
+        this.payams = data.map((item) => ({
+          label: item.name,
+          value: parseInt(item.id, 10),
+        }));
+        this.cdr.detectChanges();
+      });
+    } else {
+      this.cdr.detectChanges();
     }
   }
 
   onPayamChange(event: any): void {
     const payamId = event.value;
     this.bomas = [];
-    this.gbvForm.patchValue({ boma: null });
-    this.gbvForm.get('boma')?.disable();
+    this.gbvForm.patchValue({ bomaId: null });
 
     if (payamId) {
-      this.loadBomas(payamId);
+      this.lookupService.getBomaListByPayamId(payamId.toString()).then((data) => {
+        this.bomas = data.map((item) => ({
+          label: item.name,
+          value: parseInt(item.id, 10),
+        }));
+        this.cdr.detectChanges();
+      });
+    } else {
+      this.cdr.detectChanges();
     }
   }
 
-  onFileUpload(event: any, fileType: string): void {
-    const file = event.target.files[0];
+  onFileUpload(event: any, fileType: 'grievance' | 'consent'): void {
+    const file = event.target.files?.[0];
     if (!file) return;
 
-    if (fileType === 'description') {
-      this.gbvForm.patchValue({ fileDescription: file });
-      this.fileDescription = file;
-    } else if (fileType === 'consent') {
-      this.gbvForm.patchValue({ fileConsent: file });
-      this.fileConsent = file;
+    if (fileType === 'grievance') {
+      this.grievanceAttachmentFile = file;
+      this.gbvForm.patchValue({
+        grievanceAttachmentFile: file,
+        grievanceAttachmentFilename: file.name,
+      });
+      return;
     }
+
+    this.consentAttachmentFile = file;
+    this.gbvForm.patchValue({
+      consentFormAttachmentFile: file,
+      consentFormAttachmentFilename: file.name,
+    });
+  }
+
+  private formatDateForApi(value: Date | string | null | undefined): string {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  private appendValue(formData: FormData, key: string, value: any): void {
+    if (value === null || value === undefined) {
+      formData.append(key, '');
+      return;
+    }
+
+    if (typeof value === 'boolean') {
+      formData.append(key, String(value));
+      return;
+    }
+
+    formData.append(key, String(value));
   }
 
   onSubmit(): void {
-    if (this.gbvForm.valid) {
-      this.isLoading = true;
-      const rawValues = this.gbvForm.getRawValue();
-      const formData = new FormData();
-
-      Object.keys(rawValues).forEach(key => {
-        if (rawValues[key] instanceof Date) {
-          formData.append(key, rawValues[key].toISOString().split('T')[0]);
-        } else if (rawValues[key] !== null && rawValues[key] !== undefined) {
-           if (key !== 'fileDescription' && key !== 'fileConsent') {
-             formData.append(key, rawValues[key]);
-           }
-        }
-      });
-
-      if (rawValues.fileDescription) {
-        formData.append('descriptionFile', rawValues.fileDescription);
-      }
-      if (rawValues.fileConsent) {
-        formData.append('consentFile', rawValues.fileConsent);
-      }
-
-      const endpoint = this.isEditMode ? `api/gbv/update/${this.gbvId}` : 'api/gbv/save';
-      
-      this.apiService
-        .POST(endpoint, formData, 'global', {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        })
-        .then((res: any) => {
-          const result = res?.data;
-          if (result && (result.code === 200 || result.status === 'success')) {
-            Swal.fire({
-              title: 'Success!',
-              text: result.message || 'GBV Case submitted successfully.',
-              icon: 'success',
-              confirmButtonColor: '#0d6efd',
-            });
-            this.router.navigate(['/gbv-management/list']);
-          } else {
-            Swal.fire({
-              title: 'Failed',
-              text: result?.message || 'Failed to submit GBV case.',
-              icon: 'error',
-              confirmButtonColor: '#0d6efd',
-            });
-          }
-        })
-        .catch((err: any) => {
-          console.error('Error saving GBV case', err);
-          Swal.fire({
-            title: 'Error!',
-            text: 'An error occurred while submitting the GBV case.',
-            icon: 'error',
-            confirmButtonColor: '#0d6efd',
-          });
-        })
-        .finally(() => {
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        });
-    } else {
+    if (!this.gbvForm.valid) {
       this.gbvForm.markAllAsTouched();
       Swal.fire({
         title: 'Validation Error',
@@ -305,47 +272,114 @@ export class GBVManagement implements OnInit {
         icon: 'warning',
         confirmButtonColor: '#0d6efd',
       });
+      return;
     }
+
+    this.isLoading = true;
+    const rawValues = this.gbvForm.getRawValue();
+    const formData = new FormData();
+
+    this.appendValue(formData, 'id', rawValues.id ?? 0);
+    this.appendValue(formData, 'trackingNumber', rawValues.trackingNumber || '');
+    this.appendValue(formData, 'stateId', rawValues.stateId);
+    this.appendValue(formData, 'countyId', rawValues.countyId);
+    this.appendValue(formData, 'payamId', rawValues.payamId);
+    this.appendValue(formData, 'bomaId', rawValues.bomaId);
+    this.appendValue(formData, 'incidentOccurredAt', this.formatDateForApi(rawValues.incidentOccurredAt));
+    this.appendValue(formData, 'contactFocalPersonName', rawValues.contactFocalPersonName);
+    this.appendValue(formData, 'incidentReportedBy', rawValues.incidentReportedBy);
+    this.appendValue(formData, 'incidentReportedByOtherDesc', rawValues.incidentReportedByOtherDesc || '');
+    this.appendValue(formData, 'reportingChannelId', rawValues.reportingChannelId);
+    this.appendValue(formData, 'reportingChannelOther', rawValues.reportingChannelOther || '');
+    this.appendValue(formData, 'complainantContactNumber', rawValues.complainantContactNumber || '');
+    this.appendValue(formData, 'complainantGender', rawValues.complainantGender);
+    this.appendValue(formData, 'ageOfSurvivor', rawValues.ageOfSurvivor);
+    this.appendValue(formData, 'complainantBeneficiary', rawValues.complainantBeneficiary);
+    this.appendValue(
+      formData,
+      'complainantBeneficiarySelectionCriteria',
+      rawValues.complainantBeneficiarySelectionCriteria
+    );
+    this.appendValue(formData, 'suspectKnown', rawValues.suspectKnown);
+    this.appendValue(formData, 'suspectAssociatedWithProject', rawValues.suspectAssociatedWithProject);
+    this.appendValue(formData, 'suspectDetails', rawValues.suspectDetails || '');
+    this.appendValue(formData, 'recommendedReferralServiceId', rawValues.recommendedReferralServiceId);
+    this.appendValue(formData, 'grievanceDescription', rawValues.grievanceDescription);
+    this.appendValue(formData, 'grievanceAttachmentUrl', rawValues.grievanceAttachmentUrl || '');
+
+    if (this.grievanceAttachmentFile) {
+      formData.append('grievanceAttachmentFile', this.grievanceAttachmentFile, this.grievanceAttachmentFile.name);
+      this.appendValue(formData, 'grievanceAttachmentFilename', this.grievanceAttachmentFile.name);
+    } else {
+      this.appendValue(formData, 'grievanceAttachmentFile', '');
+      this.appendValue(formData, 'grievanceAttachmentFilename', rawValues.grievanceAttachmentFilename || '');
+    }
+
+    this.appendValue(formData, 'grievanceAttachmentBytes', rawValues.grievanceAttachmentBytes || '');
+    this.appendValue(formData, 'verbalConsentGranted', rawValues.verbalConsentGranted);
+    this.appendValue(formData, 'consentSigned', rawValues.consentSigned);
+    this.appendValue(formData, 'consentFormAttachmentUrl', rawValues.consentFormAttachmentUrl || '');
+
+    if (this.consentAttachmentFile) {
+      formData.append('consentFormAttachmentFile', this.consentAttachmentFile, this.consentAttachmentFile.name);
+      this.appendValue(formData, 'consentFormAttachmentFilename', this.consentAttachmentFile.name);
+    } else {
+      this.appendValue(formData, 'consentFormAttachmentFile', '');
+      this.appendValue(formData, 'consentFormAttachmentFilename', rawValues.consentFormAttachmentFilename || '');
+    }
+
+    this.appendValue(formData, 'consentFormAttachmentBytes', rawValues.consentFormAttachmentBytes || '');
+
+    this.apiService
+      .POST('api/gbv-grievance/save', formData, 'global', {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((res: any) => {
+        const result = res?.data;
+        if (result && result.code === 200) {
+          Swal.fire({
+            title: 'Success!',
+            text: result.message || 'GBV grievance submitted successfully.',
+            icon: 'success',
+            confirmButtonColor: '#0d6efd',
+          });
+          this.onReset();
+        } else {
+          Swal.fire({
+            title: 'Failed',
+            text: result?.message || 'Failed to submit GBV grievance.',
+            icon: 'error',
+            confirmButtonColor: '#0d6efd',
+          });
+        }
+      })
+      .catch((err: any) => {
+        console.error('Error saving GBV grievance', err);
+        Swal.fire({
+          title: 'Error!',
+          text: 'An error occurred while submitting the GBV grievance.',
+          icon: 'error',
+          confirmButtonColor: '#0d6efd',
+        });
+      })
+      .finally(() => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      });
   }
 
   onReset(): void {
     this.gbvForm.reset({
-      date: this.today,
+      id: 0,
+      trackingNumber: { value: '', disabled: true },
+      complainantBeneficiary: true,
     });
+
     this.counties = [];
     this.payams = [];
     this.bomas = [];
-    this.fileDescription = null;
-    this.fileConsent = null;
+    this.grievanceAttachmentFile = null;
+    this.consentAttachmentFile = null;
     this.cdr.detectChanges();
-  }
-
-  onCancel(): void {
-    this.router.navigate(['/gbv-management/list']);
-  }
-
-  onDelete(): void {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'You will not be able to recover this record!',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.isLoading = true;
-        this.apiService.DELETE(`api/gbv/delete/${this.gbvId}`).then(() => {
-          this.isLoading = false;
-          Swal.fire('Deleted!', 'Record has been deleted.', 'success');
-          this.router.navigate(['/gbv-management/list']);
-        }).catch(error => {
-          this.isLoading = false;
-          console.error('Error deleting GBV data', error);
-          Swal.fire('Error!', 'Failed to delete record.', 'error');
-        });
-      }
-    });
   }
 }
