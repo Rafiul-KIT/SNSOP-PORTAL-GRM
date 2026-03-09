@@ -85,9 +85,15 @@ hr {
       outline: 0 !important;
     }
 
-    &:disabled {
+    &:disabled,
+    &.p-disabled {
       background-color: #e9ecef !important;
       cursor: not-allowed !important;
+      opacity: 1 !important; // Ensure color is visible
+      
+      .p-select-label, .p-inputtext {
+        background-color: transparent !important;
+      }
     }
   }
 
@@ -129,19 +135,35 @@ hr {
     display: block;
     width: 100%;
     
-    .p-button {
+    .p-selectbutton-option, .p-button {
       height: 42px !important;
       padding: 0 1rem !important;
       font-size: 0.875rem !important;
       background: #ffffff !important;
-      border: 1px solid #ced4da !important;
+      border: 1px solid #adb5bd !important;
       color: #495057 !important;
       box-shadow: none !important;
+      transition: all 0.2s ease !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      flex: 1;
 
-      &.p-highlight {
-        background: #0d6efd !important;
-        border-color: #0d6efd !important;
-        color: #ffffff !important;
+      &:hover {
+        background: #f8f9fa !important;
+        border-color: #6c757d !important;
+      }
+
+      &.p-selectbutton-option-active, &.p-highlight {
+        background: #d1e7dd !important;
+        border-color: #a3cfbb !important;
+        color: #0f5132 !important;
+        font-weight: 600 !important;
+
+        &:hover {
+          background: #c1d9ce !important;
+          border-color: #92bda9 !important;
+        }
       }
 
       &:first-child {

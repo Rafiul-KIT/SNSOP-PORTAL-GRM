@@ -144,7 +144,7 @@
             </div>
             <div class="col-md-3">
               <label class="form-label fw-bold">Type of Grievance</label>
-              <p-select [options]="grievanceTypes" formControlName="typeOfGrievance" placeholder="--Select--" class="w-100"></p-select>
+              <p-select [options]="grievanceTypes" formControlName="typeOfGrievance" placeholder="--Select--" class="w-100" (onChange)="onTypeChange($event)"></p-select>
             </div>
             <div class="col-md-3">
               <label class="form-label fw-bold">Type Of Grievance (Other)</label>

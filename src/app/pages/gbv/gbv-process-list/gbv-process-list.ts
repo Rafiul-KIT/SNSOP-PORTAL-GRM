@@ -205,7 +205,7 @@ export class GbvProcessList implements OnInit {
     const body = this.buildSearchBody();
 
     this.api
-      .POST(`/api/gbv/list?page=${page}&size=${size}`, body)
+      .POST(`/api/gbv-grievance/list?page=${page}&size=${size}`, body)
       .then((res: any) => {
         if (!res || !res.data) throw new Error('Empty or invalid response');
 

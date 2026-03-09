@@ -106,7 +106,7 @@ export class GBVManagement implements OnInit {
       complainantContactNumber: [''],
       complainantGender: [null, Validators.required],
       ageOfSurvivor: [null, [Validators.required, Validators.min(0)]],
-      complainantBeneficiary: [true],
+      complainantBeneficiary: [null],
       complainantBeneficiarySelectionCriteria: [null],
       suspectKnown: [null],
       suspectAssociatedWithProject: [null],
@@ -372,7 +372,7 @@ export class GBVManagement implements OnInit {
     this.gbvForm.reset({
       id: 0,
       trackingNumber: { value: '', disabled: true },
-      complainantBeneficiary: true,
+      complainantBeneficiary: null,
     });
 
     this.counties = [];
