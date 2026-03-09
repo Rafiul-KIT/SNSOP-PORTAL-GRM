@@ -31,21 +31,25 @@ interface GbvGrievanceDetails {
   incidentOccurredAt: string;
   reportingChannelId: number;
   reportingChannelOther: string;
-  complainantName: string;
-  complainantContact: string;
-  complainantPhysicalAddress: string;
+  contactFocalPersonName: string;
+  incidentReportedBy: number;
+  incidentReportedByOtherDesc: string;
+  complainantContactNumber: string;
   complainantGender: number;
-  complainantAge: number;
+  ageOfSurvivor: number;
   complainantBeneficiary: boolean;
   complainantBeneficiarySelectionCriteria: number;
-  grievanceTypeId: number;
-  grievanceDetailTypeId: number;
-  grievanceTypeOtherDesc: string;
+  suspectKnown: boolean;
+  suspectAssociatedWithProject: boolean;
+  suspectDetails: string;
+  recommendedReferralServiceId: number;
   grievanceDescription: string;
   grievanceAttachmentUrl: string;
-  grievanceAttachmentFile: string;
-  grievanceAttachmentBytes: string;
   grievanceAttachmentFilename: string;
+  verbalConsentGranted: boolean;
+  consentSigned: boolean;
+  consentFormAttachmentUrl: string;
+  consentFormAttachmentFilename: string;
   status: string;
 }
 
@@ -81,6 +85,12 @@ export class GbvDetails implements OnInit {
   bomas: LookupItem[] = [];
   genders: ValueLabelItem[] = [];
   reportingChannels: ValueLabelItem[] = [];
+
+  incidentReporters = [
+    { label: 'Survivor', value: 1 },
+    { label: 'Family Member', value: 2 },
+    { label: 'Other', value: 3 },
+  ];
 
   statusOptions = [
     { label: 'Pending', value: 'Pending' },
@@ -133,7 +143,7 @@ export class GbvDetails implements OnInit {
       ]);
 
       this.states = statesRes;
-      this.reportingChannels = reportingChannelsRes?.data?.content
+      this.reportingChannels = (reportingChannelsRes?.data?.content || [])
         .map((item: any) => ({ label: item.detail, value: item.id }));
       this.genders = gendersList.map((item) => ({ label: item.name, value: parseInt(item.id) }));
     } catch (error) {
@@ -145,7 +155,7 @@ export class GbvDetails implements OnInit {
   async fetchGrievanceDetails(id: number) {
     this.isLoading = true;
     try {
-      const res: any = await this.apiService.GET(`api/gbv/get?id=${id}`);
+      const res: any = await this.apiService.GET(`api/gbv-grievance/get?id=${id}`);
       if (res?.data?.content?.length) {
         this.grievanceDetails = res.data.content[0];
         await this.loadDependentLookups(this.grievanceDetails!);
@@ -207,8 +217,15 @@ export class GbvDetails implements OnInit {
     return item ? item.label : String(id);
   }
 
-  getBeneficiaryStatus(isBeneficiary: boolean): string {
-    return isBeneficiary ? 'Yes' : 'No';
+  getReporterTypeName(id: number): string {
+    const item = this.incidentReporters.find((r) => r.value === id);
+    return item ? item.label : String(id);
+  }
+
+  getYesNoLabel(value: boolean | null | undefined): string {
+    if (value === true) return 'Yes';
+    if (value === false) return 'No';
+    return 'N/A';
   }
 
   getStatusLabel(statusValue: string | number): string {
