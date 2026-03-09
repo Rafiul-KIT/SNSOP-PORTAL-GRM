@@ -67,7 +67,7 @@
   <p-table [value]="grievances" [loading]="isTableLoading" [tableStyle]="{ 'min-width': '100%', 'margin-bottom': '5px' }" dataKey="id" [rowTrackBy]="trackById" size="small">
     <ng-template pTemplate="header">
       <tr>
-        <th colspan="9" class="text-end">
+        <th colspan="10" class="text-end">
           <p class="fw-bold mb-2">
             Showing <kbd>{{ grievances.length }}</kbd> of
             <kbd>{{ totalRecords }}</kbd> grievances
@@ -77,9 +77,10 @@
       <tr>
         <th class="text-center">Serial</th>
         <th class="text-center">Tracking Number</th>
-        <th class="text-center">Grievance Type</th>
+        <!-- <th class="text-center">Grievance Type</th> -->
+        <th class="text-center">Creation Date</th>
         <th class="text-center">Incident Date</th>
-        <th class="text-center">Complainant Name</th>
+        <!-- <th class="text-center">Complainant Name</th> -->
         <th class="text-center">Reporting Channel</th>
         <th class="text-center">Beneficiary Status</th>
         <th class="text-center">Status</th>
@@ -91,9 +92,10 @@
       <tr>
         <td class="text-center">{{ (currentPage * pageSize) + i + 1 }}</td>
         <td class="text-center">{{ item.trackingNumber }}</td>
-        <td class="text-center">{{ item.grievanceType }}</td>
+        <!-- <td class="text-center">{{ item.grievanceType }}</td> -->
+        <td class="text-center">{{ item.createdAtDisplay }}</td>
         <td class="text-center">{{ item.incidentOccurredAtDisplay }}</td>
-        <td class="text-center">{{ item.complainantName }}</td>
+        <!-- <td class="text-center">{{ item.complainantName }}</td> -->
         <td class="text-center">{{ item.reportingChannel }}</td>
         <td class="text-center">{{ item.beneficiaryStatus }}</td>
         <td class="text-center">
@@ -103,14 +105,14 @@
         </td>
         <td class="text-center">
           <p-button type="button" icon="pi pi-eye" pTooltip="View Details" tooltipPosition="top" size="small" outlined="true" severity="secondary" class="me-2" (onClick)="onView(item.id)" />
-          <p-button type="button" icon="pi pi-box" pTooltip="Archive" tooltipPosition="top" size="small" outlined="true" severity="danger" [loading]="archivingId === item.id" [disabled]="archivingId === item.id" (onClick)="onArchive(item.id)" />
+          <p-button type="button" icon="fa fa-archive" pTooltip="Archive" tooltipPosition="top" size="small" outlined="true" severity="danger" [loading]="archivingId === item.id" [disabled]="archivingId === item.id" (onClick)="onArchive(item.id)" />
         </td>
       </tr>
     </ng-template>
 
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="9" class="text-center text-danger">
+        <td colspan="10" class="text-center text-danger">
           <b>No GBV grievances found!</b>
         </td>
       </tr>
