@@ -34,6 +34,8 @@ interface GbvGrievance {
   id: number;
   trackingNumber: string;
   grievanceType: string;
+  createdAt?: string;
+  createdAtDisplay?: string;
   incidentOccurredAt: string;
   incidentOccurredAtDisplay?: string;
   complainantName: string;
@@ -223,7 +225,9 @@ export class GbvList implements OnInit {
       .then((res: any) => {
         if (!res || !res.data) throw new Error('Empty or invalid response');
 
-        const data = res.data;
+        const data = Array.isArray(res.data?.content)
+          ? res.data
+          : (res.data?.data ?? res.data);
         this.grievances = this.enrichGrievances(data.content || []);
         this.totalRecords = data.totalElements || 0;
         this.currentPage = data.pageNumber || 0;
@@ -329,13 +333,38 @@ export class GbvList implements OnInit {
 
   private enrichGrievances(list: GbvGrievance[]): GbvGrievance[] {
     return list.map((item) => {
-      const statusLabel = this.getStatusLabel(item.status);
+      const row: any = item as any;
+      const grievanceType =
+        row.grievanceType ??
+        row.grievance_type ??
+        row.grievanceTypeName ??
+        '';
+      const complainantName =
+        row.complainantName ??
+        row.complainant_name ??
+        row.complainant ??
+        '';
+      const createdAt = row.createdAt ?? row.created_at ?? '';
+      const incidentOccurredAt = row.incidentOccurredAt ?? row.incidentDate ?? '';
+      const beneficiaryRaw = row.isComplainantBeneficiary ?? '';
+      const statusLabel = this.getStatusLabel(row.status);
+
       return {
         ...item,
-        incidentOccurredAtDisplay: this.formatDisplayDate(item.incidentOccurredAt),
-        beneficiaryStatus: item.isComplainantBeneficiary === 'YES' ? 'Beneficiary' : 'Non-Beneficiary',
+        grievanceType,
+        complainantName,
+        createdAt,
+        createdAtDisplay: this.formatDisplayDate(createdAt),
+        incidentOccurredAt,
+        incidentOccurredAtDisplay: this.formatDisplayDate(incidentOccurredAt),
+        beneficiaryStatus:
+          beneficiaryRaw === 'YES'
+            ? 'Beneficiary'
+            : beneficiaryRaw === 'NO'
+              ? 'Non-Beneficiary'
+              : String(beneficiaryRaw || '-'),
         statusLabel,
-        statusBadgeClass: this.getStatusBadgeClass(item.status),
+        statusBadgeClass: this.getStatusBadgeClass(row.status),
       };
     });
   }

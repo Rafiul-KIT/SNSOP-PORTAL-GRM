@@ -91,7 +91,7 @@ export class GBVManagement implements OnInit {
 
   initForm(): void {
     this.gbvForm = this.fb.group({
-      id: [0],
+      id: "",
       trackingNumber: [{ value: '', disabled: true }],
       stateId: [null, Validators.required],
       countyId: [null, Validators.required],
