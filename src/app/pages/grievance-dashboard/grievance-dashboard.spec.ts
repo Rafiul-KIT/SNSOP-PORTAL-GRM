@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { GrievanceDashboard } from './grievance-dashboard';
 import { ApiService } from '../../services/api.service';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { AxiosResponse } from 'axios';
 
 describe('GrievanceDashboard', () => {
   let component: GrievanceDashboard;
@@ -29,7 +30,7 @@ describe('GrievanceDashboard', () => {
   });
 
   it('should fetch dashboard data on init', async () => {
-    const mockResponse = {
+    const mockResponse: AxiosResponse = {
       data: {
         ngbvData: {
           grievancesByStatus: [{ status: 'Resolved', count: 100 }],
@@ -46,6 +47,10 @@ describe('GrievanceDashboard', () => {
           perpetratorAssociatedWithProject: [{ title: 'Yes', count: 3 }],
         },
       },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: { headers: {} as any },
     };
 
     mockApiService.GET.and.returnValue(Promise.resolve(mockResponse));

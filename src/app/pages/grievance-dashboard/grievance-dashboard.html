@@ -109,7 +109,7 @@
               </div>
               <div class="chart-card__body">
                 @if (ngbvLocationChartData) {
-                <p-chart type="bar" [data]="ngbvLocationChartData" [options]="barChartOptions"></p-chart>
+                <p-chart type="bar" [data]="ngbvLocationChartData" [options]="locationBarChartOptions"></p-chart>
                 } @else {
                 <p class="no-data">No data available</p>
                 }
@@ -222,7 +222,7 @@
               </div>
               <div class="chart-card__body">
                 @if (gbvLocationChartData) {
-                <p-chart type="bar" [data]="gbvLocationChartData" [options]="barChartOptions"></p-chart>
+                <p-chart type="bar" [data]="gbvLocationChartData" [options]="locationBarChartOptions"></p-chart>
                 } @else {
                 <p class="no-data">No data available</p>
                 }

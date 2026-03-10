@@ -157,6 +157,55 @@ export class GrievanceDashboard implements OnInit {
     },
   };
 
+  locationBarChartOptions: any = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+        labels: {
+          color: '#475569',
+          boxWidth: 12,
+          boxHeight: 12,
+          padding: 14,
+          font: { size: 12, family: "'Inter', sans-serif", weight: '600' },
+        },
+      },
+      tooltip: {
+        backgroundColor: '#1e293b',
+        titleFont: { size: 13, family: "'Inter', sans-serif" },
+        bodyFont: { size: 12, family: "'Inter', sans-serif" },
+        padding: 12,
+        cornerRadius: 8,
+        callbacks: {
+          label: (ctx: any) => `Cases: ${Number(ctx.raw || 0).toLocaleString()}`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(203, 213, 225, 0.55)', drawBorder: false },
+        ticks: {
+          color: '#475569',
+          font: { size: 11, weight: '500' },
+          maxRotation: 0,
+        },
+      },
+      y: {
+        beginAtZero: true,
+        grace: '10%',
+        grid: { color: 'rgba(203, 213, 225, 0.55)', drawBorder: false },
+        ticks: {
+          color: '#475569',
+          font: { size: 11 },
+          precision: 0,
+          callback: (value: any) => Number(value).toLocaleString(),
+        },
+      },
+    },
+  };
+
   ngOnInit() {
     this.fetchDashboardData();
   }
@@ -325,23 +374,38 @@ export class GrievanceDashboard implements OnInit {
 
   private createLocationChart(items: LocationCount[]): any {
     const sorted = [...items].sort((a, b) => b.count - a.count).slice(0, 10);
+    const locationPalette = [
+      '#4b9fe3',
+      '#57b86a',
+      '#ff7043',
+      '#7c83fd',
+      '#26c6da',
+      '#ffb74d',
+      '#ec407a',
+      '#66bb6a',
+      '#42a5f5',
+      '#ab47bc',
+    ];
     return {
       labels: sorted.map(
         (i) => i.county || i.state || i.payam || i.boma || 'Unknown',
       ),
       datasets: [
         {
-          label: 'Cases',
+          label: 'Total Cases',
           data: sorted.map((i) => i.count),
           backgroundColor: sorted.map(
-            (_, index) =>
-              this.brandPalette[index % this.brandPalette.length] + 'd9',
+            (_, idx) => locationPalette[idx % locationPalette.length],
           ),
           hoverBackgroundColor: sorted.map(
-            (_, index) => this.brandPalette[index % this.brandPalette.length],
+            (_, idx) => locationPalette[idx % locationPalette.length] + 'dd',
           ),
-          borderRadius: 6,
+          borderRadius: { topLeft: 6, topRight: 6 },
           borderSkipped: false,
+          barThickness: 24,
+          maxBarThickness: 28,
+          categoryPercentage: 0.74,
+          barPercentage: 0.88,
         },
       ],
     };
