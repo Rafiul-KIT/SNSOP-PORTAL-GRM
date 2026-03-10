@@ -1,0 +1,314 @@
+<div class="grievance-dashboard">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <div class="header-text">
+        <h1 class="page-title">Grievance Dashboard</h1>
+        <p class="page-subtitle">Overview of Non-GBV and GBV cases statistics</p>
+      </div>
+      <div class="header-badge">
+        <i class="bi bi-bar-chart-line"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner-wrapper">
+        <div class="spinner"></div>
+        <div class="spinner-ring"></div>
+      </div>
+      <p class="loading-text">Loading dashboard data...</p>
+      <p class="loading-subtext">Fetching latest grievance statistics</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error) {
+    <div class="error-state">
+      <div class="error-icon-wrapper">
+        <i class="bi bi-exclamation-triangle"></i>
+      </div>
+      <h3 class="error-title">Something went wrong</h3>
+      <p class="error-message">{{ error }}</p>
+      <button class="retry-btn" (click)="fetchDashboardData()">
+        <i class="bi bi-arrow-clockwise"></i>
+        Try Again
+      </button>
+    </div>
+  }
+
+  <!-- Dashboard Content -->
+  @if (!loading && !error && apiResponse) {
+    <p-tabs [(value)]="activeTab" class="dashboard-tabs">
+      <p-tablist>
+        <p-tab value="0">
+          <i class="bi bi-file-earmark-text tab-icon"></i>
+          Non-GBV Cases
+        </p-tab>
+        <p-tab value="1">
+          <i class="bi bi-shield-exclamation tab-icon"></i>
+          GBV Cases
+        </p-tab>
+      </p-tablist>
+
+      <p-tabpanels>
+        <!-- NGBV Tab Panel -->
+        <p-tabpanel value="0">
+          <div class="tab-content">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+              <div class="stat-card stat-card--primary">
+                <div class="stat-card__icon">
+                  <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <div class="stat-card__info">
+                  <span class="stat-card__title">Total Cases</span>
+                  <span class="stat-card__value">{{ ngbvTotalCases }}</span>
+                </div>
+              </div>
+              <div class="stat-card stat-card--warning">
+                <div class="stat-card__icon">
+                  <i class="bi bi-hourglass-split"></i>
+                </div>
+                <div class="stat-card__info">
+                  <span class="stat-card__title">Pending</span>
+                  <span class="stat-card__value">{{ ngbvPendingCases }}</span>
+                </div>
+              </div>
+              <div class="stat-card stat-card--success">
+                <div class="stat-card__icon">
+                  <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="stat-card__info">
+                  <span class="stat-card__title">Resolved</span>
+                  <span class="stat-card__value">{{ ngbvResolvedCases }}</span>
+                </div>
+              </div>
+              <div class="stat-card stat-card--info">
+                <div class="stat-card__icon">
+                  <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="stat-card__info">
+                  <span class="stat-card__title">Avg Resolution</span>
+                  <span class="stat-card__value">{{ formatResolutionTime(ngbvAvgResolutionTime) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Charts Row 1 -->
+            <div class="charts-row">
+              <!-- Status Distribution -->
+              <div class="chart-card">
+                <div class="chart-card__header">
+                  <h3 class="chart-card__title">
+                    <span class="chart-icon chart-icon--indigo"><i class="bi bi-pie-chart"></i></span>
+                    Cases by Status
+                  </h3>
+                </div>
+                <div class="chart-card__body">
+                  @if (ngbvStatusChartData) {
+                    <p-chart type="doughnut" [data]="ngbvStatusChartData" [options]="chartOptions"></p-chart>
+                  } @else {
+                    <p class="no-data">No data available</p>
+                  }
+                </div>
+              </div>
+
+              <!-- Cases by Location -->
+              <div class="chart-card chart-card--wide">
+                <div class="chart-card__header">
+                  <h3 class="chart-card__title">
+                    <span class="chart-icon chart-icon--blue"><i class="bi bi-geo-alt"></i></span>
+                    Top 10 Locations by Cases
+                  </h3>
+                </div>
+                <div class="chart-card__body">
+                  @if (ngbvLocationChartData) {
+                    <p-chart type="bar" [data]="ngbvLocationChartData" [options]="barChartOptions"></p-chart>
+                  } @else {
+                    <p class="no-data">No data available</p>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Charts Row 2 -->
+            <div class="charts-row">
+              @if (ngbvTypeChartData) {
+                <div class="chart-card">
+                  <div class="chart-card__header">
+                    <h3 class="chart-card__title">
+                      <span class="chart-icon chart-icon--purple"><i class="bi bi-tags"></i></span>
+                      Cases by Type
+                    </h3>
+                  </div>
+                  <div class="chart-card__body">
+                    <p-chart type="pie" [data]="ngbvTypeChartData" [options]="chartOptions"></p-chart>
+                  </div>
+                </div>
+              }
+
+              @if (ngbvResolutionChartData) {
+                <div class="chart-card" [class.chart-card--wide]="!ngbvTypeChartData">
+                  <div class="chart-card__header">
+                    <h3 class="chart-card__title">
+                      <span class="chart-icon chart-icon--amber"><i class="bi bi-stopwatch"></i></span>
+                      Avg Resolution Time by Location
+                    </h3>
+                  </div>
+                  <div class="chart-card__body">
+                    <p-chart type="bar" [data]="ngbvResolutionChartData" [options]="barChartOptions"></p-chart>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </p-tabpanel>
+
+        <!-- GBV Tab Panel -->
+        <p-tabpanel value="1">
+          <div class="tab-content">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+              <div class="stat-card stat-card--danger">
+                <div class="stat-card__icon">
+                  <i class="bi bi-shield-exclamation"></i>
+                </div>
+                <div class="stat-card__info">
+                  <span class="stat-card__title">Total Cases</span>
+                  <span class="stat-card__value">{{ gbvTotalCases }}</span>
+                </div>
+              </div>
+              <div class="stat-card stat-card--warning">
+                <div class="stat-card__icon">
+                  <i class="bi bi-hourglass-split"></i>
+                </div>
+                <div class="stat-card__info">
+                  <span class="stat-card__title">Pending</span>
+                  <span class="stat-card__value">{{ gbvPendingCases }}</span>
+                </div>
+              </div>
+              <div class="stat-card stat-card--success">
+                <div class="stat-card__icon">
+                  <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="stat-card__info">
+                  <span class="stat-card__title">Resolved</span>
+                  <span class="stat-card__value">{{ gbvResolvedCases }}</span>
+                </div>
+              </div>
+              <div class="stat-card stat-card--info">
+                <div class="stat-card__icon">
+                  <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="stat-card__info">
+                  <span class="stat-card__title">Avg Resolution</span>
+                  <span class="stat-card__value">{{ formatResolutionTime(gbvAvgResolutionTime) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Charts Row 1 -->
+            <div class="charts-row">
+              <!-- Status Distribution -->
+              <div class="chart-card">
+                <div class="chart-card__header">
+                  <h3 class="chart-card__title">
+                    <span class="chart-icon chart-icon--rose"><i class="bi bi-pie-chart"></i></span>
+                    Cases by Status
+                  </h3>
+                </div>
+                <div class="chart-card__body">
+                  @if (gbvStatusChartData) {
+                    <p-chart type="doughnut" [data]="gbvStatusChartData" [options]="chartOptions"></p-chart>
+                  } @else {
+                    <p class="no-data">No data available</p>
+                  }
+                </div>
+              </div>
+
+              <!-- Cases by Location -->
+              <div class="chart-card chart-card--wide">
+                <div class="chart-card__header">
+                  <h3 class="chart-card__title">
+                    <span class="chart-icon chart-icon--blue"><i class="bi bi-geo-alt"></i></span>
+                    Top 10 Locations by Cases
+                  </h3>
+                </div>
+                <div class="chart-card__body">
+                  @if (gbvLocationChartData) {
+                    <p-chart type="bar" [data]="gbvLocationChartData" [options]="barChartOptions"></p-chart>
+                  } @else {
+                    <p class="no-data">No data available</p>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- GBV-Specific Charts Row -->
+            <div class="charts-row charts-row--triple">
+              @if (gbvReferralChartData) {
+                <div class="chart-card chart-card--small">
+                  <div class="chart-card__header">
+                    <h3 class="chart-card__title">
+                      <span class="chart-icon chart-icon--teal"><i class="bi bi-signpost-2"></i></span>
+                      Referral Types
+                    </h3>
+                  </div>
+                  <div class="chart-card__body">
+                    <p-chart type="pie" [data]="gbvReferralChartData" [options]="chartOptions"></p-chart>
+                  </div>
+                </div>
+              }
+
+              @if (gbvReferralServiceChartData) {
+                <div class="chart-card chart-card--small">
+                  <div class="chart-card__header">
+                    <h3 class="chart-card__title">
+                      <span class="chart-icon chart-icon--cyan"><i class="bi bi-building"></i></span>
+                      Referral Services
+                    </h3>
+                  </div>
+                  <div class="chart-card__body">
+                    <p-chart type="pie" [data]="gbvReferralServiceChartData" [options]="chartOptions"></p-chart>
+                  </div>
+                </div>
+              }
+
+              @if (gbvPerpetratorChartData) {
+                <div class="chart-card chart-card--small">
+                  <div class="chart-card__header">
+                    <h3 class="chart-card__title">
+                      <span class="chart-icon chart-icon--orange"><i class="bi bi-person-exclamation"></i></span>
+                      Perpetrator Info
+                    </h3>
+                  </div>
+                  <div class="chart-card__body">
+                    <p-chart type="pie" [data]="gbvPerpetratorChartData" [options]="chartOptions"></p-chart>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Resolution Time (full width) -->
+            @if (gbvResolutionChartData) {
+              <div class="chart-card chart-card--full">
+                <div class="chart-card__header">
+                  <h3 class="chart-card__title">
+                    <span class="chart-icon chart-icon--amber"><i class="bi bi-stopwatch"></i></span>
+                    Avg Resolution Time by Location
+                  </h3>
+                </div>
+                <div class="chart-card__body">
+                  <p-chart type="bar" [data]="gbvResolutionChartData" [options]="barChartOptions"></p-chart>
+                </div>
+              </div>
+            }
+          </div>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+  }
+</div>
