@@ -4,6 +4,7 @@ import { ChartModule } from 'primeng/chart';
 import { CardModule } from 'primeng/card';
 import { TabsModule } from 'primeng/tabs';
 import { ApiService } from '../../services/api.service';
+import { Loader } from "../../components/loader/loader";
 
 interface StatusCount {
   status: string;
@@ -50,7 +51,7 @@ interface ApiResponse {
 
 @Component({
   selector: 'app-grievance-dashboard',
-  imports: [CommonModule, ChartModule, CardModule, TabsModule],
+  imports: [CommonModule, ChartModule, CardModule, TabsModule, Loader],
   templateUrl: './grievance-dashboard.html',
   styleUrl: './grievance-dashboard.scss',
 })

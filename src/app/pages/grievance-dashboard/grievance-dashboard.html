@@ -1,21 +1,11 @@
+@if (loading) {
+  <app-loader></app-loader>
+}@else {
 <div class="grievance-dashboard">
   <!-- Header -->
   <div class="dashboard-header">
         <h1 class="page-title">Grievance Dashboard</h1>
-        
   </div>
-
-  <!-- Loading State -->
-  @if (loading) {
-  <div class="loading-state">
-    <div class="spinner-wrapper">
-      <div class="spinner"></div>
-      <div class="spinner-ring"></div>
-    </div>
-    <p class="loading-text">Loading dashboard data...</p>
-    <p class="loading-subtext">Fetching latest grievance statistics</p>
-  </div>
-  }
 
   <!-- Error State -->
   @if (error) {
@@ -305,3 +295,5 @@
   </p-tabs>
   }
 </div>
+}
+
