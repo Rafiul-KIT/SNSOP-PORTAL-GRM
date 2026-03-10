@@ -107,7 +107,7 @@ export class Header {
       {
         label: 'Dashboard',
         icon: 'fas fa-tachometer-alt',
-        routerLink: 'dashboard',
+        routerLink: 'grievance-dashboard',
       },
       {
         label: 'GBV Grievances',

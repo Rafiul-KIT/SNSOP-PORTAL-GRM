@@ -57,6 +57,21 @@ interface ApiResponse {
 export class GrievanceDashboard implements OnInit {
   private apiService = inject(ApiService);
   private cdr = inject(ChangeDetectorRef);
+  private readonly brandPalette = ['#00b579', '#f06292', '#0dcaf0'];
+  private readonly extendedPalette = [
+    '#00b579',
+    '#f06292',
+    '#0dcaf0',
+    '#34d399',
+    '#f48fb1',
+    '#67e8f9',
+    '#059669',
+    '#ec4899',
+    '#0891b2',
+    '#6ee7b7',
+    '#fbcfe8',
+    '#a5f3fc',
+  ];
 
   loading = true;
   error: string | null = null;
@@ -100,7 +115,7 @@ export class GrievanceDashboard implements OnInit {
           usePointStyle: true,
           padding: 16,
           font: { size: 12, family: "'Inter', sans-serif" },
-          color: '#475569',
+          color: '#334155',
         },
       },
       tooltip: {
@@ -131,12 +146,12 @@ export class GrievanceDashboard implements OnInit {
     scales: {
       x: {
         beginAtZero: true,
-        grid: { color: '#f1f5f9', drawBorder: false },
-        ticks: { color: '#94a3b8', font: { size: 11 } },
+        grid: { color: 'rgba(148, 163, 184, 0.15)', drawBorder: false },
+        ticks: { color: '#64748b', font: { size: 11 } },
       },
       y: {
         grid: { display: false },
-        ticks: { color: '#475569', font: { size: 12, weight: '500' } },
+        ticks: { color: '#334155', font: { size: 12, weight: '500' } },
       },
     },
   };
@@ -147,7 +162,9 @@ export class GrievanceDashboard implements OnInit {
 
   async fetchDashboardData() {
     try {
-      const response = await this.apiService.GET<ApiResponse>('/api/grievance/dashboard');
+      const response = await this.apiService.GET<ApiResponse>(
+        '/api/grievance/dashboard',
+      );
       this.apiResponse = response.data;
       this.processNGBVData();
       this.processGBVData();
@@ -165,18 +182,35 @@ export class GrievanceDashboard implements OnInit {
     if (!data) return;
 
     this.ngbvTotalCases = this.sumCount(data.grievancesByStatus ?? []);
-    this.ngbvPendingCases = this.sumByStatus(data.grievancesByStatus ?? [], ['Pending', 'In Progress', 'Open', 'New']);
-    this.ngbvResolvedCases = this.sumByStatus(data.grievancesByStatus ?? [], ['Resolved', 'Closed', 'Completed']);
-    this.ngbvAvgResolutionTime = this.calculateAvgResolutionTime(data.averageResolutionTimeByLocation ?? []);
+    this.ngbvPendingCases = this.sumByStatus(data.grievancesByStatus ?? [], [
+      'Pending',
+      'In Progress',
+      'Open',
+      'New',
+    ]);
+    this.ngbvResolvedCases = this.sumByStatus(data.grievancesByStatus ?? [], [
+      'Resolved',
+      'Closed',
+      'Completed',
+    ]);
+    this.ngbvAvgResolutionTime = this.calculateAvgResolutionTime(
+      data.averageResolutionTimeByLocation ?? [],
+    );
 
-    this.ngbvStatusChartData = this.createStatusChart(data.grievancesByStatus ?? []);
+    this.ngbvStatusChartData = this.createStatusChart(
+      data.grievancesByStatus ?? [],
+    );
 
     if (data.grievancesByType && data.grievancesByType.length > 0) {
       this.ngbvTypeChartData = this.createTypeChart(data.grievancesByType);
     }
 
-    this.ngbvLocationChartData = this.createLocationChart(data.grievancesByLocation ?? []);
-    this.ngbvResolutionChartData = this.createResolutionTimeChart(data.averageResolutionTimeByLocation ?? []);
+    this.ngbvLocationChartData = this.createLocationChart(
+      data.grievancesByLocation ?? [],
+    );
+    this.ngbvResolutionChartData = this.createResolutionTimeChart(
+      data.averageResolutionTimeByLocation ?? [],
+    );
   }
 
   processGBVData() {
@@ -184,24 +218,50 @@ export class GrievanceDashboard implements OnInit {
     if (!data) return;
 
     this.gbvTotalCases = this.sumCount(data.grievancesByStatus ?? []);
-    this.gbvPendingCases = this.sumByStatus(data.grievancesByStatus ?? [], ['Pending', 'In Progress', 'Open', 'New']);
-    this.gbvResolvedCases = this.sumByStatus(data.grievancesByStatus ?? [], ['Resolved', 'Closed', 'Completed']);
-    this.gbvAvgResolutionTime = this.calculateAvgResolutionTime(data.averageResolutionTimeByLocation ?? []);
+    this.gbvPendingCases = this.sumByStatus(data.grievancesByStatus ?? [], [
+      'Pending',
+      'In Progress',
+      'Open',
+      'New',
+    ]);
+    this.gbvResolvedCases = this.sumByStatus(data.grievancesByStatus ?? [], [
+      'Resolved',
+      'Closed',
+      'Completed',
+    ]);
+    this.gbvAvgResolutionTime = this.calculateAvgResolutionTime(
+      data.averageResolutionTimeByLocation ?? [],
+    );
 
-    this.gbvStatusChartData = this.createStatusChart(data.grievancesByStatus ?? []);
-    this.gbvLocationChartData = this.createLocationChart(data.grievancesByLocation ?? []);
-    this.gbvResolutionChartData = this.createResolutionTimeChart(data.averageResolutionTimeByLocation ?? []);
+    this.gbvStatusChartData = this.createStatusChart(
+      data.grievancesByStatus ?? [],
+    );
+    this.gbvLocationChartData = this.createLocationChart(
+      data.grievancesByLocation ?? [],
+    );
+    this.gbvResolutionChartData = this.createResolutionTimeChart(
+      data.averageResolutionTimeByLocation ?? [],
+    );
 
     if (data.typesOfReferralMade && data.typesOfReferralMade.length > 0) {
-      this.gbvReferralChartData = this.createTypeChart(data.typesOfReferralMade);
+      this.gbvReferralChartData = this.createTypeChart(
+        data.typesOfReferralMade,
+      );
     }
 
     if (data.sentToReferralServices && data.sentToReferralServices.length > 0) {
-      this.gbvReferralServiceChartData = this.createTypeChart(data.sentToReferralServices);
+      this.gbvReferralServiceChartData = this.createTypeChart(
+        data.sentToReferralServices,
+      );
     }
 
-    if (data.perpetratorAssociatedWithProject && data.perpetratorAssociatedWithProject.length > 0) {
-      this.gbvPerpetratorChartData = this.createTypeChart(data.perpetratorAssociatedWithProject);
+    if (
+      data.perpetratorAssociatedWithProject &&
+      data.perpetratorAssociatedWithProject.length > 0
+    ) {
+      this.gbvPerpetratorChartData = this.createTypeChart(
+        data.perpetratorAssociatedWithProject,
+      );
     }
   }
 
@@ -211,7 +271,11 @@ export class GrievanceDashboard implements OnInit {
 
   private sumByStatus(items: StatusCount[], statusKeywords: string[]): number {
     return items
-      .filter((item) => statusKeywords.some((kw) => item.status?.toLowerCase().includes(kw.toLowerCase())))
+      .filter((item) =>
+        statusKeywords.some((kw) =>
+          item.status?.toLowerCase().includes(kw.toLowerCase()),
+        ),
+      )
       .reduce((sum, item) => sum + (item.count || 0), 0);
   }
 
@@ -219,18 +283,21 @@ export class GrievanceDashboard implements OnInit {
     if (!items || !items.length) return 0;
     const validItems = items.filter((i) => i.averageResolutionTime > 0);
     if (!validItems.length) return 0;
-    return validItems.reduce((sum, item) => sum + item.averageResolutionTime, 0) / validItems.length;
+    return (
+      validItems.reduce((sum, item) => sum + item.averageResolutionTime, 0) /
+      validItems.length
+    );
   }
 
   private createStatusChart(items: StatusCount[]): any {
-    const colors = ['#10b981', '#6366f1', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+    const colors = this.buildPalette(items.length);
     return {
       labels: items.map((i) => i.status || 'Unknown'),
       datasets: [
         {
           data: items.map((i) => i.count),
-          backgroundColor: colors.slice(0, items.length),
-          hoverBackgroundColor: colors.slice(0, items.length).map(c => c + 'dd'),
+          backgroundColor: colors,
+          hoverBackgroundColor: colors.map((c) => c + 'dd'),
           borderWidth: 0,
           borderRadius: 4,
         },
@@ -239,14 +306,16 @@ export class GrievanceDashboard implements OnInit {
   }
 
   private createTypeChart(items: TypeCount[]): any {
-    const colors = ['#6366f1', '#8b5cf6', '#a78bfa', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6'];
+    const colors = this.buildPalette(items.length);
     return {
-      labels: items.map((i) => i.type || i.referralService || i.title || 'Unknown'),
+      labels: items.map(
+        (i) => i.type || i.referralService || i.title || 'Unknown',
+      ),
       datasets: [
         {
           data: items.map((i) => i.count),
-          backgroundColor: colors.slice(0, items.length),
-          hoverBackgroundColor: colors.slice(0, items.length).map(c => c + 'dd'),
+          backgroundColor: colors,
+          hoverBackgroundColor: colors.map((c) => c + 'dd'),
           borderWidth: 0,
         },
       ],
@@ -256,13 +325,20 @@ export class GrievanceDashboard implements OnInit {
   private createLocationChart(items: LocationCount[]): any {
     const sorted = [...items].sort((a, b) => b.count - a.count).slice(0, 10);
     return {
-      labels: sorted.map((i) => i.county || i.state || i.payam || i.boma || 'Unknown'),
+      labels: sorted.map(
+        (i) => i.county || i.state || i.payam || i.boma || 'Unknown',
+      ),
       datasets: [
         {
           label: 'Cases',
           data: sorted.map((i) => i.count),
-          backgroundColor: 'rgba(99, 102, 241, 0.85)',
-          hoverBackgroundColor: 'rgba(99, 102, 241, 1)',
+          backgroundColor: sorted.map(
+            (_, index) =>
+              this.brandPalette[index % this.brandPalette.length] + 'd9',
+          ),
+          hoverBackgroundColor: sorted.map(
+            (_, index) => this.brandPalette[index % this.brandPalette.length],
+          ),
           borderRadius: 6,
           borderSkipped: false,
         },
@@ -276,19 +352,34 @@ export class GrievanceDashboard implements OnInit {
       .sort((a, b) => b.averageResolutionTime - a.averageResolutionTime)
       .slice(0, 8);
     return {
-      labels: sorted.map((i) => i.county || i.state || i.payam || i.boma || 'Unknown'),
+      labels: sorted.map(
+        (i) => i.county || i.state || i.payam || i.boma || 'Unknown',
+      ),
       datasets: [
         {
           label: 'Avg Days',
-          data: sorted.map((i) => Math.round(i.averageResolutionTime * 10) / 10),
+          data: sorted.map(
+            (i) => Math.round(i.averageResolutionTime * 10) / 10,
+          ),
           backgroundColor: sorted.map((i) =>
-            i.averageResolutionTime > 7 ? 'rgba(239, 68, 68, 0.85)' : i.averageResolutionTime > 4 ? 'rgba(245, 158, 11, 0.85)' : 'rgba(16, 185, 129, 0.85)'
+            i.averageResolutionTime > 7
+              ? '#f06292d9'
+              : i.averageResolutionTime > 4
+                ? '#0dcaf0d9'
+                : '#00b579d9',
           ),
           borderRadius: 6,
           borderSkipped: false,
         },
       ],
     };
+  }
+
+  private buildPalette(length: number): string[] {
+    const base = this.extendedPalette.length
+      ? this.extendedPalette
+      : this.brandPalette;
+    return Array.from({ length }, (_, index) => base[index % base.length]);
   }
 
   formatResolutionTime(days: number): string {
