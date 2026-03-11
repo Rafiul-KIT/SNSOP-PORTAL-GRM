@@ -24,10 +24,7 @@
           </h5>
           <hr>
           <div class="row g-3">
-            <div class="col-md-4">
-              <label class="form-label fw-bold">ID:</label>
-              <p>{{ grievanceDetails.id }}</p>
-            </div>
+         
             <div class="col-md-4">
               <label class="form-label fw-bold">Tracking Number:</label>
               <p>{{ grievanceDetails.trackingNumber }}</p>
@@ -53,12 +50,101 @@
               <p>{{ getBomaName(grievanceDetails.bomaId) }}</p>
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-bold">Status:</label>
-              <p>
-                <span [class]="'badge ' + (grievanceDetails.status === 'Resolved' ? 'bg-success' : grievanceDetails.status === 'Rejected' ? 'bg-danger' : 'bg-warning')">
-                  {{ getStatusLabel(grievanceDetails.status) }}
-                </span>
-              </p>
+              <label class="form-label fw-bold">Focal Person Name:</label>
+              <p>{{ grievanceDetails.contactFocalPersonName || '--' }}</p>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Incident Reported By:</label>
+              <p>{{ getIncidentReportedByName(grievanceDetails.incidentReportedBy) }}</p>
+            </div>
+            <div class="col-md-4" *ngIf="grievanceDetails.incidentReportedBy === 3">
+              <label class="form-label fw-bold">Reported By (Other):</label>
+              <p>{{ grievanceDetails.incidentReportedByOtherDesc || '--' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Survivor Information Section -->
+        <div class="section-block mb-4">
+          <h5 class="section-title fw-bold text-primary mb-3">
+            <i class="bi bi-person-badge-fill me-2"></i>
+            Survivor Information
+          </h5>
+          <hr>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Contact Number:</label>
+              <p>{{ grievanceDetails.complainantContactNumber || '--' }}</p>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Gender:</label>
+              <p>{{ getGenderName(grievanceDetails.complainantGender) }}</p>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Age of Survivor:</label>
+              <p>{{ grievanceDetails.ageOfSurvivor || '--' }}</p>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">SNSOP Beneficiary:</label>
+              <p>{{ getBeneficiaryStatus(grievanceDetails.complainantBeneficiary) }}</p>
+            </div>
+            <div class="col-md-4" *ngIf="grievanceDetails.complainantBeneficiary">
+              <label class="form-label fw-bold">Selection Criteria:</label>
+              <p>{{ getSelectionCriteriaName(grievanceDetails.complainantBeneficiarySelectionCriteria) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Suspect & Referral Information Section -->
+        <div class="section-block mb-4">
+          <h5 class="section-title fw-bold text-primary mb-3">
+            <i class="bi bi-shield-lock-fill me-2"></i>
+            Suspect & Referral Information
+          </h5>
+          <hr>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Suspect Known:</label>
+              <p>{{ getYesNoLabel(grievanceDetails.suspectKnown) }}</p>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Associated With Project:</label>
+              <p>{{ getYesNoLabel(grievanceDetails.suspectAssociatedWithProject) }}</p>
+            </div>
+            <div class="col-12" *ngIf="grievanceDetails.suspectDetails">
+              <label class="form-label fw-bold">Suspect Details:</label>
+              <p class="text-break">{{ grievanceDetails.suspectDetails }}</p>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Recommended Referral Service ID:</label>
+              <p>{{ grievanceDetails.recommendedReferralServiceId || '--' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Consent Information Section -->
+        <div class="section-block mb-4">
+          <h5 class="section-title fw-bold text-primary mb-3">
+            <i class="bi bi-file-check-fill me-2"></i>
+            Consent Information
+          </h5>
+          <hr>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Verbal Consent Granted:</label>
+              <p>{{ getYesNoLabel(grievanceDetails.verbalConsentGranted) }}</p>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Consent Signed:</label>
+              <p>{{ getYesNoLabel(grievanceDetails.consentSigned) }}</p>
+            </div>
+            <div class="col-md-4" *ngIf="grievanceDetails.consentFormAttachmentUrl">
+              <label class="form-label fw-bold">Consent Form:</label>
+              <div>
+                <a [href]="grievanceDetails.consentFormAttachmentUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                  <i class="fas fa-download me-2"></i> {{ grievanceDetails.consentFormAttachmentFilename || 'Download Consent Form' }}
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -90,41 +176,6 @@
                   <i class="fas fa-download me-2"></i> {{ grievanceDetails.grievanceAttachmentFilename || 'Download Attachment' }}
                 </a>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Complainant Information Section -->
-        <div class="section-block">
-          <h5 class="section-title fw-bold text-primary mb-3">
-            <i class="bi bi-person-badge-fill me-2"></i>
-            Complainant Information
-          </h5>
-          <hr>
-          <div class="row g-3">
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Complainant's Name:</label>
-              <p>{{ grievanceDetails.complainantName }}</p>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Contact Number:</label>
-              <p>{{ grievanceDetails.complainantContact }}</p>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Physical Address:</label>
-              <p>{{ grievanceDetails.complainantPhysicalAddress }}</p>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Gender:</label>
-              <p>{{ getGenderName(grievanceDetails.complainantGender) }}</p>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Age:</label>
-              <p>{{ grievanceDetails.complainantAge }}</p>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-bold">SNSOP Beneficiary:</label>
-              <p>{{ getBeneficiaryStatus(grievanceDetails.complainantBeneficiary) }}</p>
             </div>
           </div>
         </div>
