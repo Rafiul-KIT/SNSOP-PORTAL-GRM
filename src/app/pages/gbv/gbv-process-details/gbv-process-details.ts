@@ -24,9 +24,16 @@ import { TextareaModule } from 'primeng/textarea';
 import { DatePickerModule } from 'primeng/datepicker';
 import { SelectModule } from 'primeng/select';
 import { CheckboxModule } from 'primeng/checkbox';
+import { DialogModule } from 'primeng/dialog';
+import { TableModule } from 'primeng/table';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { TooltipModule } from 'primeng/tooltip';
 import Swal from 'sweetalert2';
-import { FileUploadModule } from 'primeng/fileupload';
-import { InputNumberModule } from 'primeng/inputnumber';
+
+interface ValueLabelItem {
+  label: string;
+  value: any;
+}
 
 interface GbvGrievanceDetails {
   id: number;
@@ -36,29 +43,44 @@ interface GbvGrievanceDetails {
   payamId: number;
   bomaId: number;
   incidentOccurredAt: string;
+  contactFocalPersonName: string;
+  incidentReportedBy: number;
+  incidentReportedByOtherDesc: string;
   reportingChannelId: number;
   reportingChannelOther: string;
-  complainantName: string;
-  complainantContact: string;
-  complainantPhysicalAddress: string;
+  complainantContactNumber: string;
   complainantGender: number;
-  complainantAge: number;
+  ageOfSurvivor: number;
   complainantBeneficiary: boolean;
   complainantBeneficiarySelectionCriteria: number;
-  grievanceTypeId: number;
-  grievanceDetailTypeId: number;
-  grievanceTypeOtherDesc: string;
+  suspectKnown: boolean;
+  suspectAssociatedWithProject: boolean;
+  suspectDetails: string;
+  recommendedReferralServiceId: number;
   grievanceDescription: string;
   grievanceAttachmentUrl: string;
   grievanceAttachmentFile: string;
   grievanceAttachmentBytes: string;
   grievanceAttachmentFilename: string;
-  status: string;
+  verbalConsentGranted: boolean;
+  consentSigned: boolean;
+  consentFormAttachmentUrl: string;
+  consentFormAttachmentFile: string;
+  consentFormAttachmentBytes: string;
+  consentFormAttachmentFilename: string;
+  status?: string;
 }
 
-interface AccusedType {
-  label: string;
-  value: number;
+interface GbvProcessHistoryItem {
+  id: number;
+  gbvGrievanceId: number;
+  followupActionFeedback: string;
+  reportedToMgmtHr: boolean;
+  reportedDetails: string;
+  survivorSatisfied: boolean;
+  survivorDetails: string;
+  afterMgmtActionClosedAt: string;
+  status: string;
 }
 
 @Component({
@@ -77,8 +99,10 @@ interface AccusedType {
     DatePickerModule,
     SelectModule,
     CheckboxModule,
-    FileUploadModule,
-    InputNumberModule,
+    DialogModule,
+    TableModule,
+    ProgressSpinnerModule,
+    TooltipModule,
   ],
   providers: [MessageService],
   templateUrl: './gbv-process-details.html',
@@ -91,30 +115,37 @@ export class GbvProcessDetails implements OnInit {
   processForm!: FormGroup;
   isLoading = true;
   isSubmitting = false;
+  displayProcessDialog = false;
+
+  processHistory: GbvProcessHistoryItem[] = [];
+  selectedHistoryDetail: GbvProcessHistoryItem | null = null;
+  displayHistoryDetailDialog = false;
+  isLoadingHistory = false;
+  isLoadingHistoryDetail = false;
 
   breadcrumbItems: MenuItem[] = [];
   breadcrumbHome: MenuItem = { icon: 'pi pi-home', routerLink: '/dashboard' };
 
   states: LookupItem[] = [];
-  accusedStates: LookupItem[] = [];
-  accusedCounties: LookupItem[] = [];
-  accusedPayams: LookupItem[] = [];
-  accusedBomas: LookupItem[] = [];
-  accusedTypes: AccusedType[] = [
-    { label: 'Individual', value: 1 },
-    { label: 'Group', value: 2 },
+  counties: LookupItem[] = [];
+  payams: LookupItem[] = [];
+  bomas: LookupItem[] = [];
+  genders: ValueLabelItem[] = [];
+  reportingChannels: ValueLabelItem[] = [];
+
+  incidentReporters = [
+    { label: 'Survivor', value: 1 },
+    { label: 'Family Member', value: 2 },
+    { label: 'Other', value: 3 },
   ];
   statusOptions: { label: string; value: string }[] = [
-    { label: 'Resolved', value: 'Resolved' },
     { label: 'Unresolved', value: 'Unresolved' },
+    { label: 'Resolved', value: 'Resolved' },
+    { label: 'Referred', value: 'Referred' },
   ];
 
-  furtherActionRequired: boolean = false;
-  investigationCarriedOut: boolean = false;
-  appealLodged: boolean = false;
-
-  feedbackAttachmentFile: File | null = null;
-  investigationReportAttachmentFile: File | null = null;
+  reportedToMgmtHr = false;
+  survivorSatisfied = false;
 
   constructor(
     private fb: FormBuilder,
@@ -127,10 +158,17 @@ export class GbvProcessDetails implements OnInit {
   ) {}
 
   async ngOnInit() {
-    this.gbvGrievanceId = Number(this.route.snapshot.paramMap.get('id'));
+    const idParam = this.route.snapshot.paramMap.get('id');
+    const parsedId = Number(idParam);
+    this.gbvGrievanceId = Number.isInteger(parsedId) && parsedId > 0 ? parsedId : null;
     this.initBreadcrumb();
 
     if (!this.gbvGrievanceId) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No GBV grievance ID provided for processing.',
+      });
       this.isLoading = false;
       this.cdr.detectChanges();
       return;
@@ -142,9 +180,15 @@ export class GbvProcessDetails implements OnInit {
       await Promise.all([
         this.loadAllLookups(),
         this.fetchGrievanceDetails(this.gbvGrievanceId),
+        this.fetchProcessHistory(this.gbvGrievanceId),
       ]);
     } catch (error) {
       console.error('Initialization error:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load data for grievance processing.',
+      });
       this.isLoading = false;
     } finally {
       this.cdr.detectChanges();
@@ -160,242 +204,251 @@ export class GbvProcessDetails implements OnInit {
   }
 
   async loadAllLookups() {
-    const statesRes = await this.lookupService.getOrFetchStateList();
-    this.states = statesRes;
-    this.accusedStates = statesRes;
+    try {
+      const [statesRes, reportingChannelsRes, gendersList] = await Promise.all([
+        this.lookupService.getOrFetchStateList(),
+        this.apiService.GET('api/grievance/reporting-channel'),
+        this.lookupService.getGenderListbyId(),
+      ]);
+
+      this.states = statesRes;
+      this.reportingChannels = reportingChannelsRes?.data?.content
+        ?.filter((item: any) => item.gbvChannel === true || item.ngbvChannel === true)
+        ?.map((item: any) => ({ label: item.detail, value: item.id })) ?? [];
+      this.genders = gendersList.map((item) => ({
+        label: item.name,
+        value: Number(item.id),
+      }));
+    } catch (error) {
+      console.error('Error loading lookups:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load lookup data.',
+      });
+      throw error;
+    }
   }
 
   async fetchGrievanceDetails(id: number) {
     this.isLoading = true;
     try {
-      const res: any = await this.apiService.GET(`api/gbv/get?id=${id}`);
+      const res: any = await this.apiService.GET('api/gbv-grievance/get', { id });
       if (res?.data?.content?.length) {
-        this.grievanceDetails = res.data.content[0];
+        const details = res.data.content[0] as GbvGrievanceDetails;
+        this.grievanceDetails = details;
+        await this.loadDependentLookups(details);
+      } else {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Not Found',
+          detail: 'GBV grievance details not found.',
+        });
+        this.grievanceDetails = null;
       }
     } catch (error) {
       console.error('Error fetching grievance details:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to fetch GBV grievance details.',
+      });
+      this.grievanceDetails = null;
     } finally {
       this.isLoading = false;
       this.cdr.detectChanges();
     }
   }
 
+  async fetchProcessHistory(id: number) {
+    this.isLoadingHistory = true;
+    try {
+      const res: any = await this.apiService.GET('api/gbv-grievance/process/history', {
+        gbvGrievanceId: id,
+      });
+      const history = res?.data?.content ?? [];
+      this.processHistory = [...history].sort((a, b) => b.id - a.id);
+    } catch (error) {
+      console.error('Error fetching process history:', error);
+      this.processHistory = [];
+    } finally {
+      this.isLoadingHistory = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  async loadDependentLookups(details: GbvGrievanceDetails) {
+    const promises: Promise<any>[] = [];
+    if (details.stateId) {
+      promises.push(
+        this.lookupService
+          .getCountyListByStateId(String(details.stateId))
+          .then((res) => (this.counties = res))
+      );
+    }
+    if (details.countyId) {
+      promises.push(
+        this.lookupService
+          .getPayamListByCountyId(String(details.countyId))
+          .then((res) => (this.payams = res))
+      );
+    }
+    if (details.payamId) {
+      promises.push(
+        this.lookupService
+          .getBomaListByPayamId(String(details.payamId))
+          .then((res) => (this.bomas = res))
+      );
+    }
+    await Promise.all(promises);
+    this.cdr.markForCheck();
+  }
+
+  get isProcessFormDisabled(): boolean {
+    const status = String(this.grievanceDetails?.status || '').toLowerCase();
+    return status === 'resolved';
+  }
+
+  viewProcessHistoryDetail(history: GbvProcessHistoryItem) {
+    this.selectedHistoryDetail = history;
+    this.displayHistoryDetailDialog = true;
+  }
+
   initForm(): void {
     this.processForm = this.fb.group({
+      id: [null],
       gbvGrievanceId: [this.gbvGrievanceId, Validators.required],
-      actionTakenInResponse: ['', Validators.required],
-      actionTakenBy: ['', Validators.required],
-      resolvedOn: [null, Validators.required],
-      feedbackToComplainant: ['', Validators.required],
-      feedbackToComplainantAttachmentFile: [null],
-      accusedName: [''],
-      accusedDetails: [''],
-      accusedOtherDetails: [''],
-      accusedType: [null],
-      accusedState: [null],
-      accusedCounty: [{ value: null, disabled: true }],
-      accusedPayam: [{ value: null, disabled: true }],
-      accusedBoma: [{ value: null, disabled: true }],
-      furtherActionRequired: [false],
-      furtherRequiredActionDetails: [{ value: '', disabled: true }],
-      appealLodged: [false],
-      appealedOn: [{ value: null, disabled: true }],
-      appealOutcomeSatisfactory: [{ value: false, disabled: true }],
-      afterAppealClosedOn: [{ value: null, disabled: true }],
-      unresolvedRecommendedAction: [''],
-      investigationCarriedOut: [false],
-      investigatorName: [{ value: '', disabled: true }],
-      investigatorDesignation: [{ value: '', disabled: true }],
-      investigationCompletedOn: [{ value: null, disabled: true }],
-      investigationFindings: [{ value: '', disabled: true }],
-      investigationReportAttachmentFile: [null],
-      actionAfterInvestigation: [''],
+      followupActionFeedback: ['', Validators.required],
+      reportedToMgmtHr: [false],
+      reportedDetails: [''],
+      survivorSatisfied: [false],
+      survivorDetails: [''],
+      afterMgmtActionClosedAt: [null],
       status: [null, Validators.required],
     });
   }
 
-  private formatDateForApi(date: Date | string | null | undefined): string {
+  subscribeToFormChanges(): void {
+    this.processForm.get('reportedToMgmtHr')?.valueChanges.subscribe((val: boolean) => {
+      this.reportedToMgmtHr = !!val;
+      if (!val) {
+        this.processForm.get('reportedDetails')?.setValue('');
+      }
+      this.cdr.markForCheck();
+    });
+
+    this.processForm.get('survivorSatisfied')?.valueChanges.subscribe((val: boolean) => {
+      this.survivorSatisfied = !!val;
+      if (!val) {
+        this.processForm.get('survivorDetails')?.setValue('');
+      }
+      this.cdr.markForCheck();
+    });
+  }
+
+  private formatDateTimeForApi(date: Date | string | null | undefined): string {
     if (!date) return '';
     const d = new Date(date);
-    if (isNaN(d.getTime())) return '';
+    if (Number.isNaN(d.getTime())) return '';
+
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const seconds = String(d.getSeconds()).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
   }
 
-  private toIdString(value: LookupItem | string | number | null | undefined): string {
-    if (value === null || value === undefined || value === '') return '';
-    if (typeof value === 'object') return String(value.id ?? '');
-    return String(value);
-  }
+  private normalizeStatusForApi(
+    status: string | number | null | undefined
+  ): 'Unresolved' | 'Resolved' | 'Referred' | '' {
+    if (status === null || status === undefined || status === '') return '';
 
-  subscribeToFormChanges(): void {
-    this.processForm.get('furtherActionRequired')?.valueChanges.subscribe((val: boolean) => {
-      this.furtherActionRequired = val;
-      const detailsControl = this.processForm.get('furtherRequiredActionDetails');
-      if (val) {
-        detailsControl?.enable();
-        detailsControl?.setValidators(Validators.required);
-      } else {
-        detailsControl?.disable();
-        detailsControl?.clearValidators();
-        detailsControl?.setValue('');
-      }
-      detailsControl?.updateValueAndValidity();
-      this.cdr.detectChanges();
-    });
-
-    this.processForm.get('investigationCarriedOut')?.valueChanges.subscribe((val: boolean) => {
-      this.investigationCarriedOut = val;
-      const controls = ['investigatorName', 'investigatorDesignation', 'investigationCompletedOn', 'investigationFindings'];
-      controls.forEach(c => {
-        const ctrl = this.processForm.get(c);
-        if (val) {
-          ctrl?.enable();
-          ctrl?.setValidators(Validators.required);
-        } else {
-          ctrl?.disable();
-          ctrl?.clearValidators();
-          ctrl?.setValue(null);
-        }
-        ctrl?.updateValueAndValidity();
-      });
-      this.cdr.detectChanges();
-    });
-
-    this.processForm.get('appealLodged')?.valueChanges.subscribe((val: boolean) => {
-      this.appealLodged = val;
-      const appealedOnControl = this.processForm.get('appealedOn');
-      const appealOutcomeSatisfactoryControl = this.processForm.get('appealOutcomeSatisfactory');
-      const afterAppealClosedOnControl = this.processForm.get('afterAppealClosedOn');
-
-      if (val) {
-        appealedOnControl?.enable();
-        appealOutcomeSatisfactoryControl?.enable();
-        afterAppealClosedOnControl?.enable();
-        appealedOnControl?.setValidators(Validators.required);
-      } else {
-        appealedOnControl?.disable();
-        appealOutcomeSatisfactoryControl?.disable();
-        afterAppealClosedOnControl?.disable();
-        appealedOnControl?.clearValidators();
-        appealedOnControl?.setValue(null);
-        appealOutcomeSatisfactoryControl?.setValue(false);
-        afterAppealClosedOnControl?.setValue(null);
-      }
-      appealedOnControl?.updateValueAndValidity();
-      appealOutcomeSatisfactoryControl?.updateValueAndValidity();
-      afterAppealClosedOnControl?.updateValueAndValidity();
-      this.cdr.detectChanges();
-    });
-  }
-
-  async onAccusedStateChange(state: LookupItem | null) {
-    this.processForm.get('accusedCounty')?.reset({ value: null, disabled: true });
-    this.processForm.get('accusedPayam')?.reset({ value: null, disabled: true });
-    this.processForm.get('accusedBoma')?.reset({ value: null, disabled: true });
-    this.accusedCounties = [];
-    if (state?.id) {
-      this.accusedCounties = await this.lookupService.getCountyListByStateId(state.id);
-      this.processForm.get('accusedCounty')?.enable();
+    const normalized = String(status).trim().toLowerCase();
+    if (normalized === '1' || normalized === 'unresolved') return 'Unresolved';
+    if (normalized === '5' || normalized === 'resolved') return 'Resolved';
+    if (
+      normalized === '15' ||
+      normalized === 'referred' ||
+      normalized === 'reffered'
+    ) {
+      return 'Referred';
     }
-    this.cdr.markForCheck();
-  }
-
-  async onAccusedCountyChange(county: LookupItem | null) {
-    this.processForm.get('accusedPayam')?.reset({ value: null, disabled: true });
-    this.processForm.get('accusedBoma')?.reset({ value: null, disabled: true });
-    this.accusedPayams = [];
-    if (county?.id) {
-      this.accusedPayams = await this.lookupService.getPayamListByCountyId(county.id);
-      this.processForm.get('accusedPayam')?.enable();
-    }
-    this.cdr.markForCheck();
-  }
-
-  async onAccusedPayamChange(payam: LookupItem | null) {
-    this.processForm.get('accusedBoma')?.reset({ value: null, disabled: true });
-    this.accusedBomas = [];
-    if (payam?.id) {
-      this.accusedBomas = await this.lookupService.getBomaListByPayamId(payam.id);
-      this.processForm.get('accusedBoma')?.enable();
-    }
-    this.cdr.markForCheck();
-  }
-
-  onFeedbackAttachmentSelect(event: any): void {
-    this.feedbackAttachmentFile = event.files[0];
-  }
-
-  onInvestigationReportAttachmentSelect(event: any): void {
-    this.investigationReportAttachmentFile = event.files[0];
+    return '';
   }
 
   onSubmit(): void {
-    if (this.processForm.invalid) {
+    if (this.processForm.invalid || !this.gbvGrievanceId) {
       this.processForm.markAllAsTouched();
-      Swal.fire('Validation Error', 'Please fill in all required fields.', 'warning');
+      Swal.fire({
+        title: 'Validation Error',
+        text: 'Please fill in all required fields.',
+        icon: 'warning',
+        confirmButtonColor: '#0d6efd',
+      });
       return;
     }
 
     this.isSubmitting = true;
-    const rawValues = this.processForm.getRawValue();
+    const raw = this.processForm.getRawValue();
     const formData = new FormData();
 
-    formData.append('id', '0');
+    formData.append('id', raw.id ? String(raw.id) : '');
     formData.append('gbvGrievanceId', String(this.gbvGrievanceId));
-    formData.append('actionTakenInResponse', rawValues.actionTakenInResponse);
-    formData.append('actionTakenBy', rawValues.actionTakenBy);
-    formData.append('feedbackToComplainant', rawValues.feedbackToComplainant || '');
-
-    if (this.feedbackAttachmentFile) {
-      formData.append('feedbackToComplainantAttachmentFile', this.feedbackAttachmentFile, this.feedbackAttachmentFile.name);
-    }
-
-    formData.append('accusedName', rawValues.accusedName || '');
-    formData.append('accusedDetails', rawValues.accusedDetails || '');
-    formData.append('accusedOtherDetails', rawValues.accusedOtherDetails || '');
-    formData.append('accusedStateId', this.toIdString(rawValues.accusedState));
-    formData.append('accusedCountyId', this.toIdString(rawValues.accusedCounty));
-    formData.append('accusedPayamId', this.toIdString(rawValues.accusedPayam));
-    formData.append('accusedBomaId', this.toIdString(rawValues.accusedBoma));
-    formData.append('accusedType', rawValues.accusedType ? String(rawValues.accusedType) : '');
-    formData.append('resolvedOn', this.formatDateForApi(rawValues.resolvedOn));
-    formData.append('furtherActionRequired', String(rawValues.furtherActionRequired ?? false));
-    formData.append('furtherRequiredActionDetails', rawValues.furtherRequiredActionDetails || '');
-    formData.append('appealLodged', String(rawValues.appealLodged ?? false));
-    formData.append('appealedOn', this.formatDateForApi(rawValues.appealedOn));
-    formData.append('appealOutcomeSatisfactory', String(rawValues.appealOutcomeSatisfactory ?? false));
-    formData.append('unresolvedRecommendedAction', rawValues.unresolvedRecommendedAction || '');
-    formData.append('investigationCarriedOut', String(rawValues.investigationCarriedOut ?? false));
-    formData.append('investigatorName', rawValues.investigatorName || '');
-    formData.append('investigatorDesignation', rawValues.investigatorDesignation || '');
-    formData.append('investigationCompletedOn', this.formatDateForApi(rawValues.investigationCompletedOn));
-    formData.append('investigationFindings', rawValues.investigationFindings || '');
-
-    if (this.investigationReportAttachmentFile) {
-      formData.append('investigationReportAttachment', this.investigationReportAttachmentFile, this.investigationReportAttachmentFile.name);
-    }
-
-    formData.append('actionAfterInvestigation', rawValues.actionAfterInvestigation || '');
-    formData.append('afterAppealClosedOn', this.formatDateForApi(rawValues.afterAppealClosedOn));
-    formData.append('status', rawValues.status);
+    formData.append('followupActionFeedback', raw.followupActionFeedback || '');
+    formData.append('reportedToMgmtHr', String(raw.reportedToMgmtHr ?? false));
+    formData.append('reportedDetails', raw.reportedDetails || '');
+    formData.append('survivorSatisfied', String(raw.survivorSatisfied ?? true));
+    formData.append('survivorDetails', raw.survivorDetails || '');
+    formData.append(
+      'afterMgmtActionClosedAt',
+      this.formatDateTimeForApi(raw.afterMgmtActionClosedAt)
+    );
+    formData.append('status', this.normalizeStatusForApi(raw.status));
 
     this.apiService
-      .POST('api/gbv/process', formData, 'global')
+      .POST('api/gbv-grievance/process', formData, 'global', {
+        headers: { 'Content-Type': undefined },
+      })
       .then((res: any) => {
         const result = res?.data;
-        if (result && (result.code === 200 || result.status === 'success')) {
-          Swal.fire('Success!', result.message || 'Grievance processed successfully.', 'success');
-          this.router.navigate(['/gbv-management/process']);
+        if (
+          result?.code === 200 ||
+          result?.statusCode === 200 ||
+          result?.success === true
+        ) {
+          Swal.fire({
+            title: 'Success',
+            text: result?.message || 'GBV grievance processed successfully.',
+            icon: 'success',
+            confirmButtonColor: '#0d6efd',
+          });
+          this.displayProcessDialog = false;
+          this.onReset();
+          this.fetchProcessHistory(this.gbvGrievanceId!);
+          this.fetchGrievanceDetails(this.gbvGrievanceId!);
         } else {
-          Swal.fire('Failed', result?.message || 'Failed to process grievance.', 'error');
+          Swal.fire({
+            title: 'Process Failed',
+            text: result?.message || 'Failed to process GBV grievance.',
+            icon: 'error',
+            confirmButtonColor: '#0d6efd',
+          });
         }
       })
-      .catch((err: any) => {
-        console.error('Error processing grievance', err);
-        Swal.fire('Error!', 'An error occurred while processing the grievance.', 'error');
+      .catch((error: any) => {
+        console.error('Error processing grievance:', error);
+        const errorMessage =
+          error?.response?.data?.message ||
+          'An error occurred while processing the GBV grievance.';
+        Swal.fire({
+          title: 'Error',
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonColor: '#0d6efd',
+        });
       })
       .finally(() => {
         this.isSubmitting = false;
@@ -403,8 +456,95 @@ export class GbvProcessDetails implements OnInit {
       });
   }
 
+  onReset(): void {
+    this.processForm.reset({
+      id: null,
+      gbvGrievanceId: this.gbvGrievanceId,
+      followupActionFeedback: '',
+      reportedToMgmtHr: false,
+      reportedDetails: '',
+      survivorSatisfied: false,
+      survivorDetails: '',
+      afterMgmtActionClosedAt: null,
+      status: null,
+    });
+    this.reportedToMgmtHr = false;
+    this.survivorSatisfied = false;
+    this.cdr.markForCheck();
+  }
+
+  getStateName(id: number | string): string {
+    const item = this.states.find((s) => s.id === String(id));
+    return item ? item.name : String(id);
+  }
+
+  getCountyName(id: number | string): string {
+    const item = this.counties.find((c) => c.id === String(id));
+    return item ? item.name : String(id);
+  }
+
+  getPayamName(id: number | string): string {
+    const item = this.payams.find((p) => p.id === String(id));
+    return item ? item.name : String(id);
+  }
+
+  getBomaName(id: number | string): string {
+    const item = this.bomas.find((b) => b.id === String(id));
+    return item ? item.name : String(id);
+  }
+
+  getGenderName(id: number | string): string {
+    const item = this.genders.find((g) => g.value === Number(id));
+    return item ? item.label : String(id);
+  }
+
+  getReportingChannelName(id: number | string): string {
+    const item = this.reportingChannels.find((rc) => rc.value === Number(id));
+    return item ? item.label : String(id);
+  }
+
+  getIncidentReportedByName(id: number): string {
+    const item = this.incidentReporters.find((ir) => ir.value === Number(id));
+    return item ? item.label : String(id);
+  }
+
+  getSelectionCriteriaName(value: any): string {
+    return this.lookupService.getSelectionCriteriaEnumByValue(value);
+  }
+
+  getBeneficiaryStatus(isBeneficiary: boolean): string {
+    return isBeneficiary ? 'Yes' : 'No';
+  }
+
+  getYesNoLabel(value: boolean | null | undefined): string {
+    if (value === true) return 'Yes';
+    if (value === false) return 'No';
+    return '--';
+  }
+
+  getStatusBadgeClass(statusValue: string | null | undefined): string {
+    const normalized = String(statusValue || '').toLowerCase();
+    if (normalized === 'resolved') return 'bg-success';
+    if (normalized === 'reffered' || normalized === 'referred') return 'bg-danger';
+    return 'bg-warning';
+  }
+
   formatDisplayDate(value: string | null | undefined): string {
     if (!value) return '';
+
+    const ddMmYyyy = /^(\d{2})-(\d{2})-(\d{4})$/;
+    const match = value.match(ddMmYyyy);
+
+    if (match) {
+      const day = Number(match[1]);
+      const month = Number(match[2]) - 1;
+      const year = Number(match[3]);
+      const date = new Date(year, month, day);
+      return Number.isNaN(date.getTime())
+        ? value
+        : new Intl.DateTimeFormat('en-GB').format(date);
+    }
+
     const date = new Date(value);
     return Number.isNaN(date.getTime())
       ? value

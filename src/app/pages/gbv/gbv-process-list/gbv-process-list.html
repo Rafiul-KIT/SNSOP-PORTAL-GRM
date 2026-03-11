@@ -77,9 +77,9 @@
       <tr>
         <th class="text-center">Serial</th>
         <th class="text-center">Tracking Number</th>
-        <th class="text-center">State</th>
+        <!-- <th class="text-center">State</th> -->
         <th class="text-center">Created At</th>
-        <th class="text-center">Complainant Name</th>
+        <!-- <th class="text-center">Complainant Name</th> -->
         <th class="text-center">Reporting Channel</th>
         <th class="text-center">Beneficiary Status</th>
         <th class="text-center">Status</th>
@@ -91,9 +91,9 @@
       <tr>
         <td class="text-center">{{ (currentPage * pageSize) + i + 1 }}</td>
         <td class="text-center">{{ item.trackingNumber }}</td>
-        <td class="text-center">{{ getStateName(item.stateId) }}</td>
+        <!-- <td class="text-center">{{ getStateName(item.stateId) }}</td> -->
         <td class="text-center">{{ formatDisplayDate(item.createdAt) }}</td>
-        <td class="text-center">{{ item.complainantName }}</td>
+        <!-- <td class="text-center">{{ item.complainantName }}</td> -->
         <td class="text-center">{{ item.reportingChannel }}</td>
         <td class="text-center">{{ item.isComplainantBeneficiary === 'YES' ? 'Beneficiary' : 'Non-Beneficiary' }}</td>
         <td class="text-center">
@@ -103,6 +103,7 @@
         </td>
         <td class="text-center">
           <p-button type="button" icon="pi pi-eye" pTooltip="View Details" tooltipPosition="top" size="small" outlined="true" severity="secondary" class="me-2" (onClick)="onView(item.id)" />
+          <p-button type="button" icon="fa fa-archive" pTooltip="Archive" tooltipPosition="top" size="small" outlined="true" severity="danger" [loading]="archivingId === item.id" [disabled]="archivingId === item.id" (onClick)="onArchive(item.id)" />
         </td>
       </tr>
     </ng-template>

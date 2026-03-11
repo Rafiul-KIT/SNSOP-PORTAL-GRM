@@ -28,14 +28,18 @@ import {
 } from '../../../services/lookup.service';
 import { ApiService } from '../../../services/api.service';
 import { Loader } from '../../../components/loader/loader';
+import Swal from 'sweetalert2';
 
 interface GbvGrievance {
   id: number;
   trackingNumber: string;
-  stateId: number;
-  createdAt: string;
-  createdAtDisplay?: string;
+  grievanceType: string;
+  stateId?: number;
   stateName?: string;
+  createdAt?: string;
+  createdAtDisplay?: string;
+  incidentOccurredAt?: string;
+  incidentOccurredAtDisplay?: string;
   complainantName: string;
   reportingChannel: string;
   isComplainantBeneficiary: string;
@@ -83,6 +87,7 @@ export class GbvProcessList implements OnInit {
 
   grievances: GbvGrievance[] = [];
   totalRecords = 0;
+  archivingId: number | null = null;
 
   currentPage = 0;
   pageSize = 10;
@@ -139,6 +144,11 @@ export class GbvProcessList implements OnInit {
       this.cdr.markForCheck();
     } catch (err) {
       console.error('Lookups loading error:', err);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load lookup data.',
+      });
     }
   }
 
@@ -184,7 +194,7 @@ export class GbvProcessList implements OnInit {
   private buildSearchBody() {
     const f = this.searchForm.value;
     return {
-      id: f.id || null, 
+      id: f.id || null,
       trackingNumber: f.trackingNumber ? f.trackingNumber.trim() : '',
       stateId: f.state?.id || null,
       countyId: f.county?.id || null,
@@ -209,7 +219,9 @@ export class GbvProcessList implements OnInit {
       .then((res: any) => {
         if (!res || !res.data) throw new Error('Empty or invalid response');
 
-        const data = res.data;
+        const data = Array.isArray(res.data?.content)
+          ? res.data
+          : (res.data?.data ?? res.data);
         this.grievances = this.enrichGrievances(data.content || []);
         this.totalRecords = data.totalElements || 0;
         this.currentPage = data.pageNumber || 0;
@@ -225,6 +237,11 @@ export class GbvProcessList implements OnInit {
       })
       .catch((err) => {
         console.error('Fetch GBV grievances error:', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to fetch GBV grievances',
+        });
       })
       .finally(() => {
         this.isLoading = false;
@@ -264,6 +281,20 @@ export class GbvProcessList implements OnInit {
 
   formatDisplayDate(value: string | null | undefined): string {
     if (!value) return '';
+
+    const ddMmYyyy = /^(\d{2})-(\d{2})-(\d{4})$/;
+    const match = value.match(ddMmYyyy);
+
+    if (match) {
+      const day = Number(match[1]);
+      const month = Number(match[2]) - 1;
+      const year = Number(match[3]);
+      const date = new Date(year, month, day);
+      return Number.isNaN(date.getTime())
+        ? value
+        : new Intl.DateTimeFormat('en-GB').format(date);
+    }
+
     const date = new Date(value);
     return Number.isNaN(date.getTime())
       ? value
@@ -296,14 +327,38 @@ export class GbvProcessList implements OnInit {
 
   private enrichGrievances(list: GbvGrievance[]): GbvGrievance[] {
     return list.map((item) => {
-      const statusLabel = this.getStatusLabel(item.status);
+      const row: any = item as any;
+      const grievanceType =
+        row.grievanceType ??
+        row.grievance_type ??
+        row.grievanceTypeName ??
+        '';
+      const complainantName =
+        row.complainantName ??
+        row.complainant_name ??
+        row.complainant ??
+        '';
+      const createdAt = row.createdAt ?? row.created_at ?? '';
+      const incidentOccurredAt = row.incidentOccurredAt ?? row.incidentDate ?? '';
+      const beneficiaryRaw = row.isComplainantBeneficiary ?? '';
+      const statusLabel = this.getStatusLabel(row.status);
+
       return {
         ...item,
-        createdAtDisplay: this.formatDisplayDate(item.createdAt),
-        stateName: this.stateNameMap[String(item.stateId)] ?? String(item.stateId),
-        beneficiaryStatus: item.isComplainantBeneficiary === 'YES' ? 'Beneficiary' : 'Non-Beneficiary',
+        grievanceType,
+        complainantName,
+        createdAt,
+        createdAtDisplay: this.formatDisplayDate(createdAt),
+        incidentOccurredAt,
+        incidentOccurredAtDisplay: this.formatDisplayDate(incidentOccurredAt),
+        beneficiaryStatus:
+          beneficiaryRaw === 'YES'
+            ? 'Beneficiary'
+            : beneficiaryRaw === 'NO'
+              ? 'Non-Beneficiary'
+              : String(beneficiaryRaw || '-'),
         statusLabel,
-        statusBadgeClass: this.getStatusBadgeClass(item.status),
+        statusBadgeClass: this.getStatusBadgeClass(row.status),
       };
     });
   }
@@ -311,6 +366,56 @@ export class GbvProcessList implements OnInit {
   trackById = (_: number, grievance: GbvGrievance) => grievance.id;
 
   onView(grievanceId: number): void {
-    this.router.navigate(['/gbv-management/details', grievanceId]);
+    this.router.navigate(['/gbv-management/process-details', grievanceId]);
+  }
+
+  onArchive(gbvGrievanceId: number): void {
+    Swal.fire({
+      title: 'Archive this grievance?',
+      text: 'This grievance will be moved to archive.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, archive it',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      this.archivingId = gbvGrievanceId;
+      this.cdr.markForCheck();
+
+      this.api
+        .PUT(`/api/gbv-grievance/archive?gbvGrievanceId=${gbvGrievanceId}`)
+        .then((res: any) => {
+          const data = res?.data;
+          if (data?.code === 200) {
+            Swal.fire({
+              title: 'Archived!',
+              text: data?.message || 'GBV grievance archived successfully.',
+              icon: 'success',
+              confirmButtonColor: '#0d6efd',
+            });
+            this.fetchPage(this.currentPage, this.pageSize);
+          } else {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Archive Failed',
+              detail: data?.message || 'Failed to archive GBV grievance.',
+            });
+          }
+        })
+        .catch((err) => {
+          console.error('Archive GBV grievance error:', err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'An error occurred while archiving GBV grievance.',
+          });
+        })
+        .finally(() => {
+          this.archivingId = null;
+          this.cdr.markForCheck();
+        });
+    });
   }
 }
