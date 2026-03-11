@@ -1,11 +1,15 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, NgIf } from '@angular/common';
 import {
+  AbstractControl,
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
   Validators,
 } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { CardModule } from 'primeng/card';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
@@ -40,10 +44,16 @@ import Swal from 'sweetalert2';
   templateUrl: './gbv-management.html',
   styleUrl: './gbv-management.scss',
 })
-export class GBVManagement implements OnInit {
+export class GBVManagement implements OnInit, OnDestroy {
+  private static readonly PHONE_REGEX = /^\+?[0-9]{7,15}$/;
+  private static readonly NAME_REGEX = /^[A-Za-z][A-Za-z\s.'-]*$/;
+  private static readonly MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+  private static readonly ALLOWED_FILE_EXTENSIONS = ['pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx'];
+
   gbvForm!: FormGroup;
   today: Date = new Date();
   isLoading = false;
+  private subscriptions: Subscription[] = [];
 
   items: MenuItem[] | undefined;
   home: MenuItem | undefined;
@@ -89,41 +99,51 @@ export class GBVManagement implements OnInit {
     this.loadReportingChannels();
   }
 
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
+  }
+
   initForm(): void {
     this.gbvForm = this.fb.group({
-      id: "",
+      id: [0],
       trackingNumber: [{ value: '', disabled: true }],
       stateId: [null, Validators.required],
       countyId: [null, Validators.required],
       payamId: [null, Validators.required],
       bomaId: [null, Validators.required],
-      incidentOccurredAt: [null, Validators.required],
-      contactFocalPersonName: ['', Validators.required],
+      incidentOccurredAt: [null, [Validators.required, this.noFutureDateValidator()]],
+      contactFocalPersonName: [
+        '',
+        [Validators.required, this.trimRequiredValidator(), Validators.maxLength(120), Validators.pattern(GBVManagement.NAME_REGEX)],
+      ],
       incidentReportedBy: [null],
-      incidentReportedByOtherDesc: [''],
+      incidentReportedByOtherDesc: ['', [Validators.maxLength(200)]],
       reportingChannelId: [null, Validators.required],
-      reportingChannelOther: [''],
-      complainantContactNumber: [''],
+      reportingChannelOther: ['', [Validators.maxLength(200)]],
+      complainantContactNumber: ['', [Validators.maxLength(20), Validators.pattern(GBVManagement.PHONE_REGEX)]],
       complainantGender: [null, Validators.required],
-      ageOfSurvivor: [null, [Validators.required, Validators.min(0)]],
-      complainantBeneficiary: [null],
+      ageOfSurvivor: [null, [Validators.required, Validators.min(0), Validators.max(120)]],
+      complainantBeneficiary: [true],
       complainantBeneficiarySelectionCriteria: [null],
       suspectKnown: [null],
       suspectAssociatedWithProject: [null],
-      suspectDetails: [''],
-      recommendedReferralServiceId: [null],
-      grievanceDescription: ['', Validators.required],
-      grievanceAttachmentUrl: [''],
+      suspectDetails: ['', [Validators.maxLength(1000)]],
+      recommendedReferralServiceId: [null, [Validators.min(0)]],
+      grievanceDescription: ['', [Validators.required, this.trimRequiredValidator(), Validators.minLength(10), Validators.maxLength(3000)]],
+      grievanceAttachmentUrl: ['', [this.optionalUrlValidator()]],
       grievanceAttachmentFile: [null],
       grievanceAttachmentBytes: [''],
       grievanceAttachmentFilename: [''],
-      verbalConsentGranted: [null],
-      consentSigned: [null],
-      consentFormAttachmentUrl: [''],
+      verbalConsentGranted: [null, Validators.required],
+      consentSigned: [null, Validators.required],
+      consentFormAttachmentUrl: ['', [this.optionalUrlValidator()]],
       consentFormAttachmentFile: [null],
       consentFormAttachmentBytes: [''],
       consentFormAttachmentFilename: [''],
     });
+
+    this.registerConditionalValidationWatchers();
+    this.applyConditionalValidators();
   }
 
   loadStates(): void {
@@ -155,6 +175,7 @@ export class GBVManagement implements OnInit {
             label: item.detail,
             value: item.id,
           }));
+        this.applyConditionalValidators();
         this.cdr.detectChanges();
       })
       .catch((err: any) => {
@@ -223,6 +244,29 @@ export class GBVManagement implements OnInit {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    const extension = file.name?.split('.').pop()?.toLowerCase() || '';
+    if (!GBVManagement.ALLOWED_FILE_EXTENSIONS.includes(extension)) {
+      Swal.fire({
+        title: 'Invalid File Type',
+        text: `Allowed formats: ${GBVManagement.ALLOWED_FILE_EXTENSIONS.join(', ')}`,
+        icon: 'warning',
+        confirmButtonColor: '#0d6efd',
+      });
+      event.target.value = '';
+      return;
+    }
+
+    if (file.size > GBVManagement.MAX_FILE_SIZE_BYTES) {
+      Swal.fire({
+        title: 'File Too Large',
+        text: 'Maximum allowed file size is 5 MB.',
+        icon: 'warning',
+        confirmButtonColor: '#0d6efd',
+      });
+      event.target.value = '';
+      return;
+    }
+
     if (fileType === 'grievance') {
       this.grievanceAttachmentFile = file;
       this.gbvForm.patchValue({
@@ -237,6 +281,139 @@ export class GBVManagement implements OnInit {
       consentFormAttachmentFile: file,
       consentFormAttachmentFilename: file.name,
     });
+  }
+
+  private registerConditionalValidationWatchers(): void {
+    const watchedControls = [
+      'incidentReportedBy',
+      'reportingChannelId',
+      'complainantBeneficiary',
+      'suspectKnown',
+      'consentSigned',
+    ];
+
+    watchedControls.forEach((controlName) => {
+      const control = this.gbvForm.get(controlName);
+      if (!control) return;
+      this.subscriptions.push(
+        control.valueChanges.subscribe(() => {
+          this.applyConditionalValidators();
+        })
+      );
+    });
+  }
+
+  private applyConditionalValidators(): void {
+    this.setControlValidators('incidentReportedByOtherDesc', this.isIncidentReporterOtherSelected(), [
+      Validators.maxLength(200),
+      this.trimRequiredValidator(),
+    ]);
+
+    this.setControlValidators('reportingChannelOther', this.isOtherReportingChannelSelected(), [
+      Validators.maxLength(200),
+      this.trimRequiredValidator(),
+    ]);
+
+    this.setControlValidators('complainantBeneficiarySelectionCriteria', this.gbvForm.get('complainantBeneficiary')?.value === true, [
+      Validators.min(0),
+      Validators.max(999999),
+    ]);
+
+    this.setControlValidators('suspectAssociatedWithProject', this.gbvForm.get('suspectKnown')?.value === true);
+
+    this.setControlValidators('suspectDetails', this.gbvForm.get('suspectKnown')?.value === true, [
+      Validators.maxLength(1000),
+      this.trimRequiredValidator(),
+    ]);
+
+    this.setControlValidators('consentFormAttachmentFile', this.gbvForm.get('consentSigned')?.value === true);
+  }
+
+  private setControlValidators(controlName: string, required: boolean, validators: ValidatorFn[] = []): void {
+    const control = this.gbvForm.get(controlName);
+    if (!control) return;
+
+    const rules = required ? [Validators.required, ...validators] : validators;
+    control.setValidators(rules);
+    control.updateValueAndValidity({ emitEvent: false });
+  }
+
+  isIncidentReporterOtherSelected(): boolean {
+    return this.gbvForm.get('incidentReportedBy')?.value === 3;
+  }
+
+  isOtherReportingChannelSelected(): boolean {
+    const selectedId = this.gbvForm.get('reportingChannelId')?.value;
+    if (!selectedId || !this.reportingChannels?.length) return false;
+
+    const selected = this.reportingChannels.find((channel) => channel.value === selectedId);
+    return selected?.label?.toLowerCase?.().includes('other') ?? false;
+  }
+
+  onContactNumberInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const sanitized = input.value.replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '').slice(0, 15);
+    if (sanitized !== input.value) {
+      input.value = sanitized;
+    }
+    this.gbvForm.get('complainantContactNumber')?.setValue(sanitized, { emitEvent: false });
+  }
+
+  private trimRequiredValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (control.value === null || control.value === undefined) return null;
+      if (typeof control.value !== 'string') return null;
+      return control.value.trim().length ? null : { required: true };
+    };
+  }
+
+  private noFutureDateValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) return null;
+      const date = new Date(control.value);
+      if (Number.isNaN(date.getTime())) return { invalidDate: true };
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      return date > today ? { futureDate: true } : null;
+    };
+  }
+
+  private optionalUrlValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      if (!value || typeof value !== 'string') return null;
+      const trimmed = value.trim();
+      if (!trimmed) return null;
+
+      try {
+        const normalized = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+        const url = new URL(normalized);
+        return url.hostname ? null : { invalidUrl: true };
+      } catch {
+        return { invalidUrl: true };
+      }
+    };
+  }
+
+  private trimTextFields(): void {
+    const textFields = [
+      'contactFocalPersonName',
+      'incidentReportedByOtherDesc',
+      'reportingChannelOther',
+      'complainantContactNumber',
+      'suspectDetails',
+      'grievanceDescription',
+      'grievanceAttachmentUrl',
+      'consentFormAttachmentUrl',
+    ];
+    const patch: Record<string, string> = {};
+    textFields.forEach((field) => {
+      const value = this.gbvForm.get(field)?.value;
+      if (typeof value === 'string') {
+        patch[field] = value.trim();
+      }
+    });
+    this.gbvForm.patchValue(patch, { emitEvent: false });
   }
 
   private formatDateForApi(value: Date | string | null | undefined): string {
@@ -264,11 +441,14 @@ export class GBVManagement implements OnInit {
   }
 
   onSubmit(): void {
+    this.trimTextFields();
+    this.applyConditionalValidators();
+
     if (!this.gbvForm.valid) {
       this.gbvForm.markAllAsTouched();
       Swal.fire({
         title: 'Validation Error',
-        text: 'Please fill in all required fields marked with *',
+        text: 'Please fill in all required fields and correct invalid inputs.',
         icon: 'warning',
         confirmButtonColor: '#0d6efd',
       });
@@ -380,6 +560,7 @@ export class GBVManagement implements OnInit {
     this.bomas = [];
     this.grievanceAttachmentFile = null;
     this.consentAttachmentFile = null;
+    this.applyConditionalValidators();
     this.cdr.detectChanges();
   }
 }

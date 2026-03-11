@@ -68,22 +68,25 @@
               <label class="form-label fw-bold">Incident Reported By</label>
               <p-select [options]="incidentReporters" formControlName="incidentReportedBy" placeholder="--Select--" class="w-100"></p-select>
             </div>
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Incident Reported By (Other Description)</label>
+            <div class="col-md-4" *ngIf="isIncidentReporterOtherSelected()">
+              <label class="form-label fw-bold">Incident Reported By (Other Description) <span class="text-danger">*</span></label>
               <input type="text" pInputText formControlName="incidentReportedByOtherDesc" class="w-100" />
+              <small class="text-danger" *ngIf="gbvForm.get('incidentReportedByOtherDesc')?.invalid && (gbvForm.get('incidentReportedByOtherDesc')?.touched || gbvForm.get('incidentReportedByOtherDesc')?.dirty)">Other description is required</small>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Reporting Channel <span class="text-danger">*</span></label>
               <p-select [options]="reportingChannels" formControlName="reportingChannelId" placeholder="--Select--" class="w-100"></p-select>
               <small class="text-danger" *ngIf="gbvForm.get('reportingChannelId')?.invalid && (gbvForm.get('reportingChannelId')?.touched || gbvForm.get('reportingChannelId')?.dirty)">Reporting channel is required</small>
             </div>
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Other Reporting Channel</label>
+            <div class="col-md-4" *ngIf="isOtherReportingChannelSelected()">
+              <label class="form-label fw-bold">Other Reporting Channel <span class="text-danger">*</span></label>
               <input type="text" pInputText formControlName="reportingChannelOther" class="w-100" />
+              <small class="text-danger" *ngIf="gbvForm.get('reportingChannelOther')?.invalid && (gbvForm.get('reportingChannelOther')?.touched || gbvForm.get('reportingChannelOther')?.dirty)">Other reporting channel is required</small>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Complainant Contact Number</label>
-              <input type="text" pInputText formControlName="complainantContactNumber" class="w-100" />
+              <input type="text" pInputText formControlName="complainantContactNumber" class="w-100" inputmode="numeric" maxlength="15" (input)="onContactNumberInput($event)" />
+              <small class="text-danger" *ngIf="gbvForm.get('complainantContactNumber')?.invalid && (gbvForm.get('complainantContactNumber')?.touched || gbvForm.get('complainantContactNumber')?.dirty)">Enter valid numbers only (7 to 15 digits, optional + at start)</small>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Complainant Gender <span class="text-danger">*</span></label>

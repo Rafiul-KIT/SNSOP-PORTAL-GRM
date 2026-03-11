@@ -15,11 +15,17 @@ import { GbvList } from './pages/gbv/gbv-list/gbv-list';
 import { GbvDetails } from './pages/gbv/gbv-details/gbv-details';
 import { GbvProcessList } from './pages/gbv/gbv-process-list/gbv-process-list';
 import { GbvProcessDetails } from './pages/gbv/gbv-process-details/gbv-process-details';
+import { GrievanceDashboard } from './pages/grievance-dashboard/grievance-dashboard';
 
 export const routes: Routes = [
   {
-    component: Dashboard,
+    component: GrievanceDashboard,
     path: 'dashboard',
+    canActivate: [routeGuard],
+  },
+  {
+    component: GrievanceDashboard,
+    path: 'grievance-dashboard',
     canActivate: [routeGuard],
   },
   {

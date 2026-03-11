@@ -3,6 +3,7 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -29,11 +30,11 @@ interface GbvGrievanceDetails {
   payamId: number;
   bomaId: number;
   incidentOccurredAt: string;
-  reportingChannelId: number;
-  reportingChannelOther: string;
   contactFocalPersonName: string;
   incidentReportedBy: number;
   incidentReportedByOtherDesc: string;
+  reportingChannelId: number;
+  reportingChannelOther: string;
   complainantContactNumber: string;
   complainantGender: number;
   ageOfSurvivor: number;
@@ -45,12 +46,15 @@ interface GbvGrievanceDetails {
   recommendedReferralServiceId: number;
   grievanceDescription: string;
   grievanceAttachmentUrl: string;
+  grievanceAttachmentFile: string;
+  grievanceAttachmentBytes: string;
   grievanceAttachmentFilename: string;
   verbalConsentGranted: boolean;
   consentSigned: boolean;
   consentFormAttachmentUrl: string;
+  consentFormAttachmentFile: string;
+  consentFormAttachmentBytes: string;
   consentFormAttachmentFilename: string;
-  status: string;
 }
 
 @Component({
@@ -72,6 +76,13 @@ interface GbvGrievanceDetails {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GbvDetails implements OnInit {
+  private apiService = inject(ApiService);
+  private lookupService = inject(LookupService);
+  private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
+  private messageService = inject(MessageService);
+  public router = inject(Router);
+
   grievanceId: number | null = null;
   grievanceDetails: GbvGrievanceDetails | null = null;
   isLoading = true;
@@ -92,21 +103,7 @@ export class GbvDetails implements OnInit {
     { label: 'Other', value: 3 },
   ];
 
-  statusOptions = [
-    { label: 'Pending', value: 'Pending' },
-    { label: 'In Progress', value: 'In Progress' },
-    { label: 'Resolved', value: 'Resolved' },
-    { label: 'Rejected', value: 'Rejected' },
-  ];
-
-  constructor(
-    private route: ActivatedRoute,
-    public router: Router,
-    private apiService: ApiService,
-    private lookupService: LookupService,
-    private cdr: ChangeDetectorRef,
-    private messageService: MessageService
-  ) {}
+  constructor() {}
 
   async ngOnInit() {
     this.initBreadcrumb();
@@ -143,7 +140,7 @@ export class GbvDetails implements OnInit {
       ]);
 
       this.states = statesRes;
-      this.reportingChannels = (reportingChannelsRes?.data?.content || [])
+      this.reportingChannels = reportingChannelsRes?.data?.content
         .map((item: any) => ({ label: item.detail, value: item.id }));
       this.genders = gendersList.map((item) => ({ label: item.name, value: parseInt(item.id) }));
     } catch (error) {
@@ -155,7 +152,7 @@ export class GbvDetails implements OnInit {
   async fetchGrievanceDetails(id: number) {
     this.isLoading = true;
     try {
-      const res: any = await this.apiService.GET(`api/gbv-grievance/get?id=${id}`);
+      const res: any = await this.apiService.GET(`api/gbv-grievance/get`, { id });
       if (res?.data?.content?.length) {
         this.grievanceDetails = res.data.content[0];
         await this.loadDependentLookups(this.grievanceDetails!);
@@ -217,20 +214,23 @@ export class GbvDetails implements OnInit {
     return item ? item.label : String(id);
   }
 
-  getReporterTypeName(id: number): string {
-    const item = this.incidentReporters.find((r) => r.value === id);
+  getIncidentReportedByName(id: number): string {
+    const item = this.incidentReporters.find((ir) => ir.value === id);
     return item ? item.label : String(id);
+  }
+
+  getSelectionCriteriaName(value: any): string {
+    return this.lookupService.getSelectionCriteriaEnumByValue(value);
+  }
+
+  getBeneficiaryStatus(isBeneficiary: boolean): string {
+    return isBeneficiary ? 'Yes' : 'No';
   }
 
   getYesNoLabel(value: boolean | null | undefined): string {
     if (value === true) return 'Yes';
     if (value === false) return 'No';
-    return 'N/A';
-  }
-
-  getStatusLabel(statusValue: string | number): string {
-    const status = this.statusOptions.find(s => s.value === statusValue);
-    return status ? status.label : String(statusValue);
+    return '--';
   }
 
   formatDisplayDate(value: string | null | undefined): string {
