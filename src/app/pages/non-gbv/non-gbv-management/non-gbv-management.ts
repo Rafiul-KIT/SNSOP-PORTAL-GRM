@@ -104,32 +104,75 @@ export class NonGbvManagement implements OnInit {
       });
   }
 
+  isOtherReportingChannelSelected(): boolean {
+    const selectedId = this.grievanceForm.get('reportingChannel')?.value;
+    if (!selectedId) return false;
+
+    const selected = this.reportingChannels.find((channel) => channel.value === selectedId);
+    return selected?.label?.toLowerCase?.().includes('other') ?? false;
+  }
+
+  isOtherCategorySelected(): boolean {
+    const selectedId = this.grievanceForm.get('categoryOfGrievance')?.value;
+    if (!selectedId) return false;
+    const selected = this.categories.find((item) => item.value === selectedId);
+    return selected?.label?.toLowerCase?.().includes('other') ?? false;
+  }
+
+  isOtherTypeSelected(): boolean {
+    const selectedId = this.grievanceForm.get('typeOfGrievance')?.value;
+    if (!selectedId) return false;
+    const selected = this.grievanceTypes.find((item) => item.value === selectedId);
+    return selected?.label?.toLowerCase?.().includes('other') ?? false;
+  }
+
   onCategoryChange(event: any): void {
     const categoryId = event.value;
     this.grievanceTypes = [];
-    this.grievanceForm.patchValue({ typeOfGrievance: null });
+    this.grievanceForm.patchValue({ typeOfGrievance: null, typeOfGrievanceOther: '' });
 
     if (categoryId) {
-      this.apiService
-        .GET(`api/grievance/detail-type`, { type: categoryId })
-        .then((res: any) => {
-          const data = res?.data;
-          if (data && data.content) {
-            this.grievanceTypes = data.content
-              .filter((item: any) => item.status === true)
-              .map((item: any) => ({
-                label: item.details,
-                value: item.id,
-              }));
-            this.cdr.detectChanges();
-          }
-        })
-        .catch((err) => {
-          console.error('Error fetching grievance types', err);
-        });
+      if (this.isOtherCategorySelected()) {
+        this.grievanceForm.get('typeOfGrievance')?.disable();
+        this.grievanceForm.get('typeOfGrievanceOther')?.enable();
+      } else {
+        this.grievanceForm.get('typeOfGrievance')?.enable();
+        this.grievanceForm.get('typeOfGrievanceOther')?.disable();
+        
+        this.apiService
+          .GET(`api/grievance/detail-type`, { type: categoryId })
+          .then((res: any) => {
+            const data = res?.data;
+            if (data && data.content) {
+              this.grievanceTypes = data.content
+                .filter((item: any) => item.status === true)
+                .map((item: any) => ({
+                  label: item.details,
+                  value: item.id,
+                }));
+              this.cdr.detectChanges();
+            }
+          })
+          .catch((err) => {
+            console.error('Error fetching grievance types', err);
+          });
+      }
     } else {
-      this.cdr.detectChanges();
+      this.grievanceForm.get('typeOfGrievance')?.disable();
+      this.grievanceForm.get('typeOfGrievanceOther')?.disable();
     }
+    this.cdr.detectChanges();
+  }
+
+  onTypeChange(event: any): void {
+    this.grievanceForm.patchValue({ typeOfGrievanceOther: '' });
+    
+    if (this.isOtherTypeSelected()) {
+      this.grievanceForm.get('typeOfGrievanceOther')?.enable();
+    } else {
+      this.grievanceForm.get('typeOfGrievanceOther')?.disable();
+    }
+    this.cdr.detectChanges();
   }
 
   loadReportingChannels(): void {
@@ -168,7 +211,7 @@ export class NonGbvManagement implements OnInit {
       countyName: [null, Validators.required],
       payamName: [null, Validators.required],
       bomaName: [null, Validators.required],
-      description: ['', Validators.required],
+      description: [''],
       attachment: [null],
       reportingChannel: [null, Validators.required],
       otherReportingChannel: [''],
@@ -181,9 +224,19 @@ export class NonGbvManagement implements OnInit {
       age: [null],
       supportType: [null],
       categoryOfGrievance: [null, Validators.required],
-      typeOfGrievance: [null],
-      typeOfGrievanceOther: [''],
+      typeOfGrievance: [{ value: null, disabled: true }],
+      typeOfGrievanceOther: [{ value: '', disabled: true }],
     });
+  }
+
+  private formatDateForApi(value: Date | string | null | undefined): string {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   loadStates(): void {
@@ -269,17 +322,14 @@ export class NonGbvManagement implements OnInit {
       const rawValues = this.grievanceForm.getRawValue();
 
       const formData = new FormData();
-      // formData.append('id', '0');
+      // formData.append('id');
       formData.append('trackingNumber', '');
       formData.append('stateId', rawValues.stateName);
       formData.append('countyId', rawValues.countyName);
       formData.append('payamId', rawValues.payamName);
       formData.append('bomaId', rawValues.bomaName);
 
-      // Format date to YYYY-MM-DD
-      const incidentDate = rawValues.dateComplaint
-        ? new Date(rawValues.dateComplaint).toISOString().split('T')[0]
-        : '';
+      const incidentDate = this.formatDateForApi(rawValues.dateComplaint);
       formData.append('incidentOccurredAt', incidentDate);
 
       formData.append('reportingChannelId', rawValues.reportingChannel);
@@ -312,7 +362,9 @@ export class NonGbvManagement implements OnInit {
         'grievanceTypeOtherDesc',
         rawValues.typeOfGrievanceOther || ''
       );
-      formData.append('grievanceDescription', rawValues.description);
+      formData.append('grievanceDescription', rawValues.description || '');
+      formData.append('grievanceAttachmentUrl', '');
+      formData.append('grievanceAttachmentBytes', '');
 
       if (rawValues.attachment) {
         formData.append('grievanceAttachmentFile', rawValues.attachment);
@@ -320,6 +372,8 @@ export class NonGbvManagement implements OnInit {
           'grievanceAttachmentFilename',
           rawValues.attachment.name
         );
+      } else {
+        formData.append('grievanceAttachmentFilename', '');
       }
 
       this.apiService
@@ -378,6 +432,8 @@ export class NonGbvManagement implements OnInit {
       isBeneficiary: true,
       categoryOfGrievance: null,
     });
+    this.grievanceForm.get('typeOfGrievance')?.disable();
+    this.grievanceForm.get('typeOfGrievanceOther')?.disable();
     this.counties = [];
     this.payams = [];
     this.bomas = [];

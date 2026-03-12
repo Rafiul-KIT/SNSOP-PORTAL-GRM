@@ -62,10 +62,9 @@
           <hr>
           <div class="row g-3">
             <div class="col-12">
-              <label class="form-label fw-bold">Description of Complaint / Allegation / Issue <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold">Description of Complaint / Allegation / Issue</label>
               <p class="small text-muted mb-2">(Include English translation of local language submission if applicable)</p>
               <textarea pTextarea formControlName="description" rows="4" class="w-100" placeholder="Type complaint details here..."></textarea>
-              <small class="text-danger" *ngIf="grievanceForm.get('description')?.invalid && (grievanceForm.get('description')?.touched || grievanceForm.get('description')?.dirty)">Description is required</small>
             </div>
             <div class="col-md-6">
               <label class="form-label fw-bold">Attachment</label>
@@ -76,8 +75,9 @@
             <div class="col-md-3">
               <label class="form-label fw-bold">Reporting Channel <span class="text-danger">*</span></label>
               <p-select [options]="reportingChannels" formControlName="reportingChannel" placeholder="--Select--" class="w-100"></p-select>
+              <small class="text-danger" *ngIf="grievanceForm.get('reportingChannel')?.invalid && (grievanceForm.get('reportingChannel')?.touched || grievanceForm.get('reportingChannel')?.dirty)">Reporting channel is required</small>
             </div>
-            <div class="col-md-3" *ngIf="grievanceForm.get('reportingChannel')?.value === 'Other'">
+            <div class="col-md-3" *ngIf="isOtherReportingChannelSelected()">
               <label class="form-label fw-bold">Other Reporting Channel</label>
               <input type="text" pInputText formControlName="otherReportingChannel" class="w-100" />
             </div>
@@ -140,10 +140,11 @@
             <div class="col-md-3">
               <label class="form-label fw-bold">Category of Grievance <span class="text-danger">*</span></label>
               <p-select [options]="categories" formControlName="categoryOfGrievance" placeholder="--Select--" class="w-100" (onChange)="onCategoryChange($event)"></p-select>
+              <small class="text-danger" *ngIf="grievanceForm.get('categoryOfGrievance')?.invalid && (grievanceForm.get('categoryOfGrievance')?.touched || grievanceForm.get('categoryOfGrievance')?.dirty)">Category of grievance is required</small>
             </div>
             <div class="col-md-3">
               <label class="form-label fw-bold">Type of Grievance</label>
-              <p-select [options]="grievanceTypes" formControlName="typeOfGrievance" placeholder="--Select--" class="w-100"></p-select>
+              <p-select [options]="grievanceTypes" formControlName="typeOfGrievance" placeholder="--Select--" class="w-100" (onChange)="onTypeChange($event)"></p-select>
             </div>
             <div class="col-md-3">
               <label class="form-label fw-bold">Type Of Grievance (Other)</label>

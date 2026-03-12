@@ -1,94 +1,118 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { MenuItem } from 'primeng/api';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import * as XLSX from 'xlsx';
+import { ApiService } from '../../services/api.service';
+import { Loader } from "../../components/loader/loader";
+
+interface GrievanceByCounty {
+  countyType: string;
+  total: number;
+}
+
+interface GrievanceByStatus {
+  statusType: string;
+  total: number;
+}
+
+interface AvgDaysToCloseByCounty {
+  countyType: string;
+  avgDaysToClose: number;
+}
+
+interface GrievanceReportResponse {
+  grievanceByCounty: GrievanceByCounty[];
+  grievanceByStatus: GrievanceByStatus[];
+  avgDaysToCloseByCounty: AvgDaysToCloseByCounty[];
+}
 
 @Component({
   selector: 'app-grievances-status-report',
   standalone: true,
-  imports: [CommonModule, RouterModule, BreadcrumbModule, TableModule, TabsModule],
+  imports: [CommonModule, RouterModule, BreadcrumbModule, TableModule, TabsModule, Loader],
   templateUrl: './grievances-status-report.html',
   styleUrls: ['./grievances-status-report.scss']
 })
 export class GrievancesStatusReport implements OnInit {
+  private api = inject(ApiService);
+   private cdr = inject(ChangeDetectorRef);
   items: MenuItem[] | undefined;
   home: MenuItem | undefined;
 
+  grievanceByCounty: GrievanceByCounty[] = [];
+  grievanceByStatus: GrievanceByStatus[] = [];
+  avgDaysToCloseByCounty: AvgDaysToCloseByCounty[] = [];
+   loading = true;
+  isLoading = false;
 
-   grievanceByCounty = [
-    { name: 'AWIEL WEST - NGBV', total: 340 },
-    { name: 'BOR MUNICIPAL - NGBV', total: 345 },
-    { name: 'BOR SOUTH - NGBV', total: 3 },
-    { name: 'BOR SOUTH - GBV', total: 1 },
-    { name: 'GOGRIAL WEST - NGBV', total: 170 },
-    { name: 'JAMJANG - NGBV', total: 599 },
-    { name: 'JUBA - NGBV', total: 516 },
-    { name: 'KAPOTEA EAST - NGBV', total: 399 },
-    { name: 'MABAN - NGBV', total: 673 },
-    { name: 'MELITH - NGBV', total: 812 },
-    { name: 'MUNDRI WEST - NGBV', total: 928 },
-    { name: 'PIBOR - NGBV', total: 621 },
-    { name: 'POCHALLA - NGBV', total: 421 },
-    { name: 'RAJA - NGBV', total: 155 },
-    { name: 'TONJ SOUTH - NGBV', total: 302 },
-    { name: 'TORIT MUNICIPAL COUNCIL - NGBV', total: 346 },
-    { name: 'YEI - NGBV', total: 192 },
-  ];
-
-  grievanceByStatus = [
-    { type: 'Resolved (GBV)', total: 1 },
-    { type: 'Resolved (NGBV)', total: 6782 },
-    { type: 'Unresolved (NGBV)', total: 40 }
-  ];
-
-  averageDaysByCounty = [
-    { name: 'AWIEL WEST (NGBV)', avgDays: 7 },
-    { name: 'BOR MUNICIPAL (NGBV)', avgDays: 39 },
-    { name: 'BOR SOUTH (GBV)', avgDays: 172 },
-    { name: 'BOR SOUTH (NGBV)', avgDays: 0 },
-    { name: 'GOGRIAL WEST (NGBV)', avgDays: 6 },
-    { name: 'JAMJANG (NGBV)', avgDays: 75 },
-    { name: 'JUBA (NGBV)', avgDays: 41 },
-    { name: 'KAPOTEA EAST (NGBV)', avgDays: 77 },
-    { name: 'MABAN (NGBV)', avgDays: 62 },
-    { name: 'MELITH (NGBV)', avgDays: 49 },
-    { name: 'MUNDRI WEST (NGBV)', avgDays: 6 },
-    { name: 'PIBOR (NGBV)', avgDays: 29 },
-    { name: 'POCHALLA (NGBV)', avgDays: 28 },
-    { name: 'RAJA (NGBV)', avgDays: 0 },
-    { name: 'TONJ SOUTH (NGBV)', avgDays: 53 },
-    { name: 'TORIT MUNICIPAL COUNCIL (NGBV)', avgDays: 41 },
-    { name: 'YEI (NGBV)', avgDays: 0 }
-  ];
-
-  constructor() {
-    // Optional: Logic to process or filter data if needed
-    // Example: filter out counties with 0 as total grievances
-    this.grievanceByCounty = this.grievanceByCounty.filter(county => county.total > 0);
-  }
+  constructor() { }
 
   ngOnInit() {
     this.items = [{ label: 'Grievance Status Report' }];
     this.home = { icon: 'fas fa-home', routerLink: '/dashboard' };
+    this.fetchReport();
+  }
+
+  fetchReport() {
+    this.api.GET<GrievanceReportResponse>('api/grievance/report')
+      .then(res => {
+        if (res.data) {
+          this.grievanceByCounty = res.data.grievanceByCounty || [];
+          this.grievanceByStatus = res.data.grievanceByStatus || [];
+          this.avgDaysToCloseByCounty = res.data.avgDaysToCloseByCounty || [];
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching grievance report', err);
+      })
+      .finally(() => {
+       
+        this.loading = false;
+        
+         this.cdr.detectChanges();
+      });
   }
 
   downloadReport(): void {
-    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    const formatData = (data: any[], headers: Record<string, string>) => {
+      if (!data || data.length === 0) return '';
+      const mappedData = data.map(item => {
+        const newItem: any = {};
+        for (const key in headers) {
+          newItem[headers[key]] = item[key];
+        }
+        return newItem;
+      });
+      const ws = XLSX.utils.json_to_sheet(mappedData);
+      return XLSX.utils.sheet_to_csv(ws);
+    };
 
-    const ws1: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.grievanceByCounty);
-    XLSX.utils.book_append_sheet(wb, ws1, 'Grievance By County');
+    let csvContent = '';
 
-    const ws2: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.grievanceByStatus);
-    XLSX.utils.book_append_sheet(wb, ws2, 'Grievance By Status');
+    csvContent += 'TYPE OF GRIEVANCE BY COUNTY\n';
+    csvContent += formatData(this.grievanceByCounty, { 'countyType': 'County - Type', 'total': 'Total' });
+    csvContent += '\n\n';
 
-    const ws3: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.averageDaysByCounty);
-    XLSX.utils.book_append_sheet(wb, ws3, 'Avg Days To Close');
+    csvContent += 'AVERAGE DAYS TO CLOSE BY COUNTY\n';
+    csvContent += formatData(this.avgDaysToCloseByCounty, { 'countyType': 'County - Type', 'avgDaysToClose': 'Avg Days to Close' });
+    csvContent += '\n\n';
 
-    XLSX.writeFile(wb, 'Grievance_Status_Report.xlsx');
+    csvContent += 'GRIEVANCE BY STATUS\n';
+    csvContent += formatData(this.grievanceByStatus, { 'statusType': 'Status - Type', 'total': 'Total' });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'Grievance_Status_Report.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
 }

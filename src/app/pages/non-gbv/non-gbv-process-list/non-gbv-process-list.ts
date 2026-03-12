@@ -28,6 +28,7 @@ import {
 } from '../../../services/lookup.service';
 import { ApiService } from '../../../services/api.service';
 import { Loader } from '../../../components/loader/loader';
+import Swal from 'sweetalert2';
 
 interface NonGbvGrievance {
   id: number;
@@ -85,6 +86,7 @@ export class NonGbvProcessList implements OnInit {
   // Grievance data
   grievances: NonGbvGrievance[] = [];
   totalRecords = 0;
+  archivingId: number | null = null;
 
   // Pagination
   currentPage = 0; // 0-based
@@ -364,5 +366,55 @@ export class NonGbvProcessList implements OnInit {
 
   onView(grievanceId: number): void {
     this.router.navigate(['/non-gbv-management/process-details', grievanceId]);
+  }
+
+  onArchive(grievanceId: number): void {
+    Swal.fire({
+      title: 'Archive this grievance?',
+      text: 'This grievance will be moved to archive.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, archive it',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      this.archivingId = grievanceId;
+      this.cdr.markForCheck();
+
+      this.api
+        .PUT(`/api/ngbv-grievance/archive?id=${grievanceId}`)
+        .then((res: any) => {
+          const data = res?.data;
+          if (data?.code === 200) {
+            Swal.fire({
+              title: 'Archived!',
+              text: data?.message || 'Grievance archived successfully.',
+              icon: 'success',
+              confirmButtonColor: '#0d6efd',
+            });
+            this.fetchPage(this.currentPage, this.pageSize);
+          } else {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Archive Failed',
+              detail: data?.message || 'Failed to archive grievance.',
+            });
+          }
+        })
+        .catch((error) => {
+          console.error('Archive grievance error:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'An error occurred while archiving grievance.',
+          });
+        })
+        .finally(() => {
+          this.archivingId = null;
+          this.cdr.markForCheck();
+        });
+    });
   }
 }

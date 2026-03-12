@@ -112,7 +112,23 @@ export class Header {
       {
         label: 'GBV Grievances',
         icon: 'fas fa-balance-scale-right',
-        routerLink: 'gbv-management',
+        items: [
+          {
+            label: 'GBV Management Issue Entry',
+            icon: 'fas fa-plus',
+            routerLink: 'gbv-management/issue-entry',
+          },
+          {
+            label: 'GBV Grievances List',
+            icon: 'fas fa-list',
+            routerLink: 'gbv-management/list',
+          },
+          {
+            label: 'GBV Grievances Process',
+            icon: 'fas fa-list',
+            routerLink: 'gbv-management/process',
+          },
+        ],
       },
       
        {
