@@ -71,6 +71,7 @@ export class NonGbvDetails implements OnInit {
   grievanceId: number | null = null;
   grievanceDetails: NonGbvGrievanceDetails | null = null;
   isLoading = true;
+  isAttachmentDownloading = false;
 
   breadcrumbItems: MenuItem[] = [];
   breadcrumbHome: MenuItem = { icon: 'fas fa-home', routerLink: '/dashboard' };
@@ -279,9 +280,55 @@ export class NonGbvDetails implements OnInit {
       : new Intl.DateTimeFormat('en-GB').format(date);
   }
 
-  // Helper to handle attachment download
-  downloadAttachment(url: string, filename: string): void {
-    // Implement download logic here, e.g., using window.open or a more robust approach
-    window.open(url, '_blank');
+  getAttachmentDisplayName(): string {
+    const filePath = this.grievanceDetails?.grievanceAttachmentFilename;
+    if (!filePath) return 'Download Attachment';
+    const parts = filePath.split(/[\\/]/);
+    return parts[parts.length - 1] || 'Download Attachment';
+  }
+
+  async downloadAttachment(): Promise<void> {
+    const filePath = this.grievanceDetails?.grievanceAttachmentFilename;
+    if (!filePath) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Attachment',
+        detail: 'No valid attachment found for this grievance.',
+      });
+      return;
+    }
+
+    this.isAttachmentDownloading = true;
+    this.cdr.markForCheck();
+
+    try {
+      const response: any = await this.apiService.GET(
+        '/api/ngbv-grievance/attachment/get',
+        { filePath },
+        'global',
+        { responseType: 'blob' }
+      );
+
+      const contentType = response?.headers?.['content-type'] || 'application/octet-stream';
+      const blob = new Blob([response.data], { type: contentType });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = this.getAttachmentDisplayName();
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download attachment:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Download Failed',
+        detail: 'Could not download the attachment. Please try again.',
+      });
+    } finally {
+      this.isAttachmentDownloading = false;
+      this.cdr.markForCheck();
+    }
   }
 }

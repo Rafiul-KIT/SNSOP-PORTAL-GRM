@@ -83,12 +83,18 @@
               <label class="form-label fw-bold">Other Reporting Channel:</label>
               <p>{{ grievanceDetails.reportingChannelOther }}</p>
             </div>
-            <div class="col-md-4" *ngIf="grievanceDetails.grievanceAttachmentUrl">
+            <div class="col-md-4" *ngIf="grievanceDetails.grievanceAttachmentFilename">
               <label class="form-label fw-bold">Attachment:</label>
               <div>
-                <a [href]="grievanceDetails.grievanceAttachmentUrl" target="_blank" class="btn btn-sm btn-outline-primary">
-                  <i class="fas fa-download me-2"></i> {{ grievanceDetails.grievanceAttachmentFilename || 'Download Attachment' }}
-                </a>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  (click)="downloadAttachment()"
+                  [disabled]="isAttachmentDownloading"
+                >
+                  <i class="fas fa-download me-2"></i>
+                  {{ isAttachmentDownloading ? 'Downloading...' : getAttachmentDisplayName() }}
+                </button>
               </div>
             </div>
           </div>
