@@ -322,7 +322,7 @@ export class NonGbvManagement implements OnInit {
       const rawValues = this.grievanceForm.getRawValue();
 
       const formData = new FormData();
-      formData.append('id', '0');
+      // formData.append('id');
       formData.append('trackingNumber', '');
       formData.append('stateId', rawValues.stateName);
       formData.append('countyId', rawValues.countyName);
