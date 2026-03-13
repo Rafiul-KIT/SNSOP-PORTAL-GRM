@@ -141,9 +141,9 @@
             <div class="col-md-4" *ngIf="grievanceDetails.consentFormAttachmentUrl">
               <label class="form-label fw-bold">Consent Form:</label>
               <div>
-                <a [href]="grievanceDetails.consentFormAttachmentUrl" target="_blank" class="btn btn-sm btn-outline-primary">
-                  <i class="fas fa-download me-2"></i> {{ grievanceDetails.consentFormAttachmentFilename || 'Download Consent Form' }}
-                </a>
+                <button class="btn btn-sm btn-outline-primary" (click)="downloadConsentFormAttachment()" [disabled]="isConsentFormAttachmentDownloading">
+                  <i class="fas fa-download me-2"></i> {{ isConsentFormAttachmentDownloading ? 'Downloading...' : (grievanceDetails.consentFormAttachmentFilename || 'Download Consent Form') }}
+                </button>
               </div>
             </div>
           </div>
@@ -172,9 +172,9 @@
             <div class="col-md-4" *ngIf="grievanceDetails.grievanceAttachmentUrl">
               <label class="form-label fw-bold">Attachment:</label>
               <div>
-                <a [href]="grievanceDetails.grievanceAttachmentUrl" target="_blank" class="btn btn-sm btn-outline-primary">
-                  <i class="fas fa-download me-2"></i> {{ grievanceDetails.grievanceAttachmentFilename || 'Download Attachment' }}
-                </a>
+                <button class="btn btn-sm btn-outline-primary" (click)="downloadGrievanceAttachment()" [disabled]="isGrievanceAttachmentDownloading">
+                  <i class="fas fa-download me-2"></i> {{ isGrievanceAttachmentDownloading ? 'Downloading...' : (grievanceDetails.grievanceAttachmentFilename || 'Download Attachment') }}
+                </button>
               </div>
             </div>
           </div>

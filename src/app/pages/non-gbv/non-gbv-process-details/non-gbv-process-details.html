@@ -86,9 +86,9 @@
           <div class="col-md-4" *ngIf="grievanceDetails.grievanceAttachmentUrl">
             <label class="form-label fw-bold">Attachment:</label>
             <div>
-              <a [href]="grievanceDetails.grievanceAttachmentUrl" target="_blank" class="btn btn-sm btn-outline-primary">
-                <i class="pi pi-download me-2"></i> {{ grievanceDetails.grievanceAttachmentFilename || 'Download Attachment' }}
-              </a>
+              <button class="btn btn-sm btn-outline-primary" (click)="downloadAttachment()" [disabled]="isAttachmentDownloading">
+                <i class="pi pi-download me-2"></i> {{ isAttachmentDownloading ? 'Downloading...' : (grievanceDetails.grievanceAttachmentFilename || 'Download Attachment') }}
+              </button>
             </div>
           </div>
         </div>

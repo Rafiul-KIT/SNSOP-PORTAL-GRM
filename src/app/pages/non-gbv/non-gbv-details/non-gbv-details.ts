@@ -72,6 +72,7 @@ export class NonGbvDetails implements OnInit {
   grievanceDetails: NonGbvGrievanceDetails | null = null;
   isLoading = true;
   isAttachmentDownloading = false;
+  downloadProgress: Map<string, number> = new Map();
 
   breadcrumbItems: MenuItem[] = [];
   breadcrumbHome: MenuItem = { icon: 'fas fa-home', routerLink: '/dashboard' };
@@ -287,9 +288,12 @@ export class NonGbvDetails implements OnInit {
     return parts[parts.length - 1] || 'Download Attachment';
   }
 
-  async downloadAttachment(): Promise<void> {
-    const filePath = this.grievanceDetails?.grievanceAttachmentFilename;
-    if (!filePath) {
+async downloadAttachment(): Promise<void> {
+  const attachmentUrl = this.grievanceDetails?.grievanceAttachmentUrl;
+  if (attachmentUrl && (attachmentUrl.startsWith('https://') )) {
+    window.open(attachmentUrl, '_blank');
+  } else {
+    if (!attachmentUrl) {
       this.messageService.add({
         severity: 'warn',
         summary: 'No Attachment',
@@ -297,24 +301,53 @@ export class NonGbvDetails implements OnInit {
       });
       return;
     }
+    const bucketName = 'grievance-files';
+    const urlWithoutQuery = attachmentUrl.split('?')[0];
+    const filePath = decodeURIComponent(
+      urlWithoutQuery.substring(urlWithoutQuery.indexOf(bucketName) + bucketName.length + 1)
+    );
 
+    if (!filePath) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Attachment',
+        detail: 'Could not resolve attachment path.',
+      });
+      return;
+    }
+
+    const key = filePath;
+    this.downloadProgress.set(key, 0);
     this.isAttachmentDownloading = true;
-    this.cdr.markForCheck();
+    this.cdr.detectChanges();
 
     try {
       const response: any = await this.apiService.GET(
         '/api/ngbv-grievance/attachment/get',
         { filePath },
         'global',
-        { responseType: 'blob' }
+        {
+          responseType: 'blob',
+          onDownloadProgress: (progressEvent: any) => {
+            if (progressEvent.total) {
+              const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              this.downloadProgress.set(key, percent);
+            } else {
+              this.downloadProgress.set(key, -1);
+            }
+            this.cdr.detectChanges();
+          },
+        }
       );
 
-      const contentType = response?.headers?.['content-type'] || 'application/octet-stream';
-      const blob = new Blob([response.data], { type: contentType });
+      this.downloadProgress.set(key, 100);
+      this.cdr.detectChanges();
+
+      const blob = new Blob([response.data], { type: response.headers.get('Content-Type') });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = this.getAttachmentDisplayName();
+      a.download = this.grievanceDetails?.grievanceAttachmentFilename || 'download';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -327,8 +360,10 @@ export class NonGbvDetails implements OnInit {
         detail: 'Could not download the attachment. Please try again.',
       });
     } finally {
+      this.downloadProgress.delete(key);
       this.isAttachmentDownloading = false;
-      this.cdr.markForCheck();
+      this.cdr.detectChanges();
     }
   }
+}
 }

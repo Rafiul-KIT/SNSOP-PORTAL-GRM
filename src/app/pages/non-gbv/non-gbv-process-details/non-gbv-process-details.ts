@@ -194,6 +194,9 @@ export class NonGbvProcessDetails implements OnInit {
   feedbackAttachmentFile: File | null = null;
   investigationReportAttachmentFile: File | null = null;
 
+  isAttachmentDownloading = false;
+  downloadProgress: Map<string, number> = new Map();
+
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -805,5 +808,84 @@ export class NonGbvProcessDetails implements OnInit {
     return Number.isNaN(date.getTime())
       ? value
       : new Intl.DateTimeFormat('en-GB').format(date);
+  }
+
+  async downloadAttachment(): Promise<void> {
+    const attachmentUrl = this.grievanceDetails?.grievanceAttachmentUrl;
+    if (attachmentUrl && (attachmentUrl.startsWith('https://') )) {
+      window.open(attachmentUrl, '_blank');
+    } else {
+      if (!attachmentUrl) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'No Attachment',
+          text: 'No valid attachment found for this grievance.',
+        });
+        return;
+      }
+      const bucketName = 'grievance-files';
+      const urlWithoutQuery = attachmentUrl.split('?')[0];
+      const filePath = decodeURIComponent(
+        urlWithoutQuery.substring(urlWithoutQuery.indexOf(bucketName) + bucketName.length + 1)
+      );
+
+      if (!filePath) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'No Attachment',
+          text: 'Could not resolve attachment path.',
+        });
+        return;
+      }
+
+      const key = filePath;
+      this.downloadProgress.set(key, 0);
+      this.isAttachmentDownloading = true;
+      this.cdr.detectChanges();
+
+      try {
+        const response: any = await this.apiService.GET(
+          '/api/ngbv-grievance/attachment/get',
+          { filePath },
+          'global',
+          {
+            responseType: 'blob',
+            onDownloadProgress: (progressEvent: any) => {
+              if (progressEvent.total) {
+                const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                this.downloadProgress.set(key, percent);
+              } else {
+                this.downloadProgress.set(key, -1);
+              }
+              this.cdr.detectChanges();
+            },
+          }
+        );
+
+        this.downloadProgress.set(key, 100);
+        this.cdr.detectChanges();
+
+        const blob = new Blob([response.data], { type: response.headers.get('Content-Type') });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = this.grievanceDetails?.grievanceAttachmentFilename || 'download';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Failed to download attachment:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Download Failed',
+          text: 'Could not download the attachment. Please try again.',
+        });
+      } finally {
+        this.downloadProgress.delete(key);
+        this.isAttachmentDownloading = false;
+        this.cdr.detectChanges();
+      }
+    }
   }
 }
