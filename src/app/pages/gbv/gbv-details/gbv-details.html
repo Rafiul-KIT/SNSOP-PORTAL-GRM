@@ -189,3 +189,29 @@
     No grievance details found for the provided ID.
   </div>
 }
+
+<p-dialog
+  [(visible)]="displayGrievanceDownloadDialog"
+  [modal]="true"
+  [closable]="false"
+  [header]="grievanceDownloadMessage"
+  [style]="{ width: '32rem' }"
+  [breakpoints]="{ '768px': '92vw' }"
+  styleClass="download-dialog"
+>
+  <p class="download-dialog__helper">Please keep this window open while the file downloads.</p>
+  <p-progressBar [value]="currentGrievanceDownloadProgress" [showValue]="true" class="download-progress-bar"></p-progressBar>
+</p-dialog>
+
+<p-dialog
+  [(visible)]="displayConsentDownloadDialog"
+  [modal]="true"
+  [closable]="false"
+  [header]="consentDownloadMessage"
+  [style]="{ width: '32rem' }"
+  [breakpoints]="{ '768px': '92vw' }"
+  styleClass="download-dialog"
+>
+  <p class="download-dialog__helper">Please keep this window open while the file downloads.</p>
+  <p-progressBar [value]="currentConsentDownloadProgress" [showValue]="true" class="download-progress-bar"></p-progressBar>
+</p-dialog>

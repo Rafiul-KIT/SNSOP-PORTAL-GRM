@@ -15,6 +15,7 @@ import { CardModule } from 'primeng/card';
 import { Loader } from '../../../components/loader/loader';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { TooltipModule } from 'primeng/tooltip';
 
 interface ValueLabelItem {
@@ -68,6 +69,7 @@ interface GbvGrievanceDetails {
     Loader,
     ButtonModule,
     DialogModule,
+    ProgressBarModule,
     TooltipModule,
   ],
   providers: [MessageService],
@@ -90,6 +92,12 @@ export class GbvDetails implements OnInit {
   isGrievanceAttachmentDownloading = false;
   isConsentFormAttachmentDownloading = false;
   downloadProgress: Map<string, number> = new Map();
+  currentGrievanceDownloadProgress = 0;
+  currentConsentDownloadProgress = 0;
+  displayGrievanceDownloadDialog = false;
+  displayConsentDownloadDialog = false;
+  grievanceDownloadMessage = '';
+  consentDownloadMessage = '';
 
   breadcrumbItems: MenuItem[] = [];
   breadcrumbHome: MenuItem = { icon: 'fas fa-home', routerLink: '/dashboard' };
@@ -276,11 +284,13 @@ export class GbvDetails implements OnInit {
       const key = filePath;
       this.downloadProgress.set(key, 0);
       this.isGrievanceAttachmentDownloading = true;
+      this.displayGrievanceDownloadDialog = true;
+      this.grievanceDownloadMessage = 'Downloading grievance attachment...';
       this.cdr.detectChanges();
 
       try {
         const response: any = await this.apiService.GET(
-          '/api/gbv-grievance/attachment/get',
+          '/api/grievance/attachment/get',
           { filePath },
           'global',
           {
@@ -289,8 +299,10 @@ export class GbvDetails implements OnInit {
               if (progressEvent.total) {
                 const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                 this.downloadProgress.set(key, percent);
+                this.currentGrievanceDownloadProgress = percent;
               } else {
                 this.downloadProgress.set(key, -1);
+                this.currentGrievanceDownloadProgress = -1;
               }
               this.cdr.detectChanges();
             },
@@ -298,6 +310,7 @@ export class GbvDetails implements OnInit {
         );
 
         this.downloadProgress.set(key, 100);
+        this.currentGrievanceDownloadProgress = 100;
         this.cdr.detectChanges();
 
         const blob = new Blob([response.data], { type: response.headers.get('Content-Type') });
@@ -319,6 +332,8 @@ export class GbvDetails implements OnInit {
       } finally {
         this.downloadProgress.delete(key);
         this.isGrievanceAttachmentDownloading = false;
+        this.currentGrievanceDownloadProgress = 0;
+        this.displayGrievanceDownloadDialog = false;
         this.cdr.detectChanges();
       }
     }
@@ -355,11 +370,13 @@ export class GbvDetails implements OnInit {
       const key = filePath;
       this.downloadProgress.set(key, 0);
       this.isConsentFormAttachmentDownloading = true;
+      this.displayConsentDownloadDialog = true;
+      this.consentDownloadMessage = 'Downloading consent form...';
       this.cdr.detectChanges();
 
       try {
         const response: any = await this.apiService.GET(
-          '/api/gbv-grievance/attachment/get',
+          '/api/grievance/attachment/get',
           { filePath },
           'global',
           {
@@ -368,8 +385,10 @@ export class GbvDetails implements OnInit {
               if (progressEvent.total) {
                 const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                 this.downloadProgress.set(key, percent);
+                this.currentConsentDownloadProgress = percent;
               } else {
                 this.downloadProgress.set(key, -1);
+                this.currentConsentDownloadProgress = -1;
               }
               this.cdr.detectChanges();
             },
@@ -377,6 +396,7 @@ export class GbvDetails implements OnInit {
         );
 
         this.downloadProgress.set(key, 100);
+        this.currentConsentDownloadProgress = 100;
         this.cdr.detectChanges();
 
         const blob = new Blob([response.data], { type: response.headers.get('Content-Type') });
@@ -398,6 +418,8 @@ export class GbvDetails implements OnInit {
       } finally {
         this.downloadProgress.delete(key);
         this.isConsentFormAttachmentDownloading = false;
+        this.currentConsentDownloadProgress = 0;
+        this.displayConsentDownloadDialog = false;
         this.cdr.detectChanges();
       }
     }

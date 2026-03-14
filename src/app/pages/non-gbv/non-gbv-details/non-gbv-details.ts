@@ -14,6 +14,7 @@ import { CardModule } from 'primeng/card';
 import { Loader } from '../../../components/loader/loader';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { TooltipModule } from 'primeng/tooltip';
 
 interface ValueLabelItem {
@@ -60,6 +61,7 @@ interface NonGbvGrievanceDetails {
     Loader,
     ButtonModule,
     DialogModule,
+    ProgressBarModule,
     TooltipModule,
   ],
   providers: [MessageService],
@@ -73,6 +75,9 @@ export class NonGbvDetails implements OnInit {
   isLoading = true;
   isAttachmentDownloading = false;
   downloadProgress: Map<string, number> = new Map();
+  currentDownloadProgress: number = 0;
+  displayDownloadDialog = false;
+  downloadDialogMessage = '';
 
   breadcrumbItems: MenuItem[] = [];
   breadcrumbHome: MenuItem = { icon: 'fas fa-home', routerLink: '/dashboard' };
@@ -319,11 +324,13 @@ async downloadAttachment(): Promise<void> {
     const key = filePath;
     this.downloadProgress.set(key, 0);
     this.isAttachmentDownloading = true;
+    this.displayDownloadDialog = true;
+    this.downloadDialogMessage = 'Downloading attachment...';
     this.cdr.detectChanges();
 
     try {
       const response: any = await this.apiService.GET(
-        '/api/ngbv-grievance/attachment/get',
+        '/api/grievance/attachment/get',
         { filePath },
         'global',
         {
@@ -332,8 +339,10 @@ async downloadAttachment(): Promise<void> {
             if (progressEvent.total) {
               const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
               this.downloadProgress.set(key, percent);
+              this.currentDownloadProgress = percent;
             } else {
               this.downloadProgress.set(key, -1);
+              this.currentDownloadProgress = -1;
             }
             this.cdr.detectChanges();
           },
@@ -362,6 +371,9 @@ async downloadAttachment(): Promise<void> {
     } finally {
       this.downloadProgress.delete(key);
       this.isAttachmentDownloading = false;
+      this.currentDownloadProgress = 0;
+      this.displayDownloadDialog = false;
+      this.downloadDialogMessage = '';
       this.cdr.detectChanges();
     }
   }
