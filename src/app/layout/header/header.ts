@@ -158,11 +158,11 @@ export class Header {
         icon: 'fas fa-bullhorn',
         routerLink: 'grievances-status-report',
       },
-      {
-        label: 'Excel Importing',
-        icon: 'fas fa-download',
-        routerLink: 'excel-importing',
-      },
+      // {
+      //   label: 'Excel Importing',
+      //   icon: 'fas fa-download',
+      //   routerLink: 'excel-importing',
+      // },
 
 
     ];
