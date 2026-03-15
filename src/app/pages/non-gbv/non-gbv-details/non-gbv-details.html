@@ -83,12 +83,18 @@
               <label class="form-label fw-bold">Other Reporting Channel:</label>
               <p>{{ grievanceDetails.reportingChannelOther }}</p>
             </div>
-            <div class="col-md-4" *ngIf="grievanceDetails.grievanceAttachmentUrl">
+            <div class="col-md-4" *ngIf="grievanceDetails.grievanceAttachmentFilename">
               <label class="form-label fw-bold">Attachment:</label>
               <div>
-                <a [href]="grievanceDetails.grievanceAttachmentUrl" target="_blank" class="btn btn-sm btn-outline-primary">
-                  <i class="fas fa-download me-2"></i> {{ grievanceDetails.grievanceAttachmentFilename || 'Download Attachment' }}
-                </a>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  (click)="downloadAttachment()"
+                  [disabled]="isAttachmentDownloading"
+                >
+                  <i class="fas fa-download me-2"></i>
+                  {{ isAttachmentDownloading ? 'Downloading...' : getAttachmentDisplayName() }}
+                </button>
               </div>
             </div>
           </div>
@@ -161,3 +167,16 @@
     No grievance details found for the provided ID.
   </div>
 }
+
+<p-dialog
+  [(visible)]="displayDownloadDialog"
+  [modal]="true"
+  [closable]="false"
+  [header]="downloadDialogMessage"
+  [style]="{ width: '32rem' }"
+  [breakpoints]="{ '768px': '92vw' }"
+  styleClass="download-dialog"
+>
+  <p class="download-dialog__helper">Please keep this window open while the file downloads.</p>
+  <p-progressBar [value]="currentDownloadProgress" [showValue]="true" class="download-progress-bar"></p-progressBar>
+</p-dialog>

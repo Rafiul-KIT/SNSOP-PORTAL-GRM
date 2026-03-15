@@ -122,17 +122,17 @@
           <div class="col-md-4" *ngIf="grievanceDetails.grievanceAttachmentUrl">
             <label class="form-label fw-bold">Grievance Attachment:</label>
             <div>
-              <a [href]="grievanceDetails.grievanceAttachmentUrl" target="_blank" class="btn btn-sm btn-outline-primary">
-                <i class="pi pi-download me-2"></i>{{ grievanceDetails.grievanceAttachmentFilename || 'Download' }}
-              </a>
+              <button class="btn btn-sm btn-outline-primary" (click)="downloadGrievanceAttachment()" [disabled]="isGrievanceAttachmentDownloading">
+                <i class="pi pi-download me-2"></i>{{ isGrievanceAttachmentDownloading ? 'Downloading...' : (grievanceDetails.grievanceAttachmentFilename || 'Download') }}
+              </button>
             </div>
           </div>
           <div class="col-md-4" *ngIf="grievanceDetails.consentFormAttachmentUrl">
             <label class="form-label fw-bold">Consent Form:</label>
             <div>
-              <a [href]="grievanceDetails.consentFormAttachmentUrl" target="_blank" class="btn btn-sm btn-outline-primary">
-                <i class="pi pi-download me-2"></i>{{ grievanceDetails.consentFormAttachmentFilename || 'Download' }}
-              </a>
+              <button class="btn btn-sm btn-outline-primary" (click)="downloadConsentFormAttachment()" [disabled]="isConsentFormAttachmentDownloading">
+                <i class="pi pi-download me-2"></i>{{ isConsentFormAttachmentDownloading ? 'Downloading...' : (grievanceDetails.consentFormAttachmentFilename || 'Download') }}
+              </button>
             </div>
           </div>
         </div>
@@ -397,6 +397,32 @@
   <ng-template pTemplate="footer">
     <p-button label="Close" icon="pi pi-times" (onClick)="displayHistoryDetailDialog = false" severity="secondary"></p-button>
   </ng-template>
+</p-dialog>
+
+<p-dialog
+  [(visible)]="displayGrievanceDownloadDialog"
+  [modal]="true"
+  [closable]="false"
+  [header]="grievanceDownloadMessage"
+  [style]="{ width: '32rem' }"
+  [breakpoints]="{ '768px': '92vw' }"
+  styleClass="download-dialog"
+>
+  <p class="download-dialog__helper">Please keep this window open while the file downloads.</p>
+  <p-progressBar [value]="currentGrievanceDownloadProgress" [showValue]="true" class="download-progress-bar"></p-progressBar>
+</p-dialog>
+
+<p-dialog
+  [(visible)]="displayConsentDownloadDialog"
+  [modal]="true"
+  [closable]="false"
+  [header]="consentDownloadMessage"
+  [style]="{ width: '32rem' }"
+  [breakpoints]="{ '768px': '92vw' }"
+  styleClass="download-dialog"
+>
+  <p class="download-dialog__helper">Please keep this window open while the file downloads.</p>
+  <p-progressBar [value]="currentConsentDownloadProgress" [showValue]="true" class="download-progress-bar"></p-progressBar>
 </p-dialog>
 } @else {
 <div class="alert alert-warning m-4" role="alert">

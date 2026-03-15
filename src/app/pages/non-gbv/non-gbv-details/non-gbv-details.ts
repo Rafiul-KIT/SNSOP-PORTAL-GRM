@@ -14,6 +14,7 @@ import { CardModule } from 'primeng/card';
 import { Loader } from '../../../components/loader/loader';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { TooltipModule } from 'primeng/tooltip';
 
 interface ValueLabelItem {
@@ -60,6 +61,7 @@ interface NonGbvGrievanceDetails {
     Loader,
     ButtonModule,
     DialogModule,
+    ProgressBarModule,
     TooltipModule,
   ],
   providers: [MessageService],
@@ -71,6 +73,11 @@ export class NonGbvDetails implements OnInit {
   grievanceId: number | null = null;
   grievanceDetails: NonGbvGrievanceDetails | null = null;
   isLoading = true;
+  isAttachmentDownloading = false;
+  downloadProgress: Map<string, number> = new Map();
+  currentDownloadProgress: number = 0;
+  displayDownloadDialog = false;
+  downloadDialogMessage = '';
 
   breadcrumbItems: MenuItem[] = [];
   breadcrumbHome: MenuItem = { icon: 'fas fa-home', routerLink: '/dashboard' };
@@ -279,9 +286,96 @@ export class NonGbvDetails implements OnInit {
       : new Intl.DateTimeFormat('en-GB').format(date);
   }
 
-  // Helper to handle attachment download
-  downloadAttachment(url: string, filename: string): void {
-    // Implement download logic here, e.g., using window.open or a more robust approach
-    window.open(url, '_blank');
+  getAttachmentDisplayName(): string {
+    const filePath = this.grievanceDetails?.grievanceAttachmentFilename;
+    if (!filePath) return 'Download Attachment';
+    const parts = filePath.split(/[\\/]/);
+    return parts[parts.length - 1] || 'Download Attachment';
   }
+
+async downloadAttachment(): Promise<void> {
+  const attachmentUrl = this.grievanceDetails?.grievanceAttachmentUrl;
+  if (attachmentUrl && (attachmentUrl.startsWith('https://') )) {
+    window.open(attachmentUrl, '_blank');
+  } else {
+    if (!attachmentUrl) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Attachment',
+        detail: 'No valid attachment found for this grievance.',
+      });
+      return;
+    }
+    const bucketName = 'grievance-files';
+    const urlWithoutQuery = attachmentUrl.split('?')[0];
+    const filePath = decodeURIComponent(
+      urlWithoutQuery.substring(urlWithoutQuery.indexOf(bucketName) + bucketName.length + 1)
+    );
+
+    if (!filePath) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Attachment',
+        detail: 'Could not resolve attachment path.',
+      });
+      return;
+    }
+
+    const key = filePath;
+    this.downloadProgress.set(key, 0);
+    this.isAttachmentDownloading = true;
+    this.displayDownloadDialog = true;
+    this.downloadDialogMessage = 'Downloading attachment...';
+    this.cdr.detectChanges();
+
+    try {
+      const response: any = await this.apiService.GET(
+        '/api/grievance/attachment/get',
+        { filePath },
+        'global',
+        {
+          responseType: 'blob',
+          onDownloadProgress: (progressEvent: any) => {
+            if (progressEvent.total) {
+              const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              this.downloadProgress.set(key, percent);
+              this.currentDownloadProgress = percent;
+            } else {
+              this.downloadProgress.set(key, -1);
+              this.currentDownloadProgress = -1;
+            }
+            this.cdr.detectChanges();
+          },
+        }
+      );
+
+      this.downloadProgress.set(key, 100);
+      this.cdr.detectChanges();
+
+      const blob = new Blob([response.data], { type: response.headers.get('Content-Type') });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = this.grievanceDetails?.grievanceAttachmentFilename || 'download';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download attachment:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Download Failed',
+        detail: 'Could not download the attachment. Please try again.',
+      });
+    } finally {
+      this.downloadProgress.delete(key);
+      this.isAttachmentDownloading = false;
+      this.currentDownloadProgress = 0;
+      this.displayDownloadDialog = false;
+      this.downloadDialogMessage = '';
+      this.cdr.detectChanges();
+    }
+  }
+}
 }
