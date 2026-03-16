@@ -99,10 +99,13 @@
               <small class="text-danger" *ngIf="gbvForm.get('ageOfSurvivor')?.invalid && (gbvForm.get('ageOfSurvivor')?.touched || gbvForm.get('ageOfSurvivor')?.dirty)">Age of survivor is required</small>
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-bold d-block mb-2">Complainant Beneficiary</label>
+             
+              <label class="form-label fw-bold d-block mb-2">Complainant Beneficiary <span class="text-danger">*</span></label>
               <p-selectbutton [options]="beneficiaryOptions" formControlName="complainantBeneficiary" class="custom-selectbutton"></p-selectbutton>
+              <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('complainantBeneficiary')?.invalid && (gbvForm.get('complainantBeneficiary')?.touched || gbvForm.get('complainantBeneficiary')?.dirty)">Please select Yes or No</small>
             </div>
             <div class="col-md-4">
+          
               <label class="form-label fw-bold">Beneficiary Selection Criteria</label>
               <p-select [options]="selectionCriteriaOptions" formControlName="complainantBeneficiarySelectionCriteria" placeholder="--Select--" class="w-100"></p-select>
             </div>
@@ -174,14 +177,22 @@
               <small class="text-success mt-1" *ngIf="consentAttachmentFile">
                 <i class="bi bi-check-circle-fill me-1"></i> File uploaded: {{ consentAttachmentFile.name }}
               </small>
+              <small class="text-danger d-block mt-1"
+                *ngIf="gbvForm.get('consentFormAttachmentFile')?.invalid && (gbvForm.get('consentFormAttachmentFile')?.touched || gbvForm.get('consentFormAttachmentFile')?.dirty)">
+                Consent form file is required when consent is signed
+              </small>
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-bold d-block mb-2">Verbal Consent Granted</label>
+           
+              <label class="form-label fw-bold d-block mb-2">Verbal Consent Granted <span class="text-danger">*</span></label>
               <p-selectbutton [options]="yesNoOptions" formControlName="verbalConsentGranted" class="custom-selectbutton"></p-selectbutton>
+              <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('verbalConsentGranted')?.invalid && (gbvForm.get('verbalConsentGranted')?.touched || gbvForm.get('verbalConsentGranted')?.dirty)">Please select Yes or No</small>
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-bold d-block mb-2">Consent Signed</label>
+              <!-- ✅ asterisk added: consentSigned is required -->
+              <label class="form-label fw-bold d-block mb-2">Consent Signed <span class="text-danger">*</span></label>
               <p-selectbutton [options]="yesNoOptions" formControlName="consentSigned" class="custom-selectbutton"></p-selectbutton>
+              <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('consentSigned')?.invalid && (gbvForm.get('consentSigned')?.touched || gbvForm.get('consentSigned')?.dirty)">Please select Yes or No</small>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Grievance Attachment URL</label>
