@@ -103,8 +103,8 @@
               <p-selectbutton [options]="beneficiaryOptions" formControlName="complainantBeneficiary" class="custom-selectbutton"></p-selectbutton>
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-bold">Beneficiary Selection Criteria (ID)</label>
-              <p-inputnumber formControlName="complainantBeneficiarySelectionCriteria" [min]="0" class="w-100"></p-inputnumber>
+              <label class="form-label fw-bold">Beneficiary Selection Criteria</label>
+              <p-select [options]="selectionCriteriaOptions" formControlName="complainantBeneficiarySelectionCriteria" placeholder="--Select--" class="w-100"></p-select>
             </div>
           </div>
         </div>

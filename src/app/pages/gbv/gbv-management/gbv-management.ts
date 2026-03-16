@@ -67,6 +67,7 @@ export class GBVManagement implements OnInit, OnDestroy {
 
   reportingChannels: any[] = [];
   genders: any[] = [];
+  selectionCriteriaOptions: any[] = [];
   incidentReporters = [
     { label: 'Survivor', value: 1 },
     { label: 'Family Member', value: 2 },
@@ -98,6 +99,7 @@ export class GBVManagement implements OnInit, OnDestroy {
     this.initForm();
     this.loadStates();
     this.loadGenders();
+    this.loadSelectionCriteria();
     this.loadReportingChannels();
   }
 
@@ -126,7 +128,7 @@ export class GBVManagement implements OnInit, OnDestroy {
       complainantGender: [null, [Validators.required, this.int32Validator(), Validators.min(0)]],
       ageOfSurvivor: [null, [Validators.required, this.int32Validator(), Validators.min(0), Validators.max(120)]],
       complainantBeneficiary: [true],
-      complainantBeneficiarySelectionCriteria: [null, [this.int32Validator(), Validators.min(0)]],
+      complainantBeneficiarySelectionCriteria: [null, [this.selectionCriteriaValidator()]],
       suspectKnown: [null],
       suspectAssociatedWithProject: [null],
       suspectDetails: ['', [Validators.maxLength(1000)]],
@@ -163,6 +165,14 @@ export class GBVManagement implements OnInit, OnDestroy {
     this.genders = data.map((item) => ({
       label: item.name,
       value: parseInt(item.id, 10),
+    }));
+  }
+
+  loadSelectionCriteria(): void {
+    const data = this.lookupService.getSelectionCriteriaEnum();
+    this.selectionCriteriaOptions = data.map((item: any) => ({
+      label: item.value,
+      value: Number(item.id),
     }));
   }
 
@@ -316,10 +326,8 @@ export class GBVManagement implements OnInit, OnDestroy {
       this.trimRequiredValidator(),
     ]);
 
-    this.setControlValidators('complainantBeneficiarySelectionCriteria', this.gbvForm.get('complainantBeneficiary')?.value === true, [
-      this.int32Validator(),
-      Validators.min(0),
-      Validators.max(999999),
+    this.setControlValidators('complainantBeneficiarySelectionCriteria', false, [
+      this.selectionCriteriaValidator(),
     ]);
 
     this.setControlValidators('suspectAssociatedWithProject', this.gbvForm.get('suspectKnown')?.value === true);
@@ -388,6 +396,14 @@ export class GBVManagement implements OnInit, OnDestroy {
       if (typeof value !== 'number' || !Number.isInteger(value)) return { int32: true };
       if (value < GBVManagement.INT32_MIN || value > GBVManagement.INT32_MAX) return { int32: true };
       return null;
+    };
+  }
+
+  private selectionCriteriaValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      if (value === null || value === undefined || value === '') return null;
+      return value === 0 || value === 1 ? null : { invalidSelectionCriteria: true };
     };
   }
 
