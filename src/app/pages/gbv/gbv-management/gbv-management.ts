@@ -45,6 +45,8 @@ import Swal from 'sweetalert2';
   styleUrl: './gbv-management.scss',
 })
 export class GBVManagement implements OnInit, OnDestroy {
+  private static readonly INT32_MIN = -2147483648;
+  private static readonly INT32_MAX = 2147483647;
   private static readonly PHONE_REGEX = /^\+?[0-9]{7,15}$/;
   private static readonly NAME_REGEX = /^[A-Za-z][A-Za-z\s.'-]*$/;
   private static readonly MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -105,37 +107,37 @@ export class GBVManagement implements OnInit, OnDestroy {
 
   initForm(): void {
     this.gbvForm = this.fb.group({
-      id: [0],
+      id: [0, [this.int32Validator(), Validators.min(0)]],
       trackingNumber: [{ value: '', disabled: true }],
-      stateId: [null, Validators.required],
-      countyId: [null, Validators.required],
-      payamId: [null, Validators.required],
-      bomaId: [null, Validators.required],
+      stateId: [null, [Validators.required, this.int32Validator(), Validators.min(0)]],
+      countyId: [null, [Validators.required, this.int32Validator(), Validators.min(0)]],
+      payamId: [null, [Validators.required, this.int32Validator(), Validators.min(0)]],
+      bomaId: [null, [Validators.required, this.int32Validator(), Validators.min(0)]],
       incidentOccurredAt: [null, [Validators.required, this.noFutureDateValidator()]],
       contactFocalPersonName: [
         '',
         [Validators.required, this.trimRequiredValidator(), Validators.maxLength(120), Validators.pattern(GBVManagement.NAME_REGEX)],
       ],
-      incidentReportedBy: [null],
+      incidentReportedBy: [null, [this.int32Validator(), Validators.min(0)]],
       incidentReportedByOtherDesc: ['', [Validators.maxLength(200)]],
-      reportingChannelId: [null, Validators.required],
+      reportingChannelId: [null, [Validators.required, this.int32Validator(), Validators.min(0)]],
       reportingChannelOther: ['', [Validators.maxLength(200)]],
       complainantContactNumber: ['', [Validators.maxLength(20), Validators.pattern(GBVManagement.PHONE_REGEX)]],
-      complainantGender: [null, Validators.required],
-      ageOfSurvivor: [null, [Validators.required, Validators.min(0), Validators.max(120)]],
+      complainantGender: [null, [Validators.required, this.int32Validator(), Validators.min(0)]],
+      ageOfSurvivor: [null, [Validators.required, this.int32Validator(), Validators.min(0), Validators.max(120)]],
       complainantBeneficiary: [true],
-      complainantBeneficiarySelectionCriteria: [null],
+      complainantBeneficiarySelectionCriteria: [null, [this.int32Validator(), Validators.min(0)]],
       suspectKnown: [null],
       suspectAssociatedWithProject: [null],
       suspectDetails: ['', [Validators.maxLength(1000)]],
-      recommendedReferralServiceId: [null, [Validators.min(0)]],
+      recommendedReferralServiceId: [null, [this.int32Validator(), Validators.min(0)]],
       grievanceDescription: ['', [Validators.required, this.trimRequiredValidator(), Validators.minLength(10), Validators.maxLength(3000)]],
       grievanceAttachmentUrl: ['', [this.optionalUrlValidator()]],
       grievanceAttachmentFile: [null],
       grievanceAttachmentBytes: [''],
       grievanceAttachmentFilename: [''],
-      verbalConsentGranted: [null, Validators.required],
-      consentSigned: [null, Validators.required],
+      verbalConsentGranted: [null],
+      consentSigned: [null],
       consentFormAttachmentUrl: ['', [this.optionalUrlValidator()]],
       consentFormAttachmentFile: [null],
       consentFormAttachmentBytes: [''],
@@ -315,6 +317,7 @@ export class GBVManagement implements OnInit, OnDestroy {
     ]);
 
     this.setControlValidators('complainantBeneficiarySelectionCriteria', this.gbvForm.get('complainantBeneficiary')?.value === true, [
+      this.int32Validator(),
       Validators.min(0),
       Validators.max(999999),
     ]);
@@ -375,6 +378,16 @@ export class GBVManagement implements OnInit, OnDestroy {
       const today = new Date();
       today.setHours(23, 59, 59, 999);
       return date > today ? { futureDate: true } : null;
+    };
+  }
+
+  private int32Validator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      if (value === null || value === undefined || value === '') return null;
+      if (typeof value !== 'number' || !Number.isInteger(value)) return { int32: true };
+      if (value < GBVManagement.INT32_MIN || value > GBVManagement.INT32_MAX) return { int32: true };
+      return null;
     };
   }
 
