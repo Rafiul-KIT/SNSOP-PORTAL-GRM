@@ -411,34 +411,31 @@ export class GrievanceDashboard implements OnInit {
     };
   }
 
-  private createResolutionTimeChart(items: ResolutionTime[]): any {
-    const sorted = [...items]
-      .filter((i) => i.averageResolutionTime > 0)
-      .sort((a, b) => b.averageResolutionTime - a.averageResolutionTime)
-      .slice(0, 8);
-    return {
-      labels: sorted.map(
-        (i) => i.county || i.state || i.payam || i.boma || 'Unknown',
-      ),
-      datasets: [
-        {
-          label: 'Avg Days',
-          data: sorted.map(
-            (i) => Math.round(i.averageResolutionTime * 10) / 10,
-          ),
-          backgroundColor: sorted.map((i) =>
-            i.averageResolutionTime > 7
-              ? '#f06292d9'
-              : i.averageResolutionTime > 4
-                ? '#0dcaf0d9'
-                : '#00b579d9',
-          ),
-          borderRadius: 6,
-          borderSkipped: false,
-        },
-      ],
-    };
-  }
+private createResolutionTimeChart(items: ResolutionTime[]): any {
+  const sorted = [...items]
+    .filter((i) => i.averageResolutionTime > 0)
+    .sort((a, b) => b.averageResolutionTime - a.averageResolutionTime)
+    .slice(0, 8);
+
+  const colors = ['#20c997', '#20c997'];
+
+  return {
+    labels: sorted.map(
+      (i) => i.county || i.state || i.payam || i.boma || 'Unknown'
+    ),
+    datasets: [
+      {
+        label: 'Avg Days',
+        data: sorted.map(
+          (i) => Math.round(i.averageResolutionTime * 10) / 10
+        ),
+        backgroundColor: sorted.map((_, index) => colors[index % 2]),
+        borderRadius: 6,
+        borderSkipped: false,
+      },
+    ],
+  };
+}
 
   private buildPalette(length: number): string[] {
     const base = this.extendedPalette.length
