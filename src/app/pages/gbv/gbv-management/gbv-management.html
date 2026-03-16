@@ -13,10 +13,10 @@
 
     <div class="card-body p-4">
       <form [formGroup]="gbvForm" (ngSubmit)="onSubmit()">
+
         <div class="section-block">
           <h5 class="section-title fw-bold text-primary mb-3">
-            <i class="bi bi-info-circle-fill me-2"></i>
-            General Information
+            <i class="bi bi-info-circle-fill me-2"></i>General Information
           </h5>
           <hr>
           <div class="row g-3">
@@ -27,85 +27,109 @@
             <div class="col-md-3">
               <label class="form-label fw-bold">Incident Date <span class="text-danger">*</span></label>
               <p-datepicker formControlName="incidentOccurredAt" [showIcon]="true" appendTo="body" class="w-100" dateFormat="dd/mm/yy"></p-datepicker>
-              <small class="text-danger" *ngIf="gbvForm.get('incidentOccurredAt')?.invalid && (gbvForm.get('incidentOccurredAt')?.touched || gbvForm.get('incidentOccurredAt')?.dirty)">Incident date is required</small>
+              <small class="text-danger" *ngIf="gbvForm.get('incidentOccurredAt')?.invalid && (gbvForm.get('incidentOccurredAt')?.touched || gbvForm.get('incidentOccurredAt')?.dirty)">
+                Incident date is required
+              </small>
             </div>
             <div class="col-md-3">
               <label class="form-label fw-bold">State Name <span class="text-danger">*</span></label>
               <p-select [options]="states" formControlName="stateId" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onStateChange($event)"></p-select>
-              <small class="text-danger" *ngIf="gbvForm.get('stateId')?.invalid && (gbvForm.get('stateId')?.touched || gbvForm.get('stateId')?.dirty)">State is required</small>
+              <small class="text-danger" *ngIf="gbvForm.get('stateId')?.invalid && (gbvForm.get('stateId')?.touched || gbvForm.get('stateId')?.dirty)">
+                State is required
+              </small>
             </div>
             <div class="col-md-3">
               <label class="form-label fw-bold">County/Municipality Name <span class="text-danger">*</span></label>
               <p-select [options]="counties" formControlName="countyId" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onCountyChange($event)"></p-select>
-              <small class="text-danger" *ngIf="gbvForm.get('countyId')?.invalid && (gbvForm.get('countyId')?.touched || gbvForm.get('countyId')?.dirty)">County is required</small>
+              <small class="text-danger" *ngIf="gbvForm.get('countyId')?.invalid && (gbvForm.get('countyId')?.touched || gbvForm.get('countyId')?.dirty)">
+                County is required
+              </small>
             </div>
             <div class="col-md-3">
               <label class="form-label fw-bold">Payam/Block Name <span class="text-danger">*</span></label>
               <p-select [options]="payams" formControlName="payamId" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onPayamChange($event)"></p-select>
-              <small class="text-danger" *ngIf="gbvForm.get('payamId')?.invalid && (gbvForm.get('payamId')?.touched || gbvForm.get('payamId')?.dirty)">Payam is required</small>
+              <small class="text-danger" *ngIf="gbvForm.get('payamId')?.invalid && (gbvForm.get('payamId')?.touched || gbvForm.get('payamId')?.dirty)">
+                Payam is required
+              </small>
             </div>
             <div class="col-md-3">
               <label class="form-label fw-bold">Boma/Quarter Council Name <span class="text-danger">*</span></label>
               <p-select [options]="bomas" formControlName="bomaId" placeholder="--Select--" class="w-100" [filter]="true"></p-select>
-              <small class="text-danger" *ngIf="gbvForm.get('bomaId')?.invalid && (gbvForm.get('bomaId')?.touched || gbvForm.get('bomaId')?.dirty)">Boma is required</small>
+              <small class="text-danger" *ngIf="gbvForm.get('bomaId')?.invalid && (gbvForm.get('bomaId')?.touched || gbvForm.get('bomaId')?.dirty)">
+                Boma is required
+              </small>
             </div>
           </div>
         </div>
 
+  
         <div class="section-block mt-5">
           <h5 class="section-title fw-bold text-primary mb-3">
-            <i class="bi bi-person-badge-fill me-2"></i>
-            Reporter and Survivor Information
+            <i class="bi bi-person-badge-fill me-2"></i>Reporter and Survivor Information
           </h5>
           <hr>
           <div class="row g-3">
             <div class="col-md-4">
               <label class="form-label fw-bold">Contact Focal Person Name <span class="text-danger">*</span></label>
               <input type="text" pInputText formControlName="contactFocalPersonName" class="w-100" />
-              <small class="text-danger" *ngIf="gbvForm.get('contactFocalPersonName')?.invalid && (gbvForm.get('contactFocalPersonName')?.touched || gbvForm.get('contactFocalPersonName')?.dirty)">Contact focal person name is required</small>
+              <small class="text-danger" *ngIf="gbvForm.get('contactFocalPersonName')?.invalid && (gbvForm.get('contactFocalPersonName')?.touched || gbvForm.get('contactFocalPersonName')?.dirty)">
+                Contact focal person name is required
+              </small>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Incident Reported By</label>
               <p-select [options]="incidentReporters" formControlName="incidentReportedBy" placeholder="--Select--" class="w-100"></p-select>
             </div>
             <div class="col-md-4" *ngIf="isIncidentReporterOtherSelected()">
-              <label class="form-label fw-bold">Incident Reported By (Other Description) <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold">Incident Reported By (Other) <span class="text-danger">*</span></label>
               <input type="text" pInputText formControlName="incidentReportedByOtherDesc" class="w-100" />
-              <small class="text-danger" *ngIf="gbvForm.get('incidentReportedByOtherDesc')?.invalid && (gbvForm.get('incidentReportedByOtherDesc')?.touched || gbvForm.get('incidentReportedByOtherDesc')?.dirty)">Other description is required</small>
+              <small class="text-danger" *ngIf="gbvForm.get('incidentReportedByOtherDesc')?.invalid && (gbvForm.get('incidentReportedByOtherDesc')?.touched || gbvForm.get('incidentReportedByOtherDesc')?.dirty)">
+                Other description is required
+              </small>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Reporting Channel <span class="text-danger">*</span></label>
               <p-select [options]="reportingChannels" formControlName="reportingChannelId" placeholder="--Select--" class="w-100"></p-select>
-              <small class="text-danger" *ngIf="gbvForm.get('reportingChannelId')?.invalid && (gbvForm.get('reportingChannelId')?.touched || gbvForm.get('reportingChannelId')?.dirty)">Reporting channel is required</small>
+              <small class="text-danger" *ngIf="gbvForm.get('reportingChannelId')?.invalid && (gbvForm.get('reportingChannelId')?.touched || gbvForm.get('reportingChannelId')?.dirty)">
+                Reporting channel is required
+              </small>
             </div>
             <div class="col-md-4" *ngIf="isOtherReportingChannelSelected()">
               <label class="form-label fw-bold">Other Reporting Channel <span class="text-danger">*</span></label>
               <input type="text" pInputText formControlName="reportingChannelOther" class="w-100" />
-              <small class="text-danger" *ngIf="gbvForm.get('reportingChannelOther')?.invalid && (gbvForm.get('reportingChannelOther')?.touched || gbvForm.get('reportingChannelOther')?.dirty)">Other reporting channel is required</small>
+              <small class="text-danger" *ngIf="gbvForm.get('reportingChannelOther')?.invalid && (gbvForm.get('reportingChannelOther')?.touched || gbvForm.get('reportingChannelOther')?.dirty)">
+                Other reporting channel is required
+              </small>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Complainant Contact Number</label>
               <input type="text" pInputText formControlName="complainantContactNumber" class="w-100" inputmode="numeric" maxlength="15" (input)="onContactNumberInput($event)" />
-              <small class="text-danger" *ngIf="gbvForm.get('complainantContactNumber')?.invalid && (gbvForm.get('complainantContactNumber')?.touched || gbvForm.get('complainantContactNumber')?.dirty)">Enter valid numbers only (7 to 15 digits, optional + at start)</small>
+              <small class="text-danger" *ngIf="gbvForm.get('complainantContactNumber')?.invalid && (gbvForm.get('complainantContactNumber')?.touched || gbvForm.get('complainantContactNumber')?.dirty)">
+                Enter valid numbers only (7–15 digits, optional + at start)
+              </small>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Complainant Gender <span class="text-danger">*</span></label>
               <p-select [options]="genders" formControlName="complainantGender" placeholder="--Select--" class="w-100"></p-select>
-              <small class="text-danger" *ngIf="gbvForm.get('complainantGender')?.invalid && (gbvForm.get('complainantGender')?.touched || gbvForm.get('complainantGender')?.dirty)">Complainant gender is required</small>
+              <small class="text-danger" *ngIf="gbvForm.get('complainantGender')?.invalid && (gbvForm.get('complainantGender')?.touched || gbvForm.get('complainantGender')?.dirty)">
+                Complainant gender is required
+              </small>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Age of Survivor <span class="text-danger">*</span></label>
-              <p-inputnumber formControlName="ageOfSurvivor" [min]="0" class="w-100"></p-inputnumber>
-              <small class="text-danger" *ngIf="gbvForm.get('ageOfSurvivor')?.invalid && (gbvForm.get('ageOfSurvivor')?.touched || gbvForm.get('ageOfSurvivor')?.dirty)">Age of survivor is required</small>
+              <p-inputnumber formControlName="ageOfSurvivor" [min]="0" [max]="120" class="w-100"></p-inputnumber>
+              <small class="text-danger" *ngIf="gbvForm.get('ageOfSurvivor')?.invalid && (gbvForm.get('ageOfSurvivor')?.touched || gbvForm.get('ageOfSurvivor')?.dirty)">
+                Age of survivor is required (0–120)
+              </small>
             </div>
             <div class="col-md-4">
-             
               <label class="form-label fw-bold d-block mb-2">Complainant Beneficiary <span class="text-danger">*</span></label>
               <p-selectbutton [options]="beneficiaryOptions" formControlName="complainantBeneficiary" class="custom-selectbutton"></p-selectbutton>
-              <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('complainantBeneficiary')?.invalid && (gbvForm.get('complainantBeneficiary')?.touched || gbvForm.get('complainantBeneficiary')?.dirty)">Please select Yes or No</small>
+              <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('complainantBeneficiary')?.invalid && (gbvForm.get('complainantBeneficiary')?.touched || gbvForm.get('complainantBeneficiary')?.dirty)">
+                Please select Yes or No
+              </small>
             </div>
             <div class="col-md-4">
-          
               <label class="form-label fw-bold">Beneficiary Selection Criteria</label>
               <p-select [options]="selectionCriteriaOptions" formControlName="complainantBeneficiarySelectionCriteria" placeholder="--Select--" class="w-100"></p-select>
             </div>
@@ -114,8 +138,7 @@
 
         <div class="section-block mt-5">
           <h5 class="section-title fw-bold text-primary mb-3">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            Suspect and Referral Information
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>Suspect and Referral Information
           </h5>
           <hr>
           <div class="row g-3">
@@ -138,25 +161,27 @@
           </div>
         </div>
 
+    
         <div class="section-block mt-5">
           <h5 class="section-title fw-bold text-primary mb-3">
-            <i class="bi bi-chat-left-text-fill me-2"></i>
-            Grievance Details
+            <i class="bi bi-chat-left-text-fill me-2"></i>Grievance Details
           </h5>
           <hr>
           <div class="row g-3">
             <div class="col-12">
               <label class="form-label fw-bold">Grievance Description <span class="text-danger">*</span></label>
               <textarea pTextarea formControlName="grievanceDescription" rows="4" class="w-100" placeholder="Describe the GBV grievance..."></textarea>
-              <small class="text-danger" *ngIf="gbvForm.get('grievanceDescription')?.invalid && (gbvForm.get('grievanceDescription')?.touched || gbvForm.get('grievanceDescription')?.dirty)">Grievance description is required</small>
+              <small class="text-danger" *ngIf="gbvForm.get('grievanceDescription')?.invalid && (gbvForm.get('grievanceDescription')?.touched || gbvForm.get('grievanceDescription')?.dirty)">
+                Grievance description is required
+              </small>
             </div>
           </div>
         </div>
 
+      
         <div class="section-block mt-5">
           <h5 class="section-title fw-bold text-primary mb-3">
-            <i class="bi bi-paperclip me-2"></i>
-            Attachments and Consent
+            <i class="bi bi-paperclip me-2"></i>Attachments and Consent
           </h5>
           <hr>
           <div class="row g-3">
@@ -166,7 +191,7 @@
                 <input type="file" (change)="onFileUpload($event, 'grievance')" class="form-control form-control-sm border-0 bg-transparent" />
               </div>
               <small class="text-success mt-1" *ngIf="grievanceAttachmentFile">
-                <i class="bi bi-check-circle-fill me-1"></i> File uploaded: {{ grievanceAttachmentFile.name }}
+                <i class="bi bi-check-circle-fill me-1"></i> {{ grievanceAttachmentFile.name }}
               </small>
             </div>
             <div class="col-md-6">
@@ -175,32 +200,36 @@
                 <input type="file" (change)="onFileUpload($event, 'consent')" class="form-control form-control-sm border-0 bg-transparent" />
               </div>
               <small class="text-success mt-1" *ngIf="consentAttachmentFile">
-                <i class="bi bi-check-circle-fill me-1"></i> File uploaded: {{ consentAttachmentFile.name }}
-              </small>
-              <small class="text-danger d-block mt-1"
-                *ngIf="gbvForm.get('consentFormAttachmentFile')?.invalid && (gbvForm.get('consentFormAttachmentFile')?.touched || gbvForm.get('consentFormAttachmentFile')?.dirty)">
-                Consent form file is required when consent is signed
+                <i class="bi bi-check-circle-fill me-1"></i> {{ consentAttachmentFile.name }}
               </small>
             </div>
             <div class="col-md-4">
-           
               <label class="form-label fw-bold d-block mb-2">Verbal Consent Granted <span class="text-danger">*</span></label>
               <p-selectbutton [options]="yesNoOptions" formControlName="verbalConsentGranted" class="custom-selectbutton"></p-selectbutton>
-              <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('verbalConsentGranted')?.invalid && (gbvForm.get('verbalConsentGranted')?.touched || gbvForm.get('verbalConsentGranted')?.dirty)">Please select Yes or No</small>
+              <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('verbalConsentGranted')?.invalid && (gbvForm.get('verbalConsentGranted')?.touched || gbvForm.get('verbalConsentGranted')?.dirty)">
+                Please select Yes or No
+              </small>
             </div>
             <div class="col-md-4">
-              <!-- ✅ asterisk added: consentSigned is required -->
               <label class="form-label fw-bold d-block mb-2">Consent Signed <span class="text-danger">*</span></label>
               <p-selectbutton [options]="yesNoOptions" formControlName="consentSigned" class="custom-selectbutton"></p-selectbutton>
-              <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('consentSigned')?.invalid && (gbvForm.get('consentSigned')?.touched || gbvForm.get('consentSigned')?.dirty)">Please select Yes or No</small>
+              <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('consentSigned')?.invalid && (gbvForm.get('consentSigned')?.touched || gbvForm.get('consentSigned')?.dirty)">
+                Please select Yes or No
+              </small>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Grievance Attachment URL</label>
               <input type="text" pInputText formControlName="grievanceAttachmentUrl" class="w-100" />
+              <small class="text-danger" *ngIf="gbvForm.get('grievanceAttachmentUrl')?.hasError('invalidUrl') && (gbvForm.get('grievanceAttachmentUrl')?.touched || gbvForm.get('grievanceAttachmentUrl')?.dirty)">
+                Enter a valid URL
+              </small>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Consent Form Attachment URL</label>
               <input type="text" pInputText formControlName="consentFormAttachmentUrl" class="w-100" />
+              <small class="text-danger" *ngIf="gbvForm.get('consentFormAttachmentUrl')?.hasError('invalidUrl') && (gbvForm.get('consentFormAttachmentUrl')?.touched || gbvForm.get('consentFormAttachmentUrl')?.dirty)">
+                Enter a valid URL
+              </small>
             </div>
           </div>
         </div>
@@ -209,6 +238,7 @@
           <p-button label="Reset" icon="pi pi-refresh" severity="secondary" (onClick)="onReset()" [outlined]="true" styleClass="p-button-sm"></p-button>
           <p-button label="Submit GBV Grievance" icon="pi pi-check" (onClick)="onSubmit()" [disabled]="isLoading" [loading]="isLoading" severity="primary" styleClass="p-button-sm"></p-button>
         </div>
+
       </form>
     </div>
   </div>
