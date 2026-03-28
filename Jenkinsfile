@@ -41,8 +41,9 @@ pipeline {
                         commitMsg = 'NO_COMMIT_MESSAGE'
                     }
 
+                    def normalizedCommitMsg = commitMsg.toUpperCase()
+                    def isQaCommit = normalizedCommitMsg.contains('[QA]')
                     env.GIT_COMMIT_TEXT = commitMsg
-                    def isQaCommit = env.GIT_COMMIT_TEXT.toUpperCase().contains('[QA]')
 
                     if (isQaCommit) {
                         env.TARGET_ENV = 'QA'
