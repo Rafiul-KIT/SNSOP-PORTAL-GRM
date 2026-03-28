@@ -1,16 +1,17 @@
 {
   "name": "snsop-mf-portal-grm",
   "version": "0.0.0",
-  "scripts": {
+ "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "dev": "ng serve --port 4040 --ssl true",
     "build-staging": "ng build --configuration staging",
+    "build-qa": "ng build --configuration qa",
     "build-dev": "ng build --configuration development",
     "build-prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
-  },
+},
   "private": true,
   "dependencies": {
     "@angular/common": "^20.0.0",
