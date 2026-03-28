@@ -463,6 +463,17 @@ private createResolutionTimeChart(items: ResolutionTime[]): any {
     return Array.from({ length }, (_, index) => base[index % base.length]);
   }
 
+  hasChartData(chartData: any): boolean {
+    if (!chartData || !Array.isArray(chartData.datasets)) return false;
+    return chartData.datasets.some((dataset: any) =>
+      Array.isArray(dataset?.data) &&
+      dataset.data.some((value: any) => {
+        const numeric = Number(value);
+        return Number.isFinite(numeric) && numeric > 0;
+      }),
+    );
+  }
+
   formatResolutionTime(days: number): string {
     if (!days) return 'N/A';
     return days.toFixed(1) + ' days';

@@ -91,7 +91,7 @@
                 </h3>
               </div>
               <div class="chart-card__body">
-                @if (ngbvStatusChartData) {
+                @if (hasChartData(ngbvStatusChartData)) {
                 <p-chart type="doughnut" [data]="ngbvStatusChartData" [options]="chartOptions"></p-chart>
                 } @else {
                 <p class="no-data">No data available</p>
@@ -108,7 +108,7 @@
                 </h3>
               </div>
               <div class="chart-card__body">
-                @if (ngbvLocationChartData) {
+                @if (hasChartData(ngbvLocationChartData)) {
                 <p-chart type="bar" [data]="ngbvLocationChartData" [options]="locationBarChartOptions"></p-chart>
                 } @else {
                 <p class="no-data">No data available</p>
@@ -119,7 +119,7 @@
 
           <!-- Charts Row 2 -->
           <div class="charts-row">
-              @if (ngbvTypeChartData) {
+              @if (hasChartData(ngbvTypeChartData)) {
                 <div class="chart-card">
                   <div class="chart-card__header">
                     <h3 class="chart-card__title">
@@ -133,8 +133,8 @@
                 </div>
               }
 
-            @if (ngbvResolutionChartData) {
-            <div class="chart-card" [class.chart-card--wide]="!ngbvTypeChartData">
+            @if (hasChartData(ngbvResolutionChartData)) {
+            <div class="chart-card" [class.chart-card--wide]="!hasChartData(ngbvTypeChartData)">
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
                   <span class="chart-icon chart-icon--amber"><i class="bi bi-stopwatch"></i></span>
@@ -204,7 +204,7 @@
                 </h3>
               </div>
               <div class="chart-card__body">
-                @if (gbvStatusChartData) {
+                @if (hasChartData(gbvStatusChartData)) {
                 <p-chart type="doughnut" [data]="gbvStatusChartData" [options]="chartOptions"></p-chart>
                 } @else {
                 <p class="no-data">No data available</p>
@@ -221,7 +221,7 @@
                 </h3>
               </div>
               <div class="chart-card__body">
-                @if (gbvLocationChartData) {
+                @if (hasChartData(gbvLocationChartData)) {
                 <p-chart type="bar" [data]="gbvLocationChartData" [options]="locationBarChartOptions"></p-chart>
                 } @else {
                 <p class="no-data">No data available</p>
@@ -232,7 +232,7 @@
 
           <!-- GBV-Specific Charts Row -->
           <div class="charts-row charts-row--triple">
-            @if (gbvReferralChartData) {
+            @if (hasChartData(gbvReferralChartData)) {
             <div class="chart-card chart-card--small">
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
@@ -246,7 +246,7 @@
             </div>
             }
 
-            @if (gbvReferralServiceChartData) {
+            @if (hasChartData(gbvReferralServiceChartData)) {
             <div class="chart-card chart-card--small">
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
@@ -260,7 +260,7 @@
             </div>
             }
 
-            @if (gbvPerpetratorChartData) {
+            @if (hasChartData(gbvPerpetratorChartData)) {
             <div class="chart-card chart-card--small">
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
@@ -276,7 +276,7 @@
           </div>
 
           <!-- Resolution Time (full width) -->
-          @if (gbvResolutionChartData) {
+          @if (hasChartData(gbvResolutionChartData)) {
           <div class="chart-card chart-card--full">
             <div class="chart-card__header">
               <h3 class="chart-card__title">
