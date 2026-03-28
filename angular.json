@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "snsop-mf-portal-grm": {
+    "snsop-mf-portal-payment": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -17,10 +17,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist",
-            "index": "src/index.html",
             "browser": "src/main.ts",
-            "baseHref": "/trial/grm/",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -31,7 +28,6 @@
             ],
             "styles": [
               "./node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "./node_modules/bootstrap-icons/font/bootstrap-icons.css",
               "./node_modules/@fortawesome/fontawesome-free/css/all.min.css",
               "src/styles.scss"
             ]
@@ -70,6 +66,14 @@
                   "with": "src/environments/environment.staging.ts"
                 }
               ]
+            },
+            "qa": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.qa.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -78,13 +82,16 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "snsop-mf-portal-grm:build:production"
+              "buildTarget": "snsop-mf-portal-payment:build:production"
             },
             "development": {
-              "buildTarget": "snsop-mf-portal-grm:build:development"
+              "buildTarget": "snsop-mf-portal-payment:build:development"
             },
             "staging": {
-              "buildTarget": "snsop-mf-portal-grm:build:staging"
+              "buildTarget": "snsop-mf-portal-payment:build:staging"
+            },
+            "qa": {
+              "buildTarget": "snsop-mf-portal-payment:build:qa"
             }
           },
           "defaultConfiguration": "development"
@@ -104,9 +111,12 @@
               }
             ],
             "styles": [
-             "./node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "./node_modules/bootstrap/dist/css/bootstrap.min.css",
               "./node_modules/@fortawesome/fontawesome-free/css/all.min.css",
-              "src/styles.scss"
+              "src/styles.scss",
+              "node_modules/primeicons/primeicons.css",
+              "node_modules/primeng/resources/themes/lara-light-indigo/theme.css",
+              "node_modules/primeng/resources/primeng.min.css"
             ]
           }
         }
