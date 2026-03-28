@@ -85,13 +85,22 @@ export class GrievanceDashboard implements OnInit {
   ngbvTotalCases = 0;
   ngbvPendingCases = 0;
   ngbvResolvedCases = 0;
+  ngbvResolvedPercentage = 0;
   ngbvAvgResolutionTime = 0;
 
   // GBV Stats
   gbvTotalCases = 0;
   gbvPendingCases = 0;
   gbvResolvedCases = 0;
+  gbvResolvedPercentage = 0;
   gbvAvgResolutionTime = 0;
+
+  // Combined Stats
+  allTotalCases = 0;
+  allPendingCases = 0;
+  allResolvedCases = 0;
+  allResolvedPercentage = 0;
+  allAvgResolutionTime = 0;
 
   // Chart data
   ngbvStatusChartData: any;
@@ -105,6 +114,10 @@ export class GrievanceDashboard implements OnInit {
   gbvReferralChartData: any;
   gbvReferralServiceChartData: any;
   gbvPerpetratorChartData: any;
+
+  allStatusChartData: any;
+  allLocationChartData: any;
+  allResolutionChartData: any;
 
   chartOptions = {
     responsive: true,
@@ -218,6 +231,7 @@ export class GrievanceDashboard implements OnInit {
       this.apiResponse = response.data;
       this.processNGBVData();
       this.processGBVData();
+      this.processCombinedData();
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
       this.error = 'Failed to load dashboard data. Please try again later.';
@@ -243,6 +257,10 @@ export class GrievanceDashboard implements OnInit {
       'Closed',
       'Completed',
     ]);
+    this.ngbvResolvedPercentage = this.calculateResolvedPercentage(
+      this.ngbvResolvedCases,
+      this.ngbvTotalCases,
+    );
     this.ngbvAvgResolutionTime = this.calculateAvgResolutionTime(
       data.averageResolutionTimeByLocation ?? [],
     );
@@ -279,6 +297,10 @@ export class GrievanceDashboard implements OnInit {
       'Closed',
       'Completed',
     ]);
+    this.gbvResolvedPercentage = this.calculateResolvedPercentage(
+      this.gbvResolvedCases,
+      this.gbvTotalCases,
+    );
     this.gbvAvgResolutionTime = this.calculateAvgResolutionTime(
       data.averageResolutionTimeByLocation ?? [],
     );
@@ -315,6 +337,52 @@ export class GrievanceDashboard implements OnInit {
     }
   }
 
+  processCombinedData() {
+    const ngbv = this.apiResponse?.ngbvData;
+    const gbv = this.apiResponse?.gbvData;
+    if (!ngbv && !gbv) return;
+
+    const combinedStatus = this.mergeStatusCounts(
+      ngbv?.grievancesByStatus ?? [],
+      gbv?.grievancesByStatus ?? [],
+    );
+    const combinedLocations = this.mergeLocationCounts(
+      ngbv?.grievancesByLocation ?? [],
+      gbv?.grievancesByLocation ?? [],
+    );
+    const combinedResolution = this.mergeResolutionTimes(
+      ngbv?.averageResolutionTimeByLocation ?? [],
+      gbv?.averageResolutionTimeByLocation ?? [],
+    );
+
+    this.allTotalCases = this.sumCount(combinedStatus);
+    this.allPendingCases = this.sumByStatus(combinedStatus, [
+      'Pending',
+      'In Progress',
+      'Open',
+      'New',
+      'Unresolved',
+    ]);
+    this.allResolvedCases = this.sumByStatus(combinedStatus, [
+      'Resolved',
+      'Closed',
+      'Completed',
+    ]);
+    this.allResolvedPercentage = this.calculateResolvedPercentage(
+      this.allResolvedCases,
+      this.allTotalCases,
+    );
+    this.allAvgResolutionTime = this.calculateAvgResolutionTime(
+      combinedResolution,
+    );
+
+    this.allStatusChartData = this.createStatusChart(combinedStatus);
+    this.allLocationChartData = this.createLocationChart(combinedLocations);
+    this.allResolutionChartData = this.createResolutionTimeChart(
+      combinedResolution,
+    );
+  }
+
   private sumCount(items: { count: number }[]): number {
     return items.reduce((sum, item) => sum + (item.count || 0), 0);
   }
@@ -337,6 +405,88 @@ export class GrievanceDashboard implements OnInit {
       validItems.reduce((sum, item) => sum + item.averageResolutionTime, 0) /
       validItems.length
     );
+  }
+
+  private calculateResolvedPercentage(resolved: number, total: number): number {
+    if (!total) return 0;
+    return (resolved / total) * 100;
+  }
+
+  private mergeStatusCounts(
+    first: StatusCount[],
+    second: StatusCount[],
+  ): StatusCount[] {
+    const merged = new Map<string, { status: string; count: number }>();
+    [...first, ...second].forEach((item) => {
+      const rawStatus = (item.status || 'Unknown').trim();
+      const lowered = rawStatus.toLowerCase();
+      const isReferredVariant =
+        lowered.includes('referred') ||
+        lowered.includes('refered') ||
+        lowered.includes('reffrered') ||
+        lowered.includes('reffered');
+      const status = isReferredVariant ? 'Referred' : rawStatus;
+      const key = status.toLowerCase();
+      const existing = merged.get(key);
+      const count = Number(item.count) || 0;
+      if (existing) {
+        existing.count += count;
+      } else {
+        merged.set(key, { status, count });
+      }
+    });
+    return Array.from(merged.values());
+  }
+
+  private mergeLocationCounts(
+    first: LocationCount[],
+    second: LocationCount[],
+  ): LocationCount[] {
+    const merged = new Map<string, LocationCount>();
+    [...first, ...second].forEach((item) => {
+      const label =
+        item.county || item.state || item.payam || item.boma || 'Unknown';
+      const key = label.toLowerCase();
+      const existing = merged.get(key);
+      if (existing) {
+        existing.count = (existing.count || 0) + (item.count || 0);
+      } else {
+        merged.set(key, { ...item, count: item.count || 0 });
+      }
+    });
+    return Array.from(merged.values());
+  }
+
+  private mergeResolutionTimes(
+    first: ResolutionTime[],
+    second: ResolutionTime[],
+  ): ResolutionTime[] {
+    const merged = new Map<
+      string,
+      { item: ResolutionTime; total: number; parts: number }
+    >();
+
+    [...first, ...second]
+      .filter((i) => i.averageResolutionTime > 0)
+      .forEach((item) => {
+        const label =
+          item.county || item.state || item.payam || item.boma || 'Unknown';
+        const key = label.toLowerCase();
+        const existing = merged.get(key);
+        if (existing) {
+          existing.total += item.averageResolutionTime;
+          existing.parts += 1;
+          existing.item.averageResolutionTime = existing.total / existing.parts;
+        } else {
+          merged.set(key, {
+            item: { ...item },
+            total: item.averageResolutionTime,
+            parts: 1,
+          });
+        }
+      });
+
+    return Array.from(merged.values()).map((entry) => entry.item);
   }
 
   private createStatusChart(items: StatusCount[]): any {
@@ -477,5 +627,9 @@ private createResolutionTimeChart(items: ResolutionTime[]): any {
   formatResolutionTime(days: number): string {
     if (!days) return 'N/A';
     return days.toFixed(1) + ' days';
+  }
+
+  formatPercentage(value: number): string {
+    return `${value.toFixed(1)}%`;
   }
 }
