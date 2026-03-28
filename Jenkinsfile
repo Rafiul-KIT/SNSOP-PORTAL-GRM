@@ -29,12 +29,22 @@ pipeline {
         stage('Detect Target Environment') {
             steps {
                 script {
-                    env.GIT_COMMIT_TEXT = bat(
-                        script: '@echo off\r\ngit log -1 --pretty^=%%B',
+                    def commitMsg = bat(
+                        script: '@echo off\r\ngit log -1 --pretty^=%%B 2>nul',
                         returnStdout: true
-                    ).trim()
+                    )
+                    commitMsg = (commitMsg ?: '').trim()
+                    if (!commitMsg) {
+                        commitMsg = (env.CHANGE_TITLE ?: '').trim()
+                    }
+                    if (!commitMsg) {
+                        commitMsg = 'NO_COMMIT_MESSAGE'
+                    }
 
-                    if (env.GIT_COMMIT_TEXT.contains('[QA]')) {
+                    env.GIT_COMMIT_TEXT = commitMsg
+                    def isQaCommit = env.GIT_COMMIT_TEXT.toUpperCase().contains('[QA]')
+
+                    if (isQaCommit) {
                         env.TARGET_ENV = 'QA'
                         env.BUILD_CMD = 'build-qa'
                         env.TOMCAT_PATH = 'C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\v2\\grm'
