@@ -6,11 +6,11 @@ pipeline {
     }
 
     environment {
-        TARGET_ENV = 'STAGING'
-        BUILD_CMD = 'build-staging'
-        DIST_PATH = 'dist\\browser'
+        TARGET_ENV   = 'STAGING'
+        BUILD_CMD    = 'build-staging'
+        DIST_PATH    = 'dist\\snsop-mf-portal-payment\\browser'
         DEPLOY_TARGET = 'C:\\Program Files (x86)\\Apache Software Foundation\\Tomcat 9.0\\webapps\\ROOT\\trial\\grm'
-        DEPLOY_URL = 'http://167.86.68.15/trial/grm/'
+        DEPLOY_URL   = 'http://167.86.68.15/trial/grm/'
         GIT_COMMIT_TEXT = ''
     }
 
@@ -33,7 +33,7 @@ pipeline {
                     def branch = env.GIT_BRANCH?.trim() ?: ''
 
                     if (!branch.endsWith('dev-jenkins') && !branch.endsWith('dev-qa')) {
-                        error "Branch '${branch}' is not allowed to deploy. Only dev-jenkins and dev-qa are permitted."
+                        error "Branch '${branch}' is not allowed. Only dev-jenkins and dev-qa are permitted."
                     }
 
                     def commitMsg = bat(
@@ -43,17 +43,17 @@ pipeline {
                     env.GIT_COMMIT_TEXT = commitMsg ?: 'NO_COMMIT_MESSAGE'
 
                     if (branch.endsWith('dev-qa')) {
-                        env.TARGET_ENV   = 'QA'
-                        env.BUILD_CMD    = 'build-qa'
-                        env.DIST_PATH    = 'dist\\snsop-mf-portal-payment'
+                        env.TARGET_ENV    = 'QA'
+                        env.BUILD_CMD     = 'build-qa'
+                        env.DIST_PATH     = 'dist\\snsop-mf-portal-payment\\browser'
                         env.DEPLOY_TARGET = 'C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\v2\\grm'
-                        env.DEPLOY_URL   = 'http://213.136.73.10/v2/grm/'
+                        env.DEPLOY_URL    = 'http://213.136.73.10/v2/grm/'
                     } else {
-                        env.TARGET_ENV   = 'STAGING'
-                        env.BUILD_CMD    = 'build-staging'
-                        env.DIST_PATH    = 'dist\\browser'
+                        env.TARGET_ENV    = 'STAGING'
+                        env.BUILD_CMD     = 'build-staging'
+                        env.DIST_PATH     = 'dist\\snsop-mf-portal-payment\\browser'
                         env.DEPLOY_TARGET = 'C:\\Program Files (x86)\\Apache Software Foundation\\Tomcat 9.0\\webapps\\ROOT\\trial\\grm'
-                        env.DEPLOY_URL   = 'http://167.86.68.15/trial/grm/'
+                        env.DEPLOY_URL    = 'http://167.86.68.15/trial/grm/'
                     }
                 }
 
@@ -71,9 +71,7 @@ pipeline {
             steps {
                 echo 'Installing npm packages...'
                 bat '''
-                    echo Node version:
                     node --version
-                    echo NPM version:
                     call npm --version
                     call npm install
                 '''
@@ -97,7 +95,7 @@ pipeline {
                         echo Build successful - index.html found
                     ) else (
                         echo Build failed - index.html not found
-                        echo Listing dist folder contents:
+                        echo Listing dist folder:
                         dir dist /s /b
                         exit /b 1
                     )
@@ -107,15 +105,12 @@ pipeline {
 
         stage('Clean Old Deployment') {
             steps {
-                echo "Cleaning old deployment for ${env.TARGET_ENV}..."
+                echo "Cleaning ${env.TARGET_ENV} deployment..."
                 bat """
                     @echo off
-                    echo Target: ${env.DEPLOY_TARGET}
                     if exist "${env.DEPLOY_TARGET}" (
                         del /q "${env.DEPLOY_TARGET}\\*.*" 2>nul
-                        for /d %%p in ("${env.DEPLOY_TARGET}\\*") do (
-                            rmdir "%%p" /s /q 2>nul
-                        )
+                        for /d %%p in ("${env.DEPLOY_TARGET}\\*") do rmdir "%%p" /s /q 2>nul
                         echo Old files deleted.
                     ) else (
                         mkdir "${env.DEPLOY_TARGET}"
@@ -134,10 +129,10 @@ pipeline {
                     echo Target: ${env.DEPLOY_TARGET}
                     xcopy /E /I /Y /Q "${WORKSPACE}\\${env.DIST_PATH}\\*" "${env.DEPLOY_TARGET}\\"
                     if errorlevel 1 (
-                        echo Deployment copy failed.
+                        echo Deployment failed.
                         exit /b 1
                     )
-                    echo Files copied successfully.
+                    echo Deployed successfully.
                 """
             }
         }
@@ -169,15 +164,14 @@ pipeline {
             echo "URL:     ${env.DEPLOY_URL}"
             echo "Branch:  ${env.GIT_BRANCH}"
             echo "Build:   #${env.BUILD_NUMBER}"
-            echo "Commit:  ${env.GIT_COMMIT}"
-            echo "Message: ${env.GIT_COMMIT_TEXT}"
+            echo "Commit:  ${env.GIT_COMMIT_TEXT}"
             echo '======================================================='
         }
         failure {
             echo '======================================================='
             echo "FAILED - ${env.TARGET_ENV}"
-            echo "Branch: ${env.GIT_BRANCH}"
-            echo "Build:  #${env.BUILD_NUMBER}"
+            echo "Branch:  ${env.GIT_BRANCH}"
+            echo "Build:   #${env.BUILD_NUMBER}"
             echo '======================================================='
         }
         always {
