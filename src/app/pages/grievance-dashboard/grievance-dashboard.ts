@@ -340,7 +340,26 @@ export class GrievanceDashboard implements OnInit {
   }
 
   private createStatusChart(items: StatusCount[]): any {
-    const colors = this.buildPalette(items.length);
+    const colors = items.map((item) => {
+      const status = (item.status || '').toLowerCase().trim();
+
+      const isUnresolved =
+        status.includes('pending') ||
+        status.includes('in progress') ||
+        status.includes('open') ||
+        status.includes('new') ||
+        status.includes('unresolved');
+
+      const isResolved =
+        status.includes('resolved') ||
+        status.includes('closed') ||
+        status.includes('completed');
+
+      if (isUnresolved) return '#f06292';
+      if (isResolved) return '#00b579';
+      return '#0dcaf0';
+    });
+
     return {
       labels: items.map((i) => i.status || 'Unknown'),
       datasets: [
