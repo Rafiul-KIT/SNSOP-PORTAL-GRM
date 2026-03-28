@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { Dashboard } from './pages/dashboard/dashboard';
 import { NotFound } from './components/not-found/not-found';
 import { GBVManagement } from './pages/gbv/gbv-management/gbv-management';
 import { NonGbvManagement } from './pages/non-gbv/non-gbv-management/non-gbv-management';
