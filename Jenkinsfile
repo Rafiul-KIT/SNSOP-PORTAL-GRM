@@ -49,7 +49,7 @@ pipeline {
                         env.TARGET_ENV = 'QA'
                         env.BUILD_CMD = 'build-qa'
                         env.TOMCAT_PATH = 'C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\v2\\grm'
-                        env.DEPLOY_URL = 'http://167.86.68.15/v2/grm/'
+                        env.DEPLOY_URL = 'http://213.136.73.10/v2/grm/'
                     } else {
                         env.TARGET_ENV = 'STAGING'
                         env.BUILD_CMD = 'build-staging'
@@ -62,6 +62,7 @@ pipeline {
                 echo "Target environment: ${env.TARGET_ENV}"
                 echo "Build command: npm run ${env.BUILD_CMD}"
                 echo "Tomcat path: ${env.TOMCAT_PATH}"
+                bat 'hostname'
             }
         }
 
