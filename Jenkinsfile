@@ -6,6 +6,11 @@ pipeline {
     }
 
     environment {
+        TARGET_ENV = 'STAGING'
+        BUILD_CMD = 'build-staging'
+        DIST_PATH = 'dist\\browser'
+        DEPLOY_TARGET = 'C:\\Program Files (x86)\\Apache Software Foundation\\Tomcat 9.0\\webapps\\ROOT\\trial\\grm'
+        DEPLOY_URL = 'http://167.86.68.15/trial/grm/'
         GIT_COMMIT_TEXT = ''
     }
 
@@ -26,37 +31,38 @@ pipeline {
             steps {
                 script {
                     def branch = env.GIT_BRANCH?.trim() ?: ''
-                    echo "Building branch: ${branch}"
+
+                    if (!branch.endsWith('dev-jenkins') && !branch.endsWith('dev-qa')) {
+                        error "Branch '${branch}' is not allowed to deploy. Only dev-jenkins and dev-qa are permitted."
+                    }
 
                     def commitMsg = bat(
                         script: '@echo off\r\ngit log -1 --pretty^=%%B 2>nul',
                         returnStdout: true
-                    )
-                    commitMsg = (commitMsg ?: '').trim()
-                    if (!commitMsg) commitMsg = (env.CHANGE_TITLE ?: '').trim()
-                    if (!commitMsg) commitMsg = 'NO_COMMIT_MESSAGE'
-                    env.GIT_COMMIT_TEXT = commitMsg
+                    )?.trim()
+                    env.GIT_COMMIT_TEXT = commitMsg ?: 'NO_COMMIT_MESSAGE'
 
                     if (branch.endsWith('dev-qa')) {
-                        env.TARGET_ENV = 'QA'
-                        env.BUILD_CMD = 'build-qa'
+                        env.TARGET_ENV   = 'QA'
+                        env.BUILD_CMD    = 'build-qa'
+                        env.DIST_PATH    = 'dist\\snsop-mf-portal-payment'
                         env.DEPLOY_TARGET = 'C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\v2\\grm'
-                        env.DEPLOY_URL = 'http://213.136.73.10/v2/grm/'
-                        env.IS_REMOTE = 'false'
-                    } else if (branch.endsWith('dev-jenkins')) {
-                        env.TARGET_ENV = 'STAGING'
-                        env.BUILD_CMD = 'build-staging'
-                        env.DEPLOY_TARGET = 'C:\\Program Files (x86)\\Apache Software Foundation\\Tomcat 9.0\\webapps\\ROOT\\trial\\grm'
-                        env.DEPLOY_URL = 'http://167.86.68.15/trial/grm/'
-                        env.IS_REMOTE = 'false'
+                        env.DEPLOY_URL   = 'http://213.136.73.10/v2/grm/'
                     } else {
-                        error "Branch '${branch}' is not allowed to deploy."
+                        env.TARGET_ENV   = 'STAGING'
+                        env.BUILD_CMD    = 'build-staging'
+                        env.DIST_PATH    = 'dist\\browser'
+                        env.DEPLOY_TARGET = 'C:\\Program Files (x86)\\Apache Software Foundation\\Tomcat 9.0\\webapps\\ROOT\\trial\\grm'
+                        env.DEPLOY_URL   = 'http://167.86.68.15/trial/grm/'
                     }
                 }
 
-                echo "Target environment: ${env.TARGET_ENV}"
-                echo "Deploy target: ${env.DEPLOY_TARGET}"
-                echo "Commit message: ${env.GIT_COMMIT_TEXT}"
+                echo "Branch:      ${env.GIT_BRANCH}"
+                echo "Environment: ${env.TARGET_ENV}"
+                echo "Build cmd:   npm run ${env.BUILD_CMD}"
+                echo "Dist path:   ${env.DIST_PATH}"
+                echo "Deploy to:   ${env.DEPLOY_TARGET}"
+                echo "Commit:      ${env.GIT_COMMIT_TEXT}"
                 bat 'hostname'
             }
         }
@@ -65,7 +71,9 @@ pipeline {
             steps {
                 echo 'Installing npm packages...'
                 bat '''
+                    echo Node version:
                     node --version
+                    echo NPM version:
                     call npm --version
                     call npm install
                 '''
@@ -81,27 +89,34 @@ pipeline {
 
         stage('Verify Build Output') {
             steps {
-                bat '''
+                echo 'Verifying build output...'
+                bat """
                     @echo off
-                    if exist "dist\\browser\\index.html" (
+                    echo Checking: ${env.DIST_PATH}\\index.html
+                    if exist "${env.DIST_PATH}\\index.html" (
                         echo Build successful - index.html found
                     ) else (
                         echo Build failed - index.html not found
+                        echo Listing dist folder contents:
+                        dir dist /s /b
                         exit /b 1
                     )
-                '''
+                """
             }
         }
 
         stage('Clean Old Deployment') {
             steps {
+                echo "Cleaning old deployment for ${env.TARGET_ENV}..."
                 bat """
                     @echo off
-                    echo Cleaning: ${env.DEPLOY_TARGET}
+                    echo Target: ${env.DEPLOY_TARGET}
                     if exist "${env.DEPLOY_TARGET}" (
                         del /q "${env.DEPLOY_TARGET}\\*.*" 2>nul
-                        for /d %%p in ("${env.DEPLOY_TARGET}\\*") do rmdir "%%p" /s /q 2>nul
-                        echo Cleaned successfully.
+                        for /d %%p in ("${env.DEPLOY_TARGET}\\*") do (
+                            rmdir "%%p" /s /q 2>nul
+                        )
+                        echo Old files deleted.
                     ) else (
                         mkdir "${env.DEPLOY_TARGET}"
                         echo Directory created.
@@ -112,21 +127,24 @@ pipeline {
 
         stage('Deploy to Tomcat') {
             steps {
+                echo "Deploying to ${env.TARGET_ENV}..."
                 bat """
                     @echo off
-                    echo Deploying to: ${env.DEPLOY_TARGET}
-                    xcopy /E /I /Y /Q "${WORKSPACE}\\dist\\browser\\*" "${env.DEPLOY_TARGET}\\"
+                    echo Source: ${env.DIST_PATH}
+                    echo Target: ${env.DEPLOY_TARGET}
+                    xcopy /E /I /Y /Q "${WORKSPACE}\\${env.DIST_PATH}\\*" "${env.DEPLOY_TARGET}\\"
                     if errorlevel 1 (
-                        echo Deployment failed.
+                        echo Deployment copy failed.
                         exit /b 1
                     )
-                    echo Deployment successful.
+                    echo Files copied successfully.
                 """
             }
         }
 
         stage('Verify Deployment') {
             steps {
+                echo 'Verifying deployment...'
                 bat """
                     @echo off
                     if exist "${env.DEPLOY_TARGET}\\index.html" (
@@ -134,7 +152,9 @@ pipeline {
                         echo DEPLOYMENT SUCCESSFUL - ${env.TARGET_ENV}
                         echo ================================================
                     ) else (
+                        echo ================================================
                         echo DEPLOYMENT FAILED - index.html not found
+                        echo ================================================
                         exit /b 1
                     )
                 """
@@ -146,20 +166,22 @@ pipeline {
         success {
             echo '======================================================='
             echo "SUCCESSFUL - ${env.TARGET_ENV}"
-            echo "URL: ${env.DEPLOY_URL}"
-            echo "Branch: ${env.GIT_BRANCH}"
-            echo "Build: #${env.BUILD_NUMBER}"
-            echo "Commit: ${env.GIT_COMMIT_TEXT}"
+            echo "URL:     ${env.DEPLOY_URL}"
+            echo "Branch:  ${env.GIT_BRANCH}"
+            echo "Build:   #${env.BUILD_NUMBER}"
+            echo "Commit:  ${env.GIT_COMMIT}"
+            echo "Message: ${env.GIT_COMMIT_TEXT}"
             echo '======================================================='
         }
         failure {
             echo '======================================================='
             echo "FAILED - ${env.TARGET_ENV}"
             echo "Branch: ${env.GIT_BRANCH}"
-            echo "Build: #${env.BUILD_NUMBER}"
+            echo "Build:  #${env.BUILD_NUMBER}"
             echo '======================================================='
         }
         always {
+            echo 'Cleaning up workspace...'
             cleanWs()
         }
     }
