@@ -1,19 +1,19 @@
 pipeline {
     agent any
-   
+    
     tools {
         nodejs 'Node 24'
     }
-   
+    
     environment {
         TOMCAT_PATH = 'C:\\Program Files (x86)\\Apache Software Foundation\\Tomcat 9.0\\webapps\\ROOT\\trial\\grm'
     }
-   
+    
     options {
         buildDiscarder(logRotator(numToKeepStr: '10'))
         timeout(time: 30, unit: 'MINUTES')
     }
-   
+    
     stages {
         stage('Checkout') {
             steps {
@@ -21,7 +21,7 @@ pipeline {
                 checkout scm
             }
         }
-       
+        
         stage('Install Dependencies') {
             steps {
                 echo '📦 Installing npm packages...'
@@ -34,15 +34,15 @@ pipeline {
                 '''
             }
         }
-       
+        
      stage('Build Angular Application') {
     steps {
-        echo ' Building Angular application for STAGING...'
+        echo '🏗️ Building Angular application for STAGING...'
         echo 'Base href will be automatically set to /trial/grm/'
         bat 'call npm run build-staging'
     }
 }
-       
+        
         stage('Verify Build Output') {
             steps {
                 echo '🔍 Verifying build output...'
@@ -61,14 +61,14 @@ pipeline {
                 '''
             }
         }
-       
+        
         stage('Clean Old Deployment') {
             steps {
                 echo '🧹 Cleaning old deployment files...'
                 bat """
                     @echo off
                     echo Cleaning deployment directory: ${TOMCAT_PATH}
-                   
+                    
                     if exist "${TOMCAT_PATH}" (
                         echo Directory exists, deleting all files...
                         del /q "${TOMCAT_PATH}\\*.*" 2>nul
@@ -85,7 +85,7 @@ pipeline {
                 """
             }
         }
-       
+        
         stage('Deploy to Tomcat') {
             steps {
                 echo '🚀 Deploying new build to Tomcat...'
@@ -97,7 +97,7 @@ pipeline {
                     echo.
                     echo Copying files...
                     xcopy /E /I /Y /Q "${WORKSPACE}\\dist\\browser\\*" "${TOMCAT_PATH}\\"
-                   
+                    
                     if errorlevel 1 (
                         echo ❌ File copy failed!
                         exit /b 1
@@ -107,7 +107,7 @@ pipeline {
                 """
             }
         }
-       
+        
         stage('Verify Deployment') {
             steps {
                 echo '✅ Verifying deployment...'
@@ -136,7 +136,7 @@ pipeline {
             }
         }
     }
-   
+    
     post {
         success {
             echo ''
@@ -182,4 +182,3 @@ pipeline {
         }
     }
 }
-
