@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist/snsop-mf-portal-grm",
+            "outputPath": "dist",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "baseHref": "/trial/grm/",
@@ -104,7 +104,7 @@
               }
             ],
             "styles": [
-              "./node_modules/bootstrap/dist/css/bootstrap.min.css",
+             "./node_modules/bootstrap/dist/css/bootstrap.min.css",
               "./node_modules/@fortawesome/fontawesome-free/css/all.min.css",
               "src/styles.scss"
             ]
