@@ -74,8 +74,8 @@ export class GBVManagement implements OnInit, OnDestroy {
   ];
 
   selectionCriteriaOptions = [
-    { label: 'Public Works', value: 0 },
-    { label: 'Direct Income Support', value: 1 },
+    { label: 'LIPW', value: 0 },
+    { label: 'DIS', value: 1 },
   ];
 
   grievanceAttachmentFile: File | null = null;
@@ -527,7 +527,7 @@ export class GBVManagement implements OnInit, OnDestroy {
       { label: 'Grievance Description', value: this.toDisplayValue(formValue?.grievanceDescription) },
       { label: 'Grievance Attachment', value: this.toDisplayValue(this.grievanceAttachmentFile?.name) },
       { label: 'Consent Attachment', value: this.toDisplayValue(this.consentAttachmentFile?.name) },
-      { label: 'Server Message', value: this.toDisplayValue(result?.message) },
+      { label: 'Note', value: this.toDisplayValue(result?.message) },
     ];
   }
 
@@ -748,7 +748,7 @@ export class GBVManagement implements OnInit, OnDestroy {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `gbv-${safeTrackingNumber}-issue-summary-${Date.now()}.pdf`;
+    a.download = `gbv-${safeTrackingNumber}.pdf`;
     a.click();
     window.URL.revokeObjectURL(url);
   }

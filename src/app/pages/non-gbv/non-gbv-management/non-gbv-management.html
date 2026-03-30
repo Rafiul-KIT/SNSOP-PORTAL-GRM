@@ -12,7 +12,7 @@
     </div>
 
     <div class="card-body p-4">
-      <form [formGroup]="grievanceForm" (ngSubmit)="onSubmit()">
+      <form class="gbv-form-theme" [formGroup]="grievanceForm" (ngSubmit)="onSubmit()">
         
         <!-- General Information Section -->
         <div class="section-block">
@@ -30,24 +30,26 @@
               <label class="form-label fw-bold">Date</label>
               <p-datepicker formControlName="date" [showIcon]="true" appendTo="body" class="w-100" dateFormat="dd/mm/yy"></p-datepicker>
             </div>
+          </div>
+          <div class="row g-3 mt-1">
             <div class="col-md-3">
               <label class="form-label fw-bold">State Name <span class="text-danger">*</span></label>
-              <p-select [options]="states" formControlName="stateName" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onStateChange($event)"></p-select>
+              <p-select [options]="states" formControlName="stateName" placeholder="--Select--" class="w-100" [filter]="true" appendTo="body" (onChange)="onStateChange($event)"></p-select>
               <small class="text-danger" *ngIf="grievanceForm.get('stateName')?.invalid && (grievanceForm.get('stateName')?.touched || grievanceForm.get('stateName')?.dirty)">State is required</small>
             </div>
             <div class="col-md-3">
               <label class="form-label fw-bold">County/Municipality Name <span class="text-danger">*</span></label>
-              <p-select [options]="counties" formControlName="countyName" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onCountyChange($event)"></p-select>
+              <p-select [options]="counties" formControlName="countyName" placeholder="--Select--" class="w-100" [filter]="true" appendTo="body" (onChange)="onCountyChange($event)"></p-select>
               <small class="text-danger" *ngIf="grievanceForm.get('countyName')?.invalid && (grievanceForm.get('countyName')?.touched || grievanceForm.get('countyName')?.dirty)">County is required</small>
             </div>
             <div class="col-md-3">
               <label class="form-label fw-bold">Payam/Block Name <span class="text-danger">*</span></label>
-              <p-select [options]="payams" formControlName="payamName" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onPayamChange($event)"></p-select>
+              <p-select [options]="payams" formControlName="payamName" placeholder="--Select--" class="w-100" [filter]="true" appendTo="body" (onChange)="onPayamChange($event)"></p-select>
               <small class="text-danger" *ngIf="grievanceForm.get('payamName')?.invalid && (grievanceForm.get('payamName')?.touched || grievanceForm.get('payamName')?.dirty)">Payam is required</small>
             </div>
             <div class="col-md-3">
               <label class="form-label fw-bold">Boma/Quarter Council Name <span class="text-danger">*</span></label>
-              <p-select [options]="bomas" formControlName="bomaName" placeholder="--Select--" class="w-100" [filter]="true"></p-select>
+              <p-select [options]="bomas" formControlName="bomaName" placeholder="--Select--" class="w-100" [filter]="true" appendTo="body"></p-select>
               <small class="text-danger" *ngIf="grievanceForm.get('bomaName')?.invalid && (grievanceForm.get('bomaName')?.touched || grievanceForm.get('bomaName')?.dirty)">Boma is required</small>
             </div>
           </div>
@@ -62,19 +64,21 @@
           <hr>
           <div class="row g-3">
             <div class="col-12">
-              <label class="form-label fw-bold">Description of Complaint / Allegation / Issue</label>
+              <label class="form-label fw-bold">Description of Complaint / Allegation / Issue <span class="text-danger">*</span></label>
               <p class="small text-muted mb-2">(Include English translation of local language submission if applicable)</p>
               <textarea pTextarea formControlName="description" rows="4" class="w-100" placeholder="Type complaint details here..."></textarea>
+              <small class="text-danger" *ngIf="grievanceForm.get('description')?.invalid && (grievanceForm.get('description')?.touched || grievanceForm.get('description')?.dirty)">Description is required</small>
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-bold">Attachment</label>
+              <label class="form-label fw-bold">Attachment <span class="text-danger">*</span></label>
               <div class="file-upload-wrapper border rounded-2 p-1 bg-light">
                  <input type="file" (change)="onFileSelect($event)" class="form-control form-control-sm border-0 bg-transparent" />
               </div>
+              <small class="text-danger d-block mt-1" *ngIf="grievanceForm.get('attachment')?.invalid && (grievanceForm.get('attachment')?.touched || grievanceForm.get('attachment')?.dirty)">Attachment is required</small>
             </div>
             <div class="col-md-3">
               <label class="form-label fw-bold">Reporting Channel <span class="text-danger">*</span></label>
-              <p-select [options]="reportingChannels" formControlName="reportingChannel" placeholder="--Select--" class="w-100"></p-select>
+              <p-select [options]="reportingChannels" formControlName="reportingChannel" placeholder="--Select--" class="w-100" appendTo="body"></p-select>
               <small class="text-danger" *ngIf="grievanceForm.get('reportingChannel')?.invalid && (grievanceForm.get('reportingChannel')?.touched || grievanceForm.get('reportingChannel')?.dirty)">Reporting channel is required</small>
             </div>
             <div class="col-md-3" *ngIf="isOtherReportingChannelSelected()">
@@ -82,7 +86,7 @@
               <input type="text" pInputText formControlName="otherReportingChannel" class="w-100" />
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-bold">Date Complaint *</label>
+              <label class="form-label fw-bold">Date Complaint <span class="text-danger">*</span></label>
               <p-datepicker formControlName="dateComplaint" [showIcon]="true" appendTo="body" class="w-100" dateFormat="mm/dd/yy"></p-datepicker>
               <small class="text-danger" *ngIf="grievanceForm.get('dateComplaint')?.invalid && (grievanceForm.get('dateComplaint')?.touched || grievanceForm.get('dateComplaint')?.dirty)">Complaint date is required</small>
             </div>
@@ -104,7 +108,7 @@
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Gender</label>
-              <p-select [options]="genders" formControlName="gender" placeholder="--Select--" class="w-100"></p-select>
+              <p-select [options]="genders" formControlName="gender" placeholder="--Select--" class="w-100" appendTo="body"></p-select>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Contact Number</label>
@@ -112,7 +116,24 @@
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold d-block mb-2">SNSOP Beneficiary</label>
-              <p-selectbutton [options]="beneficiaryOptions" formControlName="isBeneficiary" class="custom-selectbutton"></p-selectbutton>
+              <div class="yes-no-radio-group">
+                <div class="yes-no-option">
+                  <p-radiobutton
+                    inputId="nonGbvBeneficiaryYes"
+                    name="isBeneficiary"
+                    formControlName="isBeneficiary"
+                    [value]="true"></p-radiobutton>
+                  <label for="nonGbvBeneficiaryYes">Yes</label>
+                </div>
+                <div class="yes-no-option">
+                  <p-radiobutton
+                    inputId="nonGbvBeneficiaryNo"
+                    name="isBeneficiary"
+                    formControlName="isBeneficiary"
+                    [value]="false"></p-radiobutton>
+                  <label for="nonGbvBeneficiaryNo">No</label>
+                </div>
+              </div>
             </div>
             <div class="col-md-2">
               <label class="form-label fw-bold">Age</label>
@@ -133,22 +154,25 @@
           </h5>
           <hr>
           <div class="row g-3">
-            <div class="col-md-3">
-              <label class="form-label fw-bold">Support Type</label>
-              <p-select [options]="supportTypes" formControlName="supportType" placeholder="--Select--" class="w-100"></p-select>
+            <div class="col-md-3" *ngIf="isBeneficiarySelected()">
+              <label class="form-label fw-bold">Support Type <span class="text-danger">*</span></label>
+              <p-select [options]="supportTypes" formControlName="supportType" placeholder="--Select--" class="w-100" appendTo="body"></p-select>
+              <small class="text-danger" *ngIf="grievanceForm.get('supportType')?.invalid && (grievanceForm.get('supportType')?.touched || grievanceForm.get('supportType')?.dirty)">Support type is required</small>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-bold">Category of Grievance <span class="text-danger">*</span></label>
-              <p-select [options]="categories" formControlName="categoryOfGrievance" placeholder="--Select--" class="w-100" (onChange)="onCategoryChange($event)"></p-select>
-              <small class="text-danger" *ngIf="grievanceForm.get('categoryOfGrievance')?.invalid && (grievanceForm.get('categoryOfGrievance')?.touched || grievanceForm.get('categoryOfGrievance')?.dirty)">Category of grievance is required</small>
+              <label class="form-label fw-bold">Category of Grievance (grievanceTypeId) <span class="text-danger">*</span></label>
+              <p-select [options]="categories" formControlName="categoryOfGrievance" placeholder="--Select--" class="w-100" appendTo="body" (onChange)="onCategoryChange($event)"></p-select>
+              <small class="text-danger" *ngIf="grievanceForm.get('categoryOfGrievance')?.invalid && (grievanceForm.get('categoryOfGrievance')?.touched || grievanceForm.get('categoryOfGrievance')?.dirty)">grievanceTypeId is required</small>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-bold">Type of Grievance</label>
-              <p-select [options]="grievanceTypes" formControlName="typeOfGrievance" placeholder="--Select--" class="w-100" (onChange)="onTypeChange($event)"></p-select>
+              <label class="form-label fw-bold">Type of Grievance <span class="text-danger">*</span></label>
+              <p-select [options]="grievanceTypes" formControlName="typeOfGrievance" placeholder="--Select--" class="w-100" appendTo="body" (onChange)="onTypeChange($event)"></p-select>
+              <small class="text-danger" *ngIf="grievanceForm.get('typeOfGrievance')?.invalid && (grievanceForm.get('typeOfGrievance')?.touched || grievanceForm.get('typeOfGrievance')?.dirty)">Type of grievance is required</small>
             </div>
             <div class="col-md-3">
               <label class="form-label fw-bold">Type Of Grievance (Other)</label>
               <input type="text" pInputText formControlName="typeOfGrievanceOther" class="w-100" />
+              <small class="text-danger" *ngIf="grievanceForm.get('typeOfGrievanceOther')?.invalid && (grievanceForm.get('typeOfGrievanceOther')?.touched || grievanceForm.get('typeOfGrievanceOther')?.dirty)">Other grievance type is required</small>
             </div>
           </div>
         </div>
@@ -162,3 +186,47 @@
     </div>
   </div>
 </div>
+
+<p-dialog
+  header="Non-GBV Issue Saved"
+  [(visible)]="displaySavedIssueDialog"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '52rem', maxWidth: '96vw' }">
+  <div class="mb-3">
+    <p class="mb-2 fw-bold text-success">
+      <i class="bi bi-check-circle-fill me-1"></i>
+      Issue saved successfully.
+    </p>
+    <p class="mb-0 text-muted">Saved issue details and related information are listed below.</p>
+  </div>
+
+  <div class="table-responsive border rounded">
+    <table class="table table-sm table-striped mb-0">
+      <tbody>
+        @for (row of savedIssueSummary; track row.label) {
+        <tr>
+          <th style="width: 40%;">{{ row.label }}</th>
+          <td>{{ row.value }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="d-flex justify-content-end gap-2 mt-3">
+    <p-button
+      label="Download PDF"
+      icon="pi pi-download"
+      severity="secondary"
+      styleClass="p-button-sm"
+      (onClick)="downloadSavedIssuePdf()"></p-button>
+    <p-button
+      label="Close"
+      icon="pi pi-times"
+      styleClass="p-button-sm"
+      (onClick)="displaySavedIssueDialog = false"></p-button>
+  </div>
+</p-dialog>
