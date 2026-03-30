@@ -1,3 +1,12 @@
+@if (isLoading) {
+  <div class="loading-overlay">
+    <div class="loading-spinner">
+      <i class="pi pi-spin pi-spinner"></i>
+      <p>Submitting grievance...</p>
+    </div>
+  </div>
+}
+
 <div class="breadcrumb-wrapper">
   <p-breadcrumb class="w-100" [model]="items" [home]="home"></p-breadcrumb>
 </div>
