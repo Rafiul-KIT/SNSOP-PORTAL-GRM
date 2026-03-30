@@ -9,8 +9,7 @@
   --value-border: #b8c4d4;
   --focus-border: #2d6cc2;
   --focus-ring: rgba(18, 83, 173, 0.18);
-  display: block;
-  background: #ffffff;
+ 
 }
 
 .container {
@@ -30,8 +29,8 @@
 
   .card-header {
     border-radius: 12px 12px 0 0 !important;
-    background: linear-gradient(135deg, #234d86 0%, #1a3f71 100%) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+     background: #f8f8f8 !important;
+    border-bottom: 1px solid rgba(168, 168, 168, 0.22);
     padding: 0.95rem 1.35rem;
 
     h4 {
@@ -105,6 +104,21 @@
 .section-block p.text-break {
   min-height: 92px;
   align-items: flex-start;
+}
+
+.attachment-btn {
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+}
+
+.attachment-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .btn.btn-outline-primary {

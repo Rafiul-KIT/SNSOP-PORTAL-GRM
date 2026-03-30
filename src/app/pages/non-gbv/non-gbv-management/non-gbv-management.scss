@@ -9,8 +9,7 @@
   --focus-ring: rgba(18, 83, 173, 0.18);
   --focus-border: #2d6cc2;
   --soft-text: #5f6f84;
-  display: block;
-  background: #ffffff;
+ 
 }
 
 .container {
@@ -30,8 +29,8 @@
 
   .card-header {
     border-radius: 12px 12px 0 0 !important;
-    background: #059669 !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+   background: #f8f8f8 !important;
+    border-bottom: 1px solid rgba(122, 122, 122, 0.22);
     padding: 0.95rem 1.35rem;
 
     h4 {

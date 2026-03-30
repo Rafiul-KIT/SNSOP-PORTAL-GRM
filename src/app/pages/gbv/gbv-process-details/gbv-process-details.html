@@ -7,7 +7,7 @@
 
 <div class="container mt-4">
   <div class="card shadow-sm mb-5">
-    <div class="card-header bg-primary text-white py-3">
+    <div class="card-header bg-primary text-secondary py-3">
       <h4 class="mb-0 fw-bold">
         <i class="pi pi-cog me-2"></i>
         Process GBV Grievance
@@ -17,7 +17,7 @@
 
     <div class="card-body p-4">
       <div class="section-block mb-4">
-        <h5 class="section-title fw-bold text-primary mb-3">
+        <h5 class="section-title fw-bold text-secondary mb-3">
           <i class="pi pi-info-circle me-2"></i>
           General Information
         </h5>
@@ -71,7 +71,7 @@
       </div>
 
       <div class="section-block mb-4">
-        <h5 class="section-title fw-bold text-primary mb-3">
+        <h5 class="section-title fw-bold text-secondary mb-3">
           <i class="pi pi-user me-2"></i>
           Survivor Information
         </h5>
@@ -101,7 +101,7 @@
       </div>
 
       <div class="section-block mb-4">
-        <h5 class="section-title fw-bold text-primary mb-3">
+        <h5 class="section-title fw-bold text-secondary mb-3">
           <i class="pi pi-comments me-2"></i>
           Incident Details
         </h5>
@@ -122,16 +122,18 @@
           <div class="col-md-4" *ngIf="grievanceDetails.grievanceAttachmentUrl">
             <label class="form-label fw-bold">Grievance Attachment:</label>
             <div>
-              <button class="btn btn-sm btn-outline-primary" (click)="downloadGrievanceAttachment()" [disabled]="isGrievanceAttachmentDownloading">
-                <i class="pi pi-download me-2"></i>{{ isGrievanceAttachmentDownloading ? 'Downloading...' : (grievanceDetails.grievanceAttachmentFilename || 'Download') }}
+              <button class="btn btn-sm btn-outline-primary attachment-btn" (click)="downloadGrievanceAttachment()" [disabled]="isGrievanceAttachmentDownloading" [title]="grievanceDetails.grievanceAttachmentFilename || 'Download'">
+                <i class="pi pi-download me-2"></i>
+                <span class="attachment-name">{{ isGrievanceAttachmentDownloading ? 'Downloading...' : (grievanceDetails.grievanceAttachmentFilename || 'Download') }}</span>
               </button>
             </div>
           </div>
           <div class="col-md-4" *ngIf="grievanceDetails.consentFormAttachmentUrl">
             <label class="form-label fw-bold">Consent Form:</label>
             <div>
-              <button class="btn btn-sm btn-outline-primary" (click)="downloadConsentFormAttachment()" [disabled]="isConsentFormAttachmentDownloading">
-                <i class="pi pi-download me-2"></i>{{ isConsentFormAttachmentDownloading ? 'Downloading...' : (grievanceDetails.consentFormAttachmentFilename || 'Download') }}
+              <button class="btn btn-sm btn-outline-primary attachment-btn" (click)="downloadConsentFormAttachment()" [disabled]="isConsentFormAttachmentDownloading" [title]="grievanceDetails.consentFormAttachmentFilename || 'Download'">
+                <i class="pi pi-download me-2"></i>
+                <span class="attachment-name">{{ isConsentFormAttachmentDownloading ? 'Downloading...' : (grievanceDetails.consentFormAttachmentFilename || 'Download') }}</span>
               </button>
             </div>
           </div>
@@ -139,7 +141,7 @@
       </div>
 
       <div class="section-block mb-4">
-        <h5 class="section-title fw-bold text-primary mb-3">
+        <h5 class="section-title fw-bold text-secondary mb-3">
           <i class="pi pi-history me-2"></i>
           Process History
         </h5>
@@ -193,7 +195,7 @@
       </div>
 
       <div class="section-block mb-4">
-        <h5 class="section-title fw-bold text-primary mb-3">
+        <h5 class="section-title fw-bold text-secondary mb-3">
           <i class="pi pi-briefcase me-2"></i>
           Complaint Process
         </h5>
@@ -243,7 +245,7 @@
 >
   <form [formGroup]="processForm" class="mt-3">
     <div class="section-block mb-4">
-      <h5 class="section-title fw-bold text-primary mb-3">
+      <h5 class="section-title fw-bold text-secondary mb-3">
         <i class="pi pi-comments me-2"></i>
         Follow-up Action
       </h5>
@@ -260,7 +262,7 @@
     </div>
 
     <div class="section-block mb-4">
-      <h5 class="section-title fw-bold text-primary mb-3">
+      <h5 class="section-title fw-bold text-secondary mb-3">
         <i class="pi pi-building me-2"></i>
         Management/HR Reporting
       </h5>
@@ -277,7 +279,7 @@
     </div>
 
     <div class="section-block mb-4">
-      <h5 class="section-title fw-bold text-primary mb-3">
+      <h5 class="section-title fw-bold text-secondary mb-3">
         <i class="pi pi-heart me-2"></i>
         Survivor Feedback
       </h5>
@@ -298,7 +300,7 @@
     </div>
 
     <div class="section-block mb-2">
-      <h5 class="section-title fw-bold text-primary mb-3">
+      <h5 class="section-title fw-bold text-secondary mb-3">
         <i class="pi pi-flag me-2"></i>
         Outcome
       </h5>

@@ -18,7 +18,7 @@
       <div class="card-body p-4">
         <!-- General Information Section -->
         <div class="section-block mb-4">
-          <h5 class="section-title fw-bold text-primary mb-3">
+          <h5 class="section-title fw-bold text-secondary mb-3">
             <i class="bi bi-info-circle-fill me-2"></i>
             General Information
           </h5>
@@ -66,7 +66,7 @@
 
         <!-- Survivor Information Section -->
         <div class="section-block mb-4">
-          <h5 class="section-title fw-bold text-primary mb-3">
+          <h5 class="section-title fw-bold text-secondary mb-3">
             <i class="bi bi-person-badge-fill me-2"></i>
             Survivor Information
           </h5>
@@ -97,7 +97,7 @@
 
         <!-- Suspect & Referral Information Section -->
         <div class="section-block mb-4">
-          <h5 class="section-title fw-bold text-primary mb-3">
+          <h5 class="section-title fw-bold text-secondary mb-3">
             <i class="bi bi-shield-lock-fill me-2"></i>
             Suspect & Referral Information
           </h5>
@@ -124,7 +124,7 @@
 
         <!-- Consent Information Section -->
         <div class="section-block mb-4">
-          <h5 class="section-title fw-bold text-primary mb-3">
+          <h5 class="section-title fw-bold text-secondary mb-3">
             <i class="bi bi-file-check-fill me-2"></i>
             Consent Information
           </h5>
@@ -141,8 +141,9 @@
             <div class="col-md-4" *ngIf="grievanceDetails.consentFormAttachmentUrl">
               <label class="form-label fw-bold">Consent Form:</label>
               <div>
-                <button class="btn btn-sm btn-outline-primary" (click)="downloadConsentFormAttachment()" [disabled]="isConsentFormAttachmentDownloading">
-                  <i class="fas fa-download me-2"></i> {{ isConsentFormAttachmentDownloading ? 'Downloading...' : (grievanceDetails.consentFormAttachmentFilename || 'Download Consent Form') }}
+                <button class="btn btn-sm btn-outline-primary attachment-btn" (click)="downloadConsentFormAttachment()" [disabled]="isConsentFormAttachmentDownloading" [title]="grievanceDetails.consentFormAttachmentFilename || 'Download Consent Form'">
+                  <i class="fas fa-download me-2"></i>
+                  <span class="attachment-name">{{ isConsentFormAttachmentDownloading ? 'Downloading...' : (grievanceDetails.consentFormAttachmentFilename || 'Download Consent Form') }}</span>
                 </button>
               </div>
             </div>
@@ -151,7 +152,7 @@
 
         <!-- Incident Details Section -->
         <div class="section-block mb-4">
-          <h5 class="section-title fw-bold text-primary mb-3">
+          <h5 class="section-title fw-bold text-secondary mb-3">
             <i class="bi bi-chat-left-text-fill me-2"></i>
             Incident Details
           </h5>
@@ -172,8 +173,9 @@
             <div class="col-md-4" *ngIf="grievanceDetails.grievanceAttachmentUrl">
               <label class="form-label fw-bold">Attachment:</label>
               <div>
-                <button class="btn btn-sm btn-outline-primary" (click)="downloadGrievanceAttachment()" [disabled]="isGrievanceAttachmentDownloading">
-                  <i class="fas fa-download me-2"></i> {{ isGrievanceAttachmentDownloading ? 'Downloading...' : (grievanceDetails.grievanceAttachmentFilename || 'Download Attachment') }}
+                <button class="btn btn-sm btn-outline-primary attachment-btn" (click)="downloadGrievanceAttachment()" [disabled]="isGrievanceAttachmentDownloading" [title]="grievanceDetails.grievanceAttachmentFilename || 'Download Attachment'">
+                  <i class="fas fa-download me-2"></i>
+                  <span class="attachment-name">{{ isGrievanceAttachmentDownloading ? 'Downloading...' : (grievanceDetails.grievanceAttachmentFilename || 'Download Attachment') }}</span>
                 </button>
               </div>
             </div>
