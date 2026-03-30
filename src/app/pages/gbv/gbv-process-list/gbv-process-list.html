@@ -95,7 +95,7 @@
         <td class="text-center">{{ formatDisplayDate(item.createdAt) }}</td>
         <!-- <td class="text-center">{{ item.complainantName }}</td> -->
         <td class="text-center">{{ item.reportingChannel }}</td>
-        <td class="text-center">{{ item.isComplainantBeneficiary === 'YES' ? 'Beneficiary' : 'Non-Beneficiary' }}</td>
+        <td class="text-center">{{ item.isComplainantBeneficiary === 'LIPW' ? 'LIPW' : 'Complainant' }}</td>
         <td class="text-center">
           <span [class]="'badge ' + getStatusBadgeClass(item.status)">
             {{ getStatusLabel(item.status) }}
