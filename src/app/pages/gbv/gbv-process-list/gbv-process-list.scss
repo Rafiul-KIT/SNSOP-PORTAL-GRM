@@ -1,0 +1,93 @@
+:host {
+  --page-bg: #eef1f4;
+  --card-bg: #f7f9fc;
+  --card-border: #c7d0db;
+  --control-border: #b8c4d4;
+  --focus-border: #2d6cc2;
+  --focus-ring: rgba(18, 83, 173, 0.18);
+}
+
+:host {
+  display: block;
+  background: #ffffff;
+  min-height: 100%;
+  padding-bottom: 1rem;
+}
+
+.breadcrumb-wrapper {
+  background: #e7f1ff;
+  padding: 0.1rem 1rem;
+  border-bottom: 1px solid #dce3ea;
+  margin-bottom: 0.8rem;
+}
+
+.card {
+  border: 1px solid var(--card-border) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, #f7f9fc 0%, #f0f3f7 100%);
+  box-shadow: 0 10px 22px rgba(25, 47, 79, 0.06) !important;
+}
+
+:host ::ng-deep .p-floatlabel {
+  width: 100%;
+}
+
+:host ::ng-deep .p-inputtext,
+:host ::ng-deep .p-select {
+  width: 100% !important;
+  min-height: 41px !important;
+  border-radius: 6px !important;
+  border: 1px solid var(--control-border) !important;
+  background: #ffffff !important;
+}
+
+:host ::ng-deep .p-inputtext:focus,
+:host ::ng-deep .p-select.p-focus {
+  border-color: var(--focus-border) !important;
+  box-shadow: 0 0 0 0.18rem var(--focus-ring) !important;
+}
+
+:host ::ng-deep .p-select-overlay {
+  z-index: 1300 !important;
+}
+
+:host ::ng-deep .p-datatable {
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background: #eef2f6;
+  color: #1c3656;
+  font-weight: 700;
+  border-color: #d3dce7;
+  font-size: 0.84rem;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+  border-color: #e0e6ef;
+  font-size: 0.86rem;
+  color: #233b57;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr:nth-child(even) {
+  background: #fafcff;
+}
+
+:host ::ng-deep .p-paginator {
+  border: 1px solid #d3dce7;
+  border-radius: 10px;
+  background: #f8fbff;
+  margin-top: 0.55rem;
+}
+
+:host ::ng-deep .badge.bg-warning {
+  color: #27323f !important;
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 0.75rem !important;
+  }
+}

@@ -9,6 +9,8 @@
   --focus-ring: rgba(18, 83, 173, 0.18);
   --focus-border: #2d6cc2;
   --soft-text: #5f6f84;
+  display: block;
+  background: #ffffff;
 }
 
 .container {
@@ -16,8 +18,8 @@
 }
 
 .breadcrumb-wrapper {
-  background: #f5f7fa;
-  padding: 0.5rem 1rem;
+  background: #e7f1ff;
+  padding: 0.1rem 1rem;
   border-bottom: 1px solid #dce3ea;
 }
 
@@ -28,7 +30,7 @@
 
   .card-header {
     border-radius: 12px 12px 0 0 !important;
-    background: linear-gradient(135deg, #234d86 0%, #1a3f71 100%) !important;
+    background: #059669 !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.22);
     padding: 0.95rem 1.35rem;
 
@@ -229,12 +231,12 @@ small.text-danger {
   }
 
   .p-button.p-button-primary {
-    background: linear-gradient(135deg, #2e6cbe 0%, #24579a 100%) !important;
-    border-color: #24579a !important;
+    background: #059669 !important;
+    border-color: #048b61 !important;
 
     &:hover {
-      background: linear-gradient(135deg, #2a64b0 0%, #214f8c 100%) !important;
-      border-color: #214f8c !important;
+      background: #059669 !important;
+      border-color: #048b61 !important;
     }
   }
 }
