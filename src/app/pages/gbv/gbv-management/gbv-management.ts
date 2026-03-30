@@ -112,7 +112,7 @@ export class GBVManagement implements OnInit, OnDestroy {
       countyId: [null, Validators.required],
       payamId: [null, Validators.required],
       bomaId: [null, Validators.required],
-      incidentOccurredAt: [null, [Validators.required, this.noFutureDateValidator()]],
+      incidentOccurredAt: [this.today, [Validators.required, this.noFutureDateValidator()]],
 
       contactFocalPersonName: ['', [Validators.required, this.trimRequiredValidator(), Validators.maxLength(120)]],
       incidentReportedBy: [null],
@@ -756,6 +756,7 @@ export class GBVManagement implements OnInit, OnDestroy {
   onReset(): void {
     this.gbvForm.reset({
       id: 0,
+      incidentOccurredAt: this.today,
       complainantBeneficiary: null,
       verbalConsentGranted: null,
       consentSigned: null,
