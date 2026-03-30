@@ -27,16 +27,114 @@
   <p-tabs [(value)]="activeTab" class="dashboard-tabs">
     <p-tablist>
       <p-tab value="0">
+        <i class="bi bi-collection tab-icon"></i>
+        All Grievances
+      </p-tab>
+      <p-tab value="1">
         <i class="bi bi-file-earmark-text tab-icon"></i>
         Non-GBV Grievances
       </p-tab>
-      <p-tab value="1">
+      <p-tab value="2">
         <i class="bi bi-shield-exclamation tab-icon"></i>
         GBV Grievances
       </p-tab>
     </p-tablist>
 
     <p-tabpanels>
+      <!-- Combined Tab Panel -->
+      <p-tabpanel value="2">
+        <div class="tab-content">
+          <div class="stats-grid">
+            <div class="stat-card stat-card--primary">
+              <div class="stat-card__icon">
+                <i class="bi bi-collection"></i>
+              </div>
+              <div class="stat-card__info">
+                <span class="stat-card__title">Total Grievances</span>
+                <span class="stat-card__value">{{ allTotalCases }}</span>
+              </div>
+            </div>
+            <div class="stat-card stat-card--warning">
+              <div class="stat-card__icon">
+                <i class="bi bi-hourglass-split"></i>
+              </div>
+              <div class="stat-card__info">
+                <span class="stat-card__title">Pending</span>
+                <span class="stat-card__value">{{ allPendingCases }}</span>
+              </div>
+            </div>
+            <div class="stat-card stat-card--success">
+              <div class="stat-card__icon">
+                <i class="bi bi-check-circle"></i>
+              </div>
+              <div class="stat-card__info">
+                <span class="stat-card__title">Resolved</span>
+                <span class="stat-card__value">{{ allResolvedCases }}</span>
+              </div>
+            </div>
+            <div class="stat-card stat-card--info">
+              <div class="stat-card__icon">
+                <i class="bi bi-clock-history"></i>
+              </div>
+              <div class="stat-card__info">
+                <span class="stat-card__title">Resolved %</span>
+                <span class="stat-card__value">{{ formatPercentage(allResolvedPercentage) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="charts-row">
+            <div class="chart-card">
+              <div class="chart-card__header">
+                <h3 class="chart-card__title">
+                  <span class="chart-icon chart-icon--indigo"><i class="bi bi-pie-chart"></i></span>
+                  Grievances by Status
+                </h3>
+              </div>
+              <div class="chart-card__body">
+                @if (hasChartData(allStatusChartData)) {
+                <p-chart type="pie" [data]="allStatusChartData" [options]="chartOptions"></p-chart>
+                } @else {
+                <p class="no-data">No data available</p>
+                }
+              </div>
+            </div>
+
+            <div class="chart-card chart-card--wide">
+              <div class="chart-card__header">
+                <h3 class="chart-card__title">
+                  <span class="chart-icon chart-icon--blue"><i class="bi bi-geo-alt"></i></span>
+                  Top 10 Locations by Grievances
+                </h3>
+              </div>
+              <div class="chart-card__body">
+                @if (hasChartData(allLocationChartData)) {
+                <p-chart type="bar" [data]="allLocationChartData" [options]="locationBarChartOptions"></p-chart>
+                } @else {
+                <p class="no-data">No data available</p>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-card chart-card--full">
+            <div class="chart-card__header">
+              <h3 class="chart-card__title">
+                <span class="chart-icon chart-icon--amber"><i class="bi bi-stopwatch"></i></span>
+                Avg Resolution Time by Location
+              </h3>
+            </div>
+            <div class="chart-card__body">
+              @if (hasChartData(allResolutionChartData)) {
+              <p-chart type="bar" [data]="allResolutionChartData" [options]="barChartOptions"></p-chart>
+              } @else {
+              <p class="no-data">No data available</p>
+              }
+            </div>
+          </div>
+        </div>
+      </p-tabpanel>
+
       <!-- NGBV Tab Panel -->
       <p-tabpanel value="0">
         <div class="tab-content">
@@ -74,8 +172,8 @@
                 <i class="bi bi-clock-history"></i>
               </div>
               <div class="stat-card__info">
-                <span class="stat-card__title">Avg Resolution</span>
-                <span class="stat-card__value">{{ formatResolutionTime(ngbvAvgResolutionTime) }}</span>
+                <span class="stat-card__title">Resolved %</span>
+                <span class="stat-card__value">{{ formatPercentage(ngbvResolvedPercentage) }}</span>
               </div>
             </div>
           </div>
@@ -92,7 +190,7 @@
               </div>
               <div class="chart-card__body">
                 @if (hasChartData(ngbvStatusChartData)) {
-                <p-chart type="doughnut" [data]="ngbvStatusChartData" [options]="chartOptions"></p-chart>
+                <p-chart type="pie" [data]="ngbvStatusChartData" [options]="chartOptions"></p-chart>
                 } @else {
                 <p class="no-data">No data available</p>
                 }
@@ -187,8 +285,8 @@
                 <i class="bi bi-clock-history"></i>
               </div>
               <div class="stat-card__info">
-                <span class="stat-card__title">Avg Resolution</span>
-                <span class="stat-card__value">{{ formatResolutionTime(gbvAvgResolutionTime) }}</span>
+                <span class="stat-card__title">Resolved %</span>
+                <span class="stat-card__value">{{ formatPercentage(gbvResolvedPercentage) }}</span>
               </div>
             </div>
           </div>
@@ -205,7 +303,7 @@
               </div>
               <div class="chart-card__body">
                 @if (hasChartData(gbvStatusChartData)) {
-                <p-chart type="doughnut" [data]="gbvStatusChartData" [options]="chartOptions"></p-chart>
+                <p-chart type="pie" [data]="gbvStatusChartData" [options]="chartOptions"></p-chart>
                 } @else {
                 <p class="no-data">No data available</p>
                 }

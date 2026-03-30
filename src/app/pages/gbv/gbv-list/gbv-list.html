@@ -97,7 +97,7 @@
         <td class="text-center">{{ item.incidentOccurredAtDisplay }}</td>
         <!-- <td class="text-center">{{ item.complainantName }}</td> -->
         <td class="text-center">{{ item.reportingChannel }}</td>
-        <td class="text-center">{{ item.beneficiaryStatus }}</td>
+        <td class="text-center">{{ item.beneficiaryStatus === 'LIPW' ? 'LIPW' : 'Complainant' }}</td>
         <td class="text-center">
           <span [class]="'badge ' + item.statusBadgeClass">
             {{ item.statusLabel }}

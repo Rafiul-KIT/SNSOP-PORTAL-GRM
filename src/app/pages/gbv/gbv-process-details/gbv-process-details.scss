@@ -1,3 +1,183 @@
+:host {
+  --page-bg: #eef1f4;
+  --panel-bg: #f6f8fb;
+  --panel-border: #c8d0da;
+  --title-color: #162538;
+  --label-color: #4a6280;
+  --value-text: #13243a;
+  --value-bg: #ffffff;
+  --value-border: #b8c4d4;
+  --focus-border: #2d6cc2;
+  --focus-ring: rgba(18, 83, 173, 0.18);
+  display: block;
+  background: #ffffff;
+}
+
+.container {
+  max-width: 1240px;
+}
+
+.breadcrumb-wrapper {
+  background: #e7f1ff;
+  padding: 0.1rem 1rem;
+  border-bottom: 1px solid #dce3ea;
+}
+
+.card {
+  border: 1px solid #c7d0db !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, #f7f9fc 0%, #f0f3f7 100%);
+
+  .card-header {
+    border-radius: 12px 12px 0 0 !important;
+    background: linear-gradient(135deg, #234d86 0%, #1a3f71 100%) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+    padding: 0.95rem 1.35rem;
+
+    h4 {
+      font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+      letter-spacing: 0.2px;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+  }
+
+  .card-body {
+    padding: 1.35rem;
+  }
+}
+
+.section-block {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.section-title {
+  margin: 0 !important;
+  padding: 0.72rem 1rem;
+  border-bottom: 1px solid #cfd7e1;
+  background: #eef2f6;
+  color: var(--title-color);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+
+  i {
+    font-size: 1.05rem;
+    color: #365f97;
+  }
+}
+
+.section-block > hr {
+  display: none;
+}
+
+.section-block > .row {
+  margin: 0 !important;
+  padding: 0.9rem 1rem 1rem;
+}
+
+.form-label {
+  margin-bottom: 0.24rem;
+  font-size: 0.77rem;
+  font-weight: 600;
+  color: var(--label-color);
+  letter-spacing: 0.2px;
+}
+
+.section-block p {
+  margin: 0;
+  min-height: 41px;
+  padding: 0.56rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--value-border);
+  background: var(--value-bg);
+  color: var(--value-text);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  display: flex;
+  align-items: center;
+}
+
+.section-block p.text-break {
+  min-height: 92px;
+  align-items: flex-start;
+}
+
+.btn.btn-outline-primary {
+  border-radius: 6px;
+  border-color: #3e72b8;
+  color: #275997;
+  font-weight: 600;
+
+  &:hover {
+    background: #2f65ac;
+    border-color: #2f65ac;
+    color: #fff;
+  }
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.hover-shadow:hover {
+  box-shadow: 0 12px 24px rgba(21, 45, 78, 0.14) !important;
+  border-color: #88a6cc !important;
+}
+
+:host ::ng-deep .p-inputtext,
+:host ::ng-deep .p-select,
+:host ::ng-deep .p-datepicker .p-inputtext,
+:host ::ng-deep .p-textarea {
+  width: 100% !important;
+  border-radius: 6px !important;
+  border: 1px solid var(--value-border) !important;
+  background: #ffffff !important;
+}
+
+:host ::ng-deep .p-inputtext,
+:host ::ng-deep .p-select,
+:host ::ng-deep .p-datepicker .p-inputtext {
+  min-height: 41px !important;
+}
+
+:host ::ng-deep .p-inputtext:focus,
+:host ::ng-deep .p-select.p-focus,
+:host ::ng-deep .p-datepicker .p-inputtext:focus,
+:host ::ng-deep .p-textarea:focus {
+  border-color: var(--focus-border) !important;
+  box-shadow: 0 0 0 0.18rem var(--focus-ring) !important;
+}
+
+:host ::ng-deep .p-select-overlay {
+  z-index: 1300 !important;
+}
+
+:host ::ng-deep .p-datatable {
+  border: 1px solid #d0d9e4;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background: #eef2f6;
+  color: #1c3656;
+  font-weight: 700;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+  font-size: 0.86rem;
+  color: #233b57;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-content {
+  background: #f9fbff;
+}
+
 :host ::ng-deep .download-progress-bar.p-progressbar {
   height: 0.85rem;
   background: #eaf7ee;
@@ -40,4 +220,18 @@
   margin: 0 0 0.85rem;
   color: #3d6951;
   font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .card .card-body {
+    padding: 0.95rem;
+  }
+
+  .section-title {
+    padding: 0.65rem 0.8rem;
+  }
+
+  .section-block > .row {
+    padding: 0.72rem 0.72rem 0.82rem;
+  }
 }

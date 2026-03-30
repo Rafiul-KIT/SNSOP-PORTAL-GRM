@@ -1,3 +1,147 @@
+:host {
+  --page-bg: #eef1f4;
+  --panel-bg: #f6f8fb;
+  --panel-border: #c8d0da;
+  --title-color: #162538;
+  --label-color: #4a6280;
+  --value-text: #13243a;
+  --value-bg: #ffffff;
+  --value-border: #b8c4d4;
+  display: block;
+  background: #ffffff;
+}
+.breadcrumb-wrapper {
+  background: #e7f1ff;
+  padding: 0.1rem 1rem;
+  border-bottom: 1px solid #dce3ea;
+}
+.container {
+  max-width: 1240px;
+}
+
+
+.card {
+  border: 1px solid #c7d0db !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, #f7f9fc 0%, #f0f3f7 100%);
+
+  .card-header {
+    border-radius: 12px 12px 0 0 !important;
+    background:  #f8f8f8  !important;
+    border-bottom: 1px solid rgba(110, 110, 110, 0.22) ;
+    padding: 0.95rem 1.35rem;
+
+    h4 {
+      font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+      letter-spacing: 0.2px;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+  }
+
+  .card-body {
+    padding: 1.35rem;
+  }
+}
+
+.section-block {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.section-title {
+  margin: 0 !important;
+  padding: 0.72rem 1rem;
+  border-bottom: 1px solid #cfd7e1;
+  background: #eef2f6;
+  color: var(--title-color);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+
+  i {
+    font-size: 1.05rem;
+    color: #365f97;
+  }
+}
+
+.section-block > hr {
+  display: none;
+}
+
+.section-block > .row {
+  margin: 0 !important;
+  padding: 0.9rem 1rem 1rem;
+}
+
+.form-label {
+  margin-bottom: 0.24rem;
+  font-size: 0.77rem;
+  font-weight: 600;
+  color: var(--label-color);
+  letter-spacing: 0.2px;
+}
+
+.section-block p {
+  margin: 0;
+  min-height: 41px;
+  padding: 0.56rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--value-border);
+  background: var(--value-bg);
+  color: var(--value-text);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  display: flex;
+  align-items: center;
+}
+
+.section-block p.text-break {
+  min-height: 94px;
+  align-items: flex-start;
+  white-space: pre-wrap;
+}
+
+.btn.btn-outline-primary {
+  border-radius: 6px;
+  border-color: #3e72b8;
+  color: #275997;
+  font-weight: 600;
+
+  &:hover {
+    background: #2f65ac;
+    border-color: #2f65ac;
+    color: #fff;
+  }
+}
+
+.badge.bg-secondary {
+  background: #4d6c92 !important;
+}
+
+@media (max-width: 992px) {
+  .section-block > .row {
+    padding: 0.8rem 0.85rem 0.9rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .card .card-body {
+    padding: 0.95rem;
+  }
+
+  .section-title {
+    padding: 0.65rem 0.8rem;
+  }
+
+  .section-block > .row {
+    padding: 0.72rem 0.72rem 0.82rem;
+  }
+}
+
 :host ::ng-deep .download-progress-bar.p-progressbar {
   height: 0.85rem;
   background: #eaf7ee;

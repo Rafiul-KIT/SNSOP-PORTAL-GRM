@@ -1,9 +1,18 @@
+@if (isLoading) {
+  <div class="loading-overlay">
+    <div class="loading-spinner">
+      <i class="pi pi-spin pi-spinner"></i>
+      <p>Submitting grievance...</p>
+    </div>
+  </div>
+}
+
 <div class="breadcrumb-wrapper">
   <p-breadcrumb class="w-100" [model]="items" [home]="home"></p-breadcrumb>
 </div>
 
 <div class="container mt-4">
-  <div class="card shadow-sm mb-5">
+  <div class="card shadow-sm ">
     <div class="card-header bg-primary text-white py-3">
       <h4 class="mb-0 fw-bold">
         <i class="bi bi-shield-exclamation me-2"></i>
@@ -12,7 +21,7 @@
     </div>
 
     <div class="card-body p-4">
-      <form [formGroup]="gbvForm" (ngSubmit)="onSubmit()">
+      <form class="gbv-form-theme" [formGroup]="gbvForm" (ngSubmit)="onSubmit()">
 
         <div class="section-block">
           <h5 class="section-title fw-bold text-primary mb-3">
@@ -31,30 +40,33 @@
                 Incident date is required
               </small>
             </div>
+          </div>
+
+          <div class="row g-3 mt-1">
             <div class="col-md-3">
               <label class="form-label fw-bold">State Name <span class="text-danger">*</span></label>
-              <p-select [options]="states" formControlName="stateId" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onStateChange($event)"></p-select>
+              <p-select [options]="states" formControlName="stateId" placeholder="--Select--" class="w-100" [filter]="true" appendTo="body" (onChange)="onStateChange($event)"></p-select>
               <small class="text-danger" *ngIf="gbvForm.get('stateId')?.invalid && (gbvForm.get('stateId')?.touched || gbvForm.get('stateId')?.dirty)">
                 State is required
               </small>
             </div>
             <div class="col-md-3">
               <label class="form-label fw-bold">County/Municipality Name <span class="text-danger">*</span></label>
-              <p-select [options]="counties" formControlName="countyId" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onCountyChange($event)"></p-select>
+              <p-select [options]="counties" formControlName="countyId" placeholder="--Select--" class="w-100" [filter]="true" appendTo="body" (onChange)="onCountyChange($event)"></p-select>
               <small class="text-danger" *ngIf="gbvForm.get('countyId')?.invalid && (gbvForm.get('countyId')?.touched || gbvForm.get('countyId')?.dirty)">
                 County is required
               </small>
             </div>
             <div class="col-md-3">
               <label class="form-label fw-bold">Payam/Block Name <span class="text-danger">*</span></label>
-              <p-select [options]="payams" formControlName="payamId" placeholder="--Select--" class="w-100" [filter]="true" (onChange)="onPayamChange($event)"></p-select>
+              <p-select [options]="payams" formControlName="payamId" placeholder="--Select--" class="w-100" [filter]="true" appendTo="body" (onChange)="onPayamChange($event)"></p-select>
               <small class="text-danger" *ngIf="gbvForm.get('payamId')?.invalid && (gbvForm.get('payamId')?.touched || gbvForm.get('payamId')?.dirty)">
                 Payam is required
               </small>
             </div>
             <div class="col-md-3">
               <label class="form-label fw-bold">Boma/Quarter Council Name <span class="text-danger">*</span></label>
-              <p-select [options]="bomas" formControlName="bomaId" placeholder="--Select--" class="w-100" [filter]="true"></p-select>
+              <p-select [options]="bomas" formControlName="bomaId" placeholder="--Select--" class="w-100" [filter]="true" appendTo="body"></p-select>
               <small class="text-danger" *ngIf="gbvForm.get('bomaId')?.invalid && (gbvForm.get('bomaId')?.touched || gbvForm.get('bomaId')?.dirty)">
                 Boma is required
               </small>
@@ -78,7 +90,7 @@
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Incident Reported By</label>
-              <p-select [options]="incidentReporters" formControlName="incidentReportedBy" placeholder="--Select--" class="w-100"></p-select>
+              <p-select [options]="incidentReporters" formControlName="incidentReportedBy" placeholder="--Select--" class="w-100" appendTo="body"></p-select>
             </div>
             <div class="col-md-4" *ngIf="isIncidentReporterOtherSelected()">
               <label class="form-label fw-bold">Incident Reported By (Other) <span class="text-danger">*</span></label>
@@ -89,7 +101,7 @@
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Reporting Channel <span class="text-danger">*</span></label>
-              <p-select [options]="reportingChannels" formControlName="reportingChannelId" placeholder="--Select--" class="w-100"></p-select>
+              <p-select [options]="reportingChannels" formControlName="reportingChannelId" placeholder="--Select--" class="w-100" appendTo="body"></p-select>
               <small class="text-danger" *ngIf="gbvForm.get('reportingChannelId')?.invalid && (gbvForm.get('reportingChannelId')?.touched || gbvForm.get('reportingChannelId')?.dirty)">
                 Reporting channel is required
               </small>
@@ -102,15 +114,15 @@
               </small>
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-bold">Complainant Contact Number</label>
-              <input type="text" pInputText formControlName="complainantContactNumber" class="w-100" inputmode="numeric" maxlength="15" (input)="onContactNumberInput($event)" />
+              <label class="form-label fw-bold">Complainant Contact Number <span class="text-danger">*</span></label>
+              <input type="text" pInputText formControlName="complainantContactNumber" class="w-100" inputmode="numeric" maxlength="10" (input)="onContactNumberInput($event)" />
               <small class="text-danger" *ngIf="gbvForm.get('complainantContactNumber')?.invalid && (gbvForm.get('complainantContactNumber')?.touched || gbvForm.get('complainantContactNumber')?.dirty)">
-                Enter valid numbers only (7–15 digits, optional + at start)
+                Enter numbers only (maximum 10 digits)
               </small>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Complainant Gender <span class="text-danger">*</span></label>
-              <p-select [options]="genders" formControlName="complainantGender" placeholder="--Select--" class="w-100"></p-select>
+              <p-select [options]="genders" formControlName="complainantGender" placeholder="--Select--" class="w-100" appendTo="body"></p-select>
               <small class="text-danger" *ngIf="gbvForm.get('complainantGender')?.invalid && (gbvForm.get('complainantGender')?.touched || gbvForm.get('complainantGender')?.dirty)">
                 Complainant gender is required
               </small>
@@ -124,14 +136,34 @@
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold d-block mb-2">Complainant Beneficiary <span class="text-danger">*</span></label>
-              <p-selectbutton [options]="beneficiaryOptions" formControlName="complainantBeneficiary" class="custom-selectbutton"></p-selectbutton>
+              <div class="yes-no-radio-group">
+                <div class="yes-no-option">
+                  <p-radiobutton
+                    inputId="complainantBeneficiaryYes"
+                    name="complainantBeneficiary"
+                    formControlName="complainantBeneficiary"
+                    [value]="true"></p-radiobutton>
+                  <label for="complainantBeneficiaryYes">Yes</label>
+                </div>
+                <div class="yes-no-option">
+                  <p-radiobutton
+                    inputId="complainantBeneficiaryNo"
+                    name="complainantBeneficiary"
+                    formControlName="complainantBeneficiary"
+                    [value]="false"></p-radiobutton>
+                  <label for="complainantBeneficiaryNo">No</label>
+                </div>
+              </div>
               <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('complainantBeneficiary')?.invalid && (gbvForm.get('complainantBeneficiary')?.touched || gbvForm.get('complainantBeneficiary')?.dirty)">
                 Please select Yes or No
               </small>
             </div>
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Beneficiary Selection Criteria</label>
-              <p-select [options]="selectionCriteriaOptions" formControlName="complainantBeneficiarySelectionCriteria" placeholder="--Select--" class="w-100"></p-select>
+            <div class="col-md-4" *ngIf="isComplainantBeneficiarySelected()">
+              <label class="form-label fw-bold">Beneficiary Selection Criteria <span class="text-danger">*</span></label>
+              <p-select [options]="selectionCriteriaOptions" formControlName="complainantBeneficiarySelectionCriteria" placeholder="--Select--" class="w-100" appendTo="body"></p-select>
+              <small class="text-danger" *ngIf="gbvForm.get('complainantBeneficiarySelectionCriteria')?.invalid && (gbvForm.get('complainantBeneficiarySelectionCriteria')?.touched || gbvForm.get('complainantBeneficiarySelectionCriteria')?.dirty)">
+                Beneficiary selection criteria is required
+              </small>
             </div>
           </div>
         </div>
@@ -144,11 +176,45 @@
           <div class="row g-3">
             <div class="col-md-4">
               <label class="form-label fw-bold d-block mb-2">Suspect Known</label>
-              <p-selectbutton [options]="yesNoOptions" formControlName="suspectKnown" class="custom-selectbutton"></p-selectbutton>
+              <div class="yes-no-radio-group">
+                <div class="yes-no-option">
+                  <p-radiobutton
+                    inputId="suspectKnownYes"
+                    name="suspectKnown"
+                    formControlName="suspectKnown"
+                    [value]="true"></p-radiobutton>
+                  <label for="suspectKnownYes">Yes</label>
+                </div>
+                <div class="yes-no-option">
+                  <p-radiobutton
+                    inputId="suspectKnownNo"
+                    name="suspectKnown"
+                    formControlName="suspectKnown"
+                    [value]="false"></p-radiobutton>
+                  <label for="suspectKnownNo">No</label>
+                </div>
+              </div>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold d-block mb-2">Suspect Associated With Project</label>
-              <p-selectbutton [options]="yesNoOptions" formControlName="suspectAssociatedWithProject" class="custom-selectbutton"></p-selectbutton>
+              <div class="yes-no-radio-group">
+                <div class="yes-no-option">
+                  <p-radiobutton
+                    inputId="suspectAssociatedYes"
+                    name="suspectAssociatedWithProject"
+                    formControlName="suspectAssociatedWithProject"
+                    [value]="true"></p-radiobutton>
+                  <label for="suspectAssociatedYes">Yes</label>
+                </div>
+                <div class="yes-no-option">
+                  <p-radiobutton
+                    inputId="suspectAssociatedNo"
+                    name="suspectAssociatedWithProject"
+                    formControlName="suspectAssociatedWithProject"
+                    [value]="false"></p-radiobutton>
+                  <label for="suspectAssociatedNo">No</label>
+                </div>
+              </div>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Recommended Referral Service (ID)</label>
@@ -186,33 +252,73 @@
           <hr>
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label fw-bold">Grievance Attachment</label>
+              <label class="form-label fw-bold">Grievance Attachment <span class="text-danger">*</span></label>
               <div class="file-upload-wrapper border rounded-2 p-1 bg-light">
                 <input type="file" (change)="onFileUpload($event, 'grievance')" class="form-control form-control-sm border-0 bg-transparent" />
               </div>
               <small class="text-success mt-1" *ngIf="grievanceAttachmentFile">
                 <i class="bi bi-check-circle-fill me-1"></i> {{ grievanceAttachmentFile.name }}
               </small>
+              <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('grievanceAttachmentFile')?.invalid && (gbvForm.get('grievanceAttachmentFile')?.touched || gbvForm.get('grievanceAttachmentFile')?.dirty)">
+                Grievance attachment is required
+              </small>
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-bold">Consent Form Attachment</label>
+              <label class="form-label fw-bold">Consent Form Attachment <span class="text-danger">*</span></label>
               <div class="file-upload-wrapper border rounded-2 p-1 bg-light">
                 <input type="file" (change)="onFileUpload($event, 'consent')" class="form-control form-control-sm border-0 bg-transparent" />
               </div>
               <small class="text-success mt-1" *ngIf="consentAttachmentFile">
                 <i class="bi bi-check-circle-fill me-1"></i> {{ consentAttachmentFile.name }}
               </small>
+              <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('consentFormAttachmentFile')?.invalid && (gbvForm.get('consentFormAttachmentFile')?.touched || gbvForm.get('consentFormAttachmentFile')?.dirty)">
+                Consent form attachment is required
+              </small>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold d-block mb-2">Verbal Consent Granted <span class="text-danger">*</span></label>
-              <p-selectbutton [options]="yesNoOptions" formControlName="verbalConsentGranted" class="custom-selectbutton"></p-selectbutton>
+              <div class="yes-no-radio-group">
+                <div class="yes-no-option">
+                  <p-radiobutton
+                    inputId="verbalConsentYes"
+                    name="verbalConsentGranted"
+                    formControlName="verbalConsentGranted"
+                    [value]="true"></p-radiobutton>
+                  <label for="verbalConsentYes">Yes</label>
+                </div>
+                <div class="yes-no-option">
+                  <p-radiobutton
+                    inputId="verbalConsentNo"
+                    name="verbalConsentGranted"
+                    formControlName="verbalConsentGranted"
+                    [value]="false"></p-radiobutton>
+                  <label for="verbalConsentNo">No</label>
+                </div>
+              </div>
               <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('verbalConsentGranted')?.invalid && (gbvForm.get('verbalConsentGranted')?.touched || gbvForm.get('verbalConsentGranted')?.dirty)">
                 Please select Yes or No
               </small>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold d-block mb-2">Consent Signed <span class="text-danger">*</span></label>
-              <p-selectbutton [options]="yesNoOptions" formControlName="consentSigned" class="custom-selectbutton"></p-selectbutton>
+              <div class="yes-no-radio-group">
+                <div class="yes-no-option">
+                  <p-radiobutton
+                    inputId="consentSignedYes"
+                    name="consentSigned"
+                    formControlName="consentSigned"
+                    [value]="true"></p-radiobutton>
+                  <label for="consentSignedYes">Yes</label>
+                </div>
+                <div class="yes-no-option">
+                  <p-radiobutton
+                    inputId="consentSignedNo"
+                    name="consentSigned"
+                    formControlName="consentSigned"
+                    [value]="false"></p-radiobutton>
+                  <label for="consentSignedNo">No</label>
+                </div>
+              </div>
               <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('consentSigned')?.invalid && (gbvForm.get('consentSigned')?.touched || gbvForm.get('consentSigned')?.dirty)">
                 Please select Yes or No
               </small>
@@ -243,3 +349,48 @@
     </div>
   </div>
 </div>
+
+<p-dialog
+  header="GBV Issue Saved"
+  [(visible)]="displaySavedIssueDialog"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '52rem', maxWidth: '96vw' }">
+  <div class="mb-3">
+    <p class="mb-2 fw-bold text-success">
+      <i class="bi bi-check-circle-fill me-1"></i>
+      Issue saved successfully.
+    </p>
+    <p class="mb-0 text-muted">Saved issue details and related information are listed below.</p>
+  </div>
+
+  <div class="table-responsive border rounded">
+    <table class="table table-sm table-striped mb-0">
+      <tbody>
+        @for (row of savedIssueSummary; track row.label) {
+        <tr>
+          <th style="width: 40%;">{{ row.label }}</th>
+          <td>{{ row.value }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="d-flex justify-content-end gap-2 mt-3">
+    <p-button
+      label="Download PDF"
+      icon="pi pi-download"
+      severity="secondary"
+      styleClass="p-button-sm"
+      (onClick)="downloadSavedIssuePdf()"></p-button>
+    <p-button
+      label="Close"
+      icon="pi pi-times"
+      styleClass="p-button-sm"
+      (onClick)="displaySavedIssueDialog = false"></p-button>
+  </div>
+</p-dialog>
+
