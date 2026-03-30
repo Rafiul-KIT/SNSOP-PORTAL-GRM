@@ -7,7 +7,7 @@
 
 <div class="container mt-4">
   <div class="card shadow-sm mb-5">
-    <div class="card-header bg-primary text-white py-3">
+    <div class="card-header bg-primary text-secondary py-3">
       <h4 class="mb-0 fw-bold">
         <i class="pi pi-cog me-2"></i>
         Process Non-GBV Grievance
@@ -18,7 +18,7 @@
     <div class="card-body p-4">
       <!-- General Information Section -->
       <div class="section-block mb-4">
-        <h5 class="section-title fw-bold text-primary mb-3">
+        <h5 class="section-title fw-bold text-secondary mb-3">
           <i class="pi pi-info-circle me-2"></i>
           General Information
         </h5>
@@ -65,7 +65,7 @@
 
       <!-- Complaint Details Section -->
       <div class="section-block mb-4">
-        <h5 class="section-title fw-bold text-primary mb-3">
+        <h5 class="section-title fw-bold text-secondary mb-3">
           <i class="pi pi-comments me-2"></i>
           Complaint Details
         </h5>
@@ -86,8 +86,9 @@
           <div class="col-md-4" *ngIf="grievanceDetails.grievanceAttachmentUrl">
             <label class="form-label fw-bold">Attachment:</label>
             <div>
-              <button class="btn btn-sm btn-outline-primary" (click)="downloadAttachment()" [disabled]="isAttachmentDownloading">
-                <i class="pi pi-download me-2"></i> {{ isAttachmentDownloading ? 'Downloading...' : (grievanceDetails.grievanceAttachmentFilename || 'Download Attachment') }}
+              <button class="btn btn-sm btn-outline-primary attachment-btn" (click)="downloadAttachment()" [disabled]="isAttachmentDownloading" [title]="grievanceDetails.grievanceAttachmentFilename || 'Download Attachment'">
+                <i class="pi pi-download me-2"></i>
+                <span class="attachment-name">{{ isAttachmentDownloading ? 'Downloading...' : (grievanceDetails.grievanceAttachmentFilename || 'Download Attachment') }}</span>
               </button>
             </div>
           </div>
@@ -96,7 +97,7 @@
 
       <!-- Grievance Classification Section -->
       <div class="section-block mb-4">
-        <h5 class="section-title fw-bold text-primary mb-3">
+        <h5 class="section-title fw-bold text-secondary mb-3">
           <i class="pi pi-tags me-2"></i>
           Grievance Classification
         </h5>
@@ -119,7 +120,7 @@
 
       <!-- Complainant Information Section -->
       <div class="section-block mb-4">
-        <h5 class="section-title fw-bold text-primary mb-3">
+        <h5 class="section-title fw-bold text-secondary mb-3">
           <i class="pi pi-user me-2"></i>
           Complainant Information
         </h5>
@@ -154,7 +155,7 @@
 
       <!-- Process History Section -->
       <div class="section-block mb-4">
-        <h5 class="section-title fw-bold text-primary mb-3">
+        <h5 class="section-title fw-bold text-secondary mb-3">
           <i class="pi pi-history me-2"></i>
           Process History
         </h5>
@@ -202,7 +203,7 @@
 
       <!-- Complaint Process Section -->
       <div class="section-block mb-4">
-        <h5 class="section-title fw-bold text-primary mb-3">
+        <h5 class="section-title fw-bold text-secondary mb-3">
           <i class="pi pi-briefcase me-2"></i>
           Complaint Process
         </h5>
@@ -255,7 +256,7 @@
   <form [formGroup]="processForm" class="mt-3">
     <!-- Action Taken Section -->
     <div class="section-block mb-4">
-      <h5 class="section-title fw-bold text-primary mb-3">
+      <h5 class="section-title fw-bold text-secondary mb-3">
         <i class="pi pi-thumbs-up me-2"></i>
         Action Taken
       </h5>
@@ -291,7 +292,7 @@
 
     <!-- Feedback Section -->
     <div class="section-block mb-4">
-      <h5 class="section-title fw-bold text-primary mb-3">
+      <h5 class="section-title fw-bold text-secondary mb-3">
         <i class="pi pi-comments me-2"></i>
         Feedback to Complainant
       </h5>
@@ -318,7 +319,7 @@
 
     <!-- Accused Information Section -->
     <div class="section-block mb-4">
-      <h5 class="section-title fw-bold text-primary mb-3">
+      <h5 class="section-title fw-bold text-secondary mb-3">
         <i class="pi pi-user-minus me-2"></i>
         Accused Information
       </h5>
@@ -366,7 +367,7 @@
 
     <!-- Further Actions & Investigation Section -->
     <div class="section-block mb-4">
-      <h5 class="section-title fw-bold text-primary mb-3">
+      <h5 class="section-title fw-bold text-secondary mb-3">
         <i class="pi pi-search me-2"></i>
         Investigation & Further Actions
       </h5>
@@ -426,7 +427,7 @@
 
     <!-- Appeal Information Section -->
     <div class="section-block mb-4">
-      <h5 class="section-title fw-bold text-primary mb-3">
+      <h5 class="section-title fw-bold text-secondary mb-3">
         <i class="pi pi-flag me-2"></i>
         Appeal Information
       </h5>
@@ -508,7 +509,7 @@
       </div>
       
       <div class="col-12 border-top pt-3 mt-4">
-        <h6 class="fw-bold text-primary mb-3">Investigation Details</h6>
+        <h6 class="fw-bold text-secondary mb-3">Investigation Details</h6>
         <div class="row g-3">
           <div class="col-md-4">
             <label class="fw-bold text-muted small d-block">Investigator</label>
@@ -526,7 +527,7 @@
       </div>
 
       <div class="col-12 border-top pt-3 mt-4">
-        <h6 class="fw-bold text-primary mb-3">Final Outcome</h6>
+        <h6 class="fw-bold text-secondary mb-3">Final Outcome</h6>
         <div class="row g-3">
           <div class="col-md-4">
             <label class="fw-bold text-muted small d-block">Final Status</label>

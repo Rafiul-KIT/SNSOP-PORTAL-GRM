@@ -7,8 +7,6 @@
   --value-text: #13243a;
   --value-bg: #ffffff;
   --value-border: #b8c4d4;
-  display: block;
-  background: #ffffff;
 }
 
 .container {
@@ -104,6 +102,21 @@
   min-height: 94px;
   align-items: flex-start;
   white-space: pre-wrap;
+}
+
+.attachment-btn {
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+}
+
+.attachment-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .btn.btn-outline-primary {
