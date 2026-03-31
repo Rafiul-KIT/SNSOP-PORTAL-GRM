@@ -32,6 +32,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TooltipModule } from 'primeng/tooltip';
 import Swal from 'sweetalert2';
+import { validateFile } from '../../../utils/file-validation.util';
 
 interface NonGbvProcessHistoryItem {
   id: number;
@@ -587,11 +588,15 @@ export class NonGbvProcessDetails implements OnInit {
   }
 
   onFeedbackAttachmentSelect(event: any): void {
-    this.feedbackAttachmentFile = event.files[0];
+    const file = validateFile(event);
+    if (!file) return;
+    this.feedbackAttachmentFile = file;
   }
 
   onInvestigationReportAttachmentSelect(event: any): void {
-    this.investigationReportAttachmentFile = event.files[0];
+    const file = validateFile(event);
+    if (!file) return;
+    this.investigationReportAttachmentFile = file;
   }
 
   onSubmit(): void {

@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { MenuItem } from 'primeng/api';
 import * as XLSX from 'xlsx';
+import { validateFile } from '../../utils/file-validation.util';
 
 @Component({
   selector: 'app-excel-importing',
@@ -32,13 +33,14 @@ export class ExcelImporting implements OnInit {
   }
 
   onFileChange(event: any): void {
-    if (event.target.files.length > 0) {
-      this.selectedFile = event.target.files[0];
-      this.isPreview = false;
-      this.analysisData = [];
-      this.analysisErrors = [];
-      this.previewHeaders = [];
-    }
+    const file = validateFile(event, { checkExtension: false });
+    if (!file) return;
+
+    this.selectedFile = file;
+    this.isPreview = false;
+    this.analysisData = [];
+    this.analysisErrors = [];
+    this.previewHeaders = [];
   }
 
   downloadTemplate(): void {

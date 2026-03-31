@@ -24,6 +24,7 @@ import { ApiService } from '../../../services/api.service';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { MenuItem } from 'primeng/api';
 import Swal from 'sweetalert2';
+import { validateFile } from '../../../utils/file-validation.util';
 
 @Component({
   selector: 'app-gbv-management',
@@ -48,8 +49,6 @@ import Swal from 'sweetalert2';
 })
 export class GBVManagement implements OnInit, OnDestroy {
   private static readonly PHONE_REGEX = /^[0-9]{1,10}$/;
-  private static readonly MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
-  private static readonly ALLOWED_FILE_EXTENSIONS = ['pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx'];
 
   gbvForm!: FormGroup;
   today: Date = new Date();
@@ -217,20 +216,8 @@ export class GBVManagement implements OnInit, OnDestroy {
   // ─── File upload ────────────────────────────────────────────────────────────
 
   onFileUpload(event: any, fileType: 'grievance' | 'consent'): void {
-    const file: File | undefined = event.target.files?.[0];
+    const file = validateFile(event);
     if (!file) return;
-
-    const ext = file.name?.split('.').pop()?.toLowerCase() ?? '';
-    if (!GBVManagement.ALLOWED_FILE_EXTENSIONS.includes(ext)) {
-      Swal.fire({ title: 'Invalid File Type', text: `Allowed: ${GBVManagement.ALLOWED_FILE_EXTENSIONS.join(', ')}`, icon: 'warning', confirmButtonColor: '#0d6efd' });
-      event.target.value = '';
-      return;
-    }
-    if (file.size > GBVManagement.MAX_FILE_SIZE_BYTES) {
-      Swal.fire({ title: 'File Too Large', text: 'Maximum allowed file size is 5 MB.', icon: 'warning', confirmButtonColor: '#0d6efd' });
-      event.target.value = '';
-      return;
-    }
 
     if (fileType === 'grievance') {
       this.grievanceAttachmentFile = file;

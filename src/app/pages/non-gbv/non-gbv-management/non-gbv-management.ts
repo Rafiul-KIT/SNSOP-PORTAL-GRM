@@ -25,6 +25,7 @@ import { ApiService } from '../../../services/api.service';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { MenuItem } from 'primeng/api';
 import Swal from 'sweetalert2';
+import { validateFile } from '../../../utils/file-validation.util';
 
 @Component({
   selector: 'app-non-gbv-management',
@@ -807,11 +808,11 @@ export class NonGbvManagement implements OnInit, OnDestroy {
   }
 
   onFileSelect(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      this.grievanceForm.patchValue({
-        attachment: file,
-      });
-    }
+    const file = validateFile(event);
+    if (!file) return;
+
+    this.grievanceForm.patchValue({
+      attachment: file,
+    });
   }
 }
