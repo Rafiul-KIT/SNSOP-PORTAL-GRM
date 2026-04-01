@@ -146,7 +146,6 @@ export class GrievanceDashboard implements OnInit {
   barChartOptions: any = {
     responsive: true,
     maintainAspectRatio: false,
-    indexAxis: 'y',
     plugins: {
       legend: { display: false },
       tooltip: {
@@ -159,13 +158,13 @@ export class GrievanceDashboard implements OnInit {
     },
     scales: {
       x: {
+        grid: { display: false },
+        ticks: { color: '#334155', font: { size: 11, weight: '500' }, maxRotation: 45, minRotation: 0 },
+      },
+      y: {
         beginAtZero: true,
         grid: { color: 'rgba(148, 163, 184, 0.15)', drawBorder: false },
         ticks: { color: '#64748b', font: { size: 11 } },
-      },
-      y: {
-        grid: { display: false },
-        ticks: { color: '#334155', font: { size: 12, weight: '500' } },
       },
     },
   };
@@ -173,7 +172,6 @@ export class GrievanceDashboard implements OnInit {
   locationBarChartOptions: any = {
     responsive: true,
     maintainAspectRatio: false,
-    indexAxis: 'y',
     plugins: {
       legend: {
         display: false,
@@ -191,6 +189,15 @@ export class GrievanceDashboard implements OnInit {
     },
     scales: {
       x: {
+        grid: { display: false },
+        ticks: {
+          color: '#334155',
+          font: { size: 11, weight: '500' },
+          maxRotation: 45,
+          minRotation: 0,
+        },
+      },
+      y: {
         beginAtZero: true,
         grace: '10%',
         grid: { color: 'rgba(203, 213, 225, 0.55)', drawBorder: false },
@@ -199,13 +206,6 @@ export class GrievanceDashboard implements OnInit {
           font: { size: 11 },
           precision: 0,
           callback: (value: any) => Number(value).toLocaleString(),
-        },
-      },
-      y: {
-        grid: { display: false },
-        ticks: {
-          color: '#334155',
-          font: { size: 11, weight: '500' },
         },
       },
     },
@@ -565,10 +565,10 @@ export class GrievanceDashboard implements OnInit {
           hoverBackgroundColor: sorted.map(
             (_, idx) => locationPalette[idx % locationPalette.length] + 'dd',
           ),
-          borderRadius: { topLeft: 6, topRight: 6 },
+          borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
           borderSkipped: false,
-          barThickness: 24,
-          maxBarThickness: 28,
+          barThickness: 32,
+          maxBarThickness: 40,
           categoryPercentage: 0.74,
           barPercentage: 0.88,
         },
@@ -628,9 +628,9 @@ private createResolutionTimeChart(items: ResolutionTime[]): any {
     return `${value.toFixed(1)}%`;
   }
 
-  getChartHeight(chartData: any, perItem = 28, minHeight = 300): string {
-    if (!chartData?.labels?.length) return minHeight + 'px';
-    const height = Math.max(minHeight, chartData.labels.length * perItem);
-    return height + 'px';
+  getChartWidth(chartData: any, perItem = 60, minWidth = 400): string {
+    if (!chartData?.labels?.length) return '100%';
+    const width = Math.max(minWidth, chartData.labels.length * perItem);
+    return width + 'px';
   }
 }

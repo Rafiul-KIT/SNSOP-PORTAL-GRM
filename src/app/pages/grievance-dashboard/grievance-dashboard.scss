@@ -418,14 +418,17 @@
   }
 }
 
-.chart-scroll-wrapper {
-  max-height: 500px;
-  overflow-y: auto;
-  overflow-x: hidden;
+.chart-scroll-x-wrapper {
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
-::ng-deep .chart-scroll-wrapper .p-chart canvas {
-  max-height: none !important;
+.chart-scroll-x-inner {
+  height: 320px;
+}
+
+::ng-deep .chart-scroll-x-wrapper .p-chart canvas {
+  max-width: none !important;
 }
 
 @media (max-width: 1180px) {

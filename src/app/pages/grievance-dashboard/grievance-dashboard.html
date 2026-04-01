@@ -108,10 +108,10 @@
                   Locations by Grievances
                 </h3>
               </div>
-              <div class="chart-card__body chart-scroll-wrapper">
+              <div class="chart-card__body chart-scroll-x-wrapper">
                 @if (hasChartData(allLocationChartData)) {
-                <div [style.height]="getChartHeight(allLocationChartData)">
-                  <p-chart type="bar" [data]="allLocationChartData" [options]="locationBarChartOptions" height="100%"></p-chart>
+                <div class="chart-scroll-x-inner" [style.min-width]="getChartWidth(allLocationChartData)">
+                  <p-chart type="bar" [data]="allLocationChartData" [options]="locationBarChartOptions" height="320px"></p-chart>
                 </div>
                 } @else {
                 <p class="no-data">No data available</p>
@@ -127,10 +127,10 @@
                 Avg Resolution Time by Location
               </h3>
             </div>
-            <div class="chart-card__body chart-scroll-wrapper">
+            <div class="chart-card__body chart-scroll-x-wrapper">
               @if (hasChartData(allResolutionChartData)) {
-              <div [style.height]="getChartHeight(allResolutionChartData)">
-                <p-chart type="bar" [data]="allResolutionChartData" [options]="barChartOptions" height="100%"></p-chart>
+              <div class="chart-scroll-x-inner" [style.min-width]="getChartWidth(allResolutionChartData)">
+                <p-chart type="bar" [data]="allResolutionChartData" [options]="barChartOptions" height="320px" ></p-chart>
               </div>
               } @else {
               <p class="no-data">No data available</p>
@@ -210,10 +210,10 @@
                   Locations by Grievances
                 </h3>
               </div>
-              <div class="chart-card__body chart-scroll-wrapper">
+              <div class="chart-card__body chart-scroll-x-wrapper">
                 @if (hasChartData(ngbvLocationChartData)) {
-                <div [style.height]="getChartHeight(ngbvLocationChartData)">
-                  <p-chart type="bar" [data]="ngbvLocationChartData" [options]="locationBarChartOptions" height="100%"></p-chart>
+                <div class="chart-scroll-x-inner" [style.min-width]="getChartWidth(ngbvLocationChartData)">
+                  <p-chart type="bar" [data]="ngbvLocationChartData" [options]="locationBarChartOptions" height="320px"></p-chart>
                 </div>
                 } @else {
                 <p class="no-data">No data available</p>
@@ -246,9 +246,9 @@
                   Avg Resolution Time by Location
                 </h3>
               </div>
-              <div class="chart-card__body chart-scroll-wrapper">
-                <div [style.height]="getChartHeight(ngbvResolutionChartData)">
-                  <p-chart type="bar" [data]="ngbvResolutionChartData" [options]="barChartOptions" height="100%"></p-chart>
+              <div class="chart-card__body chart-scroll-x-wrapper">
+                <div class="chart-scroll-x-inner" [style.min-width]="getChartWidth(ngbvResolutionChartData)">
+                  <p-chart type="bar" [data]="ngbvResolutionChartData" [options]="barChartOptions" height="320px"></p-chart>
                 </div>
               </div>
             </div>
@@ -327,10 +327,10 @@
                   Locations by Grievances
                 </h3>
               </div>
-              <div class="chart-card__body chart-scroll-wrapper">
+              <div class="chart-card__body chart-scroll-x-wrapper">
                 @if (hasChartData(gbvLocationChartData)) {
-                <div [style.height]="getChartHeight(gbvLocationChartData)">
-                  <p-chart type="bar" [data]="gbvLocationChartData" [options]="locationBarChartOptions" height="100%"></p-chart>
+                <div class="chart-scroll-x-inner" [style.min-width]="getChartWidth(gbvLocationChartData)">
+                  <p-chart type="bar" [data]="gbvLocationChartData" [options]="locationBarChartOptions" height="320px"></p-chart>
                 </div>
                 } @else {
                 <p class="no-data">No data available</p>
@@ -393,9 +393,9 @@
                 Avg Resolution Time by Location
               </h3>
             </div>
-            <div class="chart-card__body chart-scroll-wrapper">
-              <div [style.height]="getChartHeight(gbvResolutionChartData)">
-                <p-chart type="bar" [data]="gbvResolutionChartData" [options]="barChartOptions" height="100%"></p-chart>
+            <div class="chart-card__body chart-scroll-x-wrapper">
+              <div class="chart-scroll-x-inner" [style.min-width]="getChartWidth(gbvResolutionChartData)">
+                <p-chart type="bar" [data]="gbvResolutionChartData" [options]="barChartOptions" height="320px"></p-chart>
               </div>
             </div>
           </div>
