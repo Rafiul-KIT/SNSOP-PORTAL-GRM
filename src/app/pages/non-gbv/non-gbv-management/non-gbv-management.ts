@@ -687,68 +687,39 @@ export class NonGbvManagement implements OnInit, OnDestroy {
           : 'N/A';
 
       const formData = new FormData();
-      // formData.append('id');
-      formData.append('trackingNumber', '');
-      formData.append('stateId', rawValues.stateName);
-      formData.append('countyId', rawValues.countyName);
-      formData.append('payamId', rawValues.payamName);
-      formData.append('bomaId', rawValues.bomaName);
 
-      const incidentDate = this.formatDateForApi(rawValues.dateComplaint);
-      formData.append('incidentOccurredAt', incidentDate);
-
-      formData.append('reportingChannelId', rawValues.reportingChannel);
-      formData.append(
-        'reportingChannelOther',
-        rawValues.otherReportingChannel || ''
-      );
+      // ── Required fields ────────────────────────────────────────────────
+      formData.append('stateId', String(rawValues.stateName));
+      formData.append('countyId', String(rawValues.countyName));
+      formData.append('payamId', String(rawValues.payamName));
+      formData.append('bomaId', String(rawValues.bomaName));
+      formData.append('incidentOccurredAt', this.formatDateForApi(rawValues.dateComplaint));
+      formData.append('reportingChannelId', String(rawValues.reportingChannel));
       formData.append('complainantName', rawValues.complainantName);
-      formData.append('complainantContact', rawValues.contactNumber || '');
-      formData.append(
-        'complainantPhysicalAddress',
-        rawValues.physicalAddress || ''
-      );
-      formData.append(
-        'complainantGender',
-        rawValues.gender !== null ? rawValues.gender : ''
-      );
-      formData.append(
-        'complainantAge',
-        rawValues.age !== null ? rawValues.age : ''
-      );
-      formData.append('complainantBeneficiary', rawValues.isBeneficiary);
-      formData.append(
-        'complainantBeneficiarySelectionCriteria',
-        rawValues.supportType !== null ? rawValues.supportType : ''
-      );
-      formData.append('grievanceTypeId', rawValues.categoryOfGrievance);
-      const grievanceDetailTypeId =
-        rawValues.typeOfGrievance !== null && rawValues.typeOfGrievance !== undefined
-          ? rawValues.typeOfGrievance
-          : 0;
-      formData.append('grievanceDetailTypeId', String(grievanceDetailTypeId));
-      formData.append(
-        'grievanceTypeOtherDesc',
-        rawValues.typeOfGrievanceOther || ''
-      );
+      formData.append('grievanceTypeId', String(rawValues.categoryOfGrievance));
       formData.append('grievanceDescription', grievanceDescription);
-      formData.append('grievanceAttachmentUrl', '');
-      formData.append('grievanceAttachmentBytes', '');
 
+      // ── Optional fields (only append when user provided a value) ───────
+      if (rawValues.serialNumber) formData.append('trackingNumber', rawValues.serialNumber);
+      if (rawValues.otherReportingChannel?.trim()) formData.append('reportingChannelOther', rawValues.otherReportingChannel.trim());
+      if (rawValues.contactNumber?.trim()) formData.append('complainantContact', rawValues.contactNumber.trim());
+      if (rawValues.physicalAddress?.trim()) formData.append('complainantPhysicalAddress', rawValues.physicalAddress.trim());
+      if (rawValues.gender !== null && rawValues.gender !== undefined) formData.append('complainantGender', String(rawValues.gender));
+      if (rawValues.age !== null && rawValues.age !== undefined) formData.append('complainantAge', String(rawValues.age));
+      if (rawValues.isBeneficiary !== null && rawValues.isBeneficiary !== undefined) formData.append('complainantBeneficiary', String(rawValues.isBeneficiary));
+      if (rawValues.supportType !== null && rawValues.supportType !== undefined) formData.append('complainantBeneficiarySelectionCriteria', String(rawValues.supportType));
+      if (rawValues.typeOfGrievance !== null && rawValues.typeOfGrievance !== undefined) formData.append('grievanceDetailTypeId', String(rawValues.typeOfGrievance));
+      if (rawValues.typeOfGrievanceOther?.trim()) formData.append('grievanceTypeOtherDesc', rawValues.typeOfGrievanceOther.trim());
+      if (rawValues.attachment?.name) formData.append('grievanceAttachmentUrl', '');
+
+      // ── File attachment ────────────────────────────────────────────────
       if (rawValues.attachment) {
-        formData.append('grievanceAttachmentFile', rawValues.attachment);
-        formData.append(
-          'grievanceAttachmentFilename',
-          rawValues.attachment.name
-        );
-      } else {
-        formData.append('grievanceAttachmentFilename', '');
+        formData.append('grievanceAttachmentFile', rawValues.attachment, rawValues.attachment.name);
+        formData.append('grievanceAttachmentFilename', rawValues.attachment.name);
       }
 
       this.apiService
-        .POST('api/ngbv-grievance/save', formData, 'global', {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        })
+        .POST('api/ngbv-grievance/save', formData, 'global', { headers: { 'Content-Type': undefined } })
         .then((res: any) => {
           const result = res?.data;
           if (result && result.code === 200) {

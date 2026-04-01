@@ -387,13 +387,8 @@ export class GBVManagement implements OnInit, OnDestroy {
    * Never use this for file (MultipartFile) fields.
    */
   private appendValue(fd: FormData, key: string, value: any): void {
-    if (value === null || value === undefined) {
-      fd.append(key, '');
-    } else if (typeof value === 'boolean') {
-      fd.append(key, String(value));
-    } else {
-      fd.append(key, String(value));
-    }
+    if (value === null || value === undefined) return;
+    fd.append(key, String(value));
   }
 
   onSubmit(): void {
@@ -419,35 +414,34 @@ export class GBVManagement implements OnInit, OnDestroy {
     const v = this.gbvForm.getRawValue();
     const fd = new FormData();
 
-    // ── Non-file fields ──────────────────────────────────────────────────────
-    // this.appendValue(fd, 'id', v.id ?? 0);
-    this.appendValue(fd, 'trackingNumber', v.trackingNumber || '');
+    // ── Required fields ────────────────────────────────────────────────────
     this.appendValue(fd, 'stateId', v.stateId);
     this.appendValue(fd, 'countyId', v.countyId);
     this.appendValue(fd, 'payamId', v.payamId);
     this.appendValue(fd, 'bomaId', v.bomaId);
     this.appendValue(fd, 'incidentOccurredAt', this.formatDateForApi(v.incidentOccurredAt));
     this.appendValue(fd, 'contactFocalPersonName', v.contactFocalPersonName);
-    this.appendValue(fd, 'incidentReportedBy', v.incidentReportedBy);
-    this.appendValue(fd, 'incidentReportedByOtherDesc', v.incidentReportedByOtherDesc || '');
     this.appendValue(fd, 'reportingChannelId', v.reportingChannelId);
-    this.appendValue(fd, 'reportingChannelOther', v.reportingChannelOther || '');
-    this.appendValue(fd, 'complainantContactNumber', v.complainantContactNumber || '');
     this.appendValue(fd, 'complainantGender', v.complainantGender);
     this.appendValue(fd, 'ageOfSurvivor', v.ageOfSurvivor);
     this.appendValue(fd, 'complainantBeneficiary', v.complainantBeneficiary);
+    this.appendValue(fd, 'grievanceDescription', v.grievanceDescription);
+
+    // ── Optional fields (only append when user provided a value) ─────────
+    this.appendValue(fd, 'trackingNumber', v.trackingNumber);
+    this.appendValue(fd, 'incidentReportedBy', v.incidentReportedBy);
+    this.appendValue(fd, 'incidentReportedByOtherDesc', v.incidentReportedByOtherDesc?.trim() || null);
+    this.appendValue(fd, 'reportingChannelOther', v.reportingChannelOther?.trim() || null);
+    this.appendValue(fd, 'complainantContactNumber', v.complainantContactNumber?.trim() || null);
     this.appendValue(fd, 'complainantBeneficiarySelectionCriteria', v.complainantBeneficiarySelectionCriteria);
     this.appendValue(fd, 'suspectKnown', v.suspectKnown);
     this.appendValue(fd, 'suspectAssociatedWithProject', v.suspectAssociatedWithProject);
-    this.appendValue(fd, 'suspectDetails', v.suspectDetails || '');
+    this.appendValue(fd, 'suspectDetails', v.suspectDetails?.trim() || null);
     this.appendValue(fd, 'recommendedReferralServiceId', v.recommendedReferralServiceId);
-    this.appendValue(fd, 'grievanceDescription', v.grievanceDescription);
-    this.appendValue(fd, 'grievanceAttachmentUrl', v.grievanceAttachmentUrl || '');
-    this.appendValue(fd, 'grievanceAttachmentBytes', '');
+    this.appendValue(fd, 'grievanceAttachmentUrl', v.grievanceAttachmentUrl?.trim() || null);
     this.appendValue(fd, 'verbalConsentGranted', v.verbalConsentGranted);
     this.appendValue(fd, 'consentSigned', v.consentSigned);
-    this.appendValue(fd, 'consentFormAttachmentUrl', v.consentFormAttachmentUrl || '');
-    this.appendValue(fd, 'consentFormAttachmentBytes', '');
+    this.appendValue(fd, 'consentFormAttachmentUrl', v.consentFormAttachmentUrl?.trim() || null);
 
     // ── grievanceAttachmentFile — ONLY append when a real File exists ────────
     // DO NOT append an empty string — Spring cannot convert '' to MultipartFile
@@ -470,7 +464,7 @@ export class GBVManagement implements OnInit, OnDestroy {
     }
 
     this.apiService
-      .POST('api/gbv-grievance/save', fd, 'global', { headers: { 'Content-Type': 'multipart/form-data' } })
+      .POST('api/gbv-grievance/save', fd, 'global', { headers: { 'Content-Type': undefined } })
       .then((res: any) => {
         const result = res?.data;
         if (result?.code === 200) {
