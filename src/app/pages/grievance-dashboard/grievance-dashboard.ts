@@ -387,7 +387,7 @@ export class GrievanceDashboard implements OnInit {
     return items
       .filter((item) =>
         statusKeywords.some((kw) =>
-          item.status?.toLowerCase().includes(kw.toLowerCase()),
+          item.status?.trim().toLowerCase() === kw.toLowerCase(),
         ),
       )
       .reduce((sum, item) => sum + (item.count || 0), 0);
@@ -490,16 +490,17 @@ export class GrievanceDashboard implements OnInit {
       const status = (item.status || '').toLowerCase().trim();
 
       const isUnresolved =
-        status.includes('pending') ||
-        status.includes('in progress') ||
-        status.includes('open') ||
-        status.includes('new') ||
-        status.includes('unresolved');
+        status === 'pending' ||
+        status === 'in progress' ||
+        status === 'open' ||
+        status === 'new' ||
+        status === 'unresolved' ||
+        status === 'referred';
 
       const isResolved =
-        status.includes('resolved') ||
-        status.includes('closed') ||
-        status.includes('completed');
+        status === 'resolved' ||
+        status === 'closed' ||
+        status === 'completed';
 
       if (isUnresolved) return '#f06292';
       if (isResolved) return '#00b579';
