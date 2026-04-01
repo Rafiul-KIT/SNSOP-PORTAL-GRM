@@ -43,7 +43,7 @@
 
     <p-tabpanels>
       <!-- Combined Tab Panel -->
-      <p-tabpanel value="2">
+      <p-tabpanel value="0">
         <div class="tab-content">
           <div class="stats-grid">
             <div class="stat-card stat-card--primary">
@@ -105,12 +105,14 @@
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
                   <span class="chart-icon chart-icon--blue"><i class="bi bi-geo-alt"></i></span>
-                  Top 10 Locations by Grievances
+                  Locations by Grievances
                 </h3>
               </div>
-              <div class="chart-card__body">
+              <div class="chart-card__body chart-scroll-wrapper">
                 @if (hasChartData(allLocationChartData)) {
-                <p-chart type="bar" [data]="allLocationChartData" [options]="locationBarChartOptions"></p-chart>
+                <div [style.height]="getChartHeight(allLocationChartData)">
+                  <p-chart type="bar" [data]="allLocationChartData" [options]="locationBarChartOptions" height="100%"></p-chart>
+                </div>
                 } @else {
                 <p class="no-data">No data available</p>
                 }
@@ -125,9 +127,11 @@
                 Avg Resolution Time by Location
               </h3>
             </div>
-            <div class="chart-card__body">
+            <div class="chart-card__body chart-scroll-wrapper">
               @if (hasChartData(allResolutionChartData)) {
-              <p-chart type="bar" [data]="allResolutionChartData" [options]="barChartOptions"></p-chart>
+              <div [style.height]="getChartHeight(allResolutionChartData)">
+                <p-chart type="bar" [data]="allResolutionChartData" [options]="barChartOptions" height="100%"></p-chart>
+              </div>
               } @else {
               <p class="no-data">No data available</p>
               }
@@ -137,7 +141,7 @@
       </p-tabpanel>
 
       <!-- NGBV Tab Panel -->
-      <p-tabpanel value="0">
+      <p-tabpanel value="2">
         <div class="tab-content">
           <!-- Stats Cards -->
           <div class="stats-grid">
@@ -145,9 +149,9 @@
               <div class="stat-card__icon">
                 <i class="bi bi-file-earmark-text"></i>
               </div>
-              <div class="stat-card__info">
+                <div class="stat-card__info">
                 <span class="stat-card__title">Total Grievances</span>
-                <span class="stat-card__value">{{ ngbvTotalCases }}</span>
+                <span class="stat-card__value">{{ allTotalCases }}</span>
               </div>
             </div>
             <div class="stat-card stat-card--warning">
@@ -203,12 +207,14 @@
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
                   <span class="chart-icon chart-icon--blue"><i class="bi bi-geo-alt"></i></span>
-                  Top 10 Locations by Grievances
+                  Locations by Grievances
                 </h3>
               </div>
-              <div class="chart-card__body">
+              <div class="chart-card__body chart-scroll-wrapper">
                 @if (hasChartData(ngbvLocationChartData)) {
-                <p-chart type="bar" [data]="ngbvLocationChartData" [options]="locationBarChartOptions"></p-chart>
+                <div [style.height]="getChartHeight(ngbvLocationChartData)">
+                  <p-chart type="bar" [data]="ngbvLocationChartData" [options]="locationBarChartOptions" height="100%"></p-chart>
+                </div>
                 } @else {
                 <p class="no-data">No data available</p>
                 }
@@ -240,8 +246,10 @@
                   Avg Resolution Time by Location
                 </h3>
               </div>
-              <div class="chart-card__body">
-                <p-chart type="bar" [data]="ngbvResolutionChartData" [options]="barChartOptions"></p-chart>
+              <div class="chart-card__body chart-scroll-wrapper">
+                <div [style.height]="getChartHeight(ngbvResolutionChartData)">
+                  <p-chart type="bar" [data]="ngbvResolutionChartData" [options]="barChartOptions" height="100%"></p-chart>
+                </div>
               </div>
             </div>
             }
@@ -254,7 +262,7 @@
         <div class="tab-content">
           <!-- Stats Cards -->
           <div class="stats-grid">
-            <div class="stat-card stat-card--danger">
+            <div class="stat-card stat-card--primary">
               <div class="stat-card__icon">
                 <i class="bi bi-shield-exclamation"></i>
               </div>
@@ -316,12 +324,14 @@
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
                   <span class="chart-icon chart-icon--blue"><i class="bi bi-geo-alt"></i></span>
-                  Top 10 Locations by Grievances
+                  Locations by Grievances
                 </h3>
               </div>
-              <div class="chart-card__body">
+              <div class="chart-card__body chart-scroll-wrapper">
                 @if (hasChartData(gbvLocationChartData)) {
-                <p-chart type="bar" [data]="gbvLocationChartData" [options]="locationBarChartOptions"></p-chart>
+                <div [style.height]="getChartHeight(gbvLocationChartData)">
+                  <p-chart type="bar" [data]="gbvLocationChartData" [options]="locationBarChartOptions" height="100%"></p-chart>
+                </div>
                 } @else {
                 <p class="no-data">No data available</p>
                 }
@@ -383,8 +393,10 @@
                 Avg Resolution Time by Location
               </h3>
             </div>
-            <div class="chart-card__body">
-              <p-chart type="bar" [data]="gbvResolutionChartData" [options]="barChartOptions"></p-chart>
+            <div class="chart-card__body chart-scroll-wrapper">
+              <div [style.height]="getChartHeight(gbvResolutionChartData)">
+                <p-chart type="bar" [data]="gbvResolutionChartData" [options]="barChartOptions" height="100%"></p-chart>
+              </div>
             </div>
           </div>
           }

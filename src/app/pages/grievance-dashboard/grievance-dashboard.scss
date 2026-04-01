@@ -418,8 +418,14 @@
   }
 }
 
-::ng-deep .p-chart canvas {
-  max-height: 255px;
+.chart-scroll-wrapper {
+  max-height: 500px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+::ng-deep .chart-scroll-wrapper .p-chart canvas {
+  max-height: none !important;
 }
 
 @media (max-width: 1180px) {

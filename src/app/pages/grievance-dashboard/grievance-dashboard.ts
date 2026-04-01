@@ -173,17 +173,10 @@ export class GrievanceDashboard implements OnInit {
   locationBarChartOptions: any = {
     responsive: true,
     maintainAspectRatio: false,
+    indexAxis: 'y',
     plugins: {
       legend: {
-        display: true,
-        position: 'top',
-        labels: {
-          color: '#475569',
-          boxWidth: 12,
-          boxHeight: 12,
-          padding: 14,
-          font: { size: 12, family: "'Inter', sans-serif", weight: '600' },
-        },
+        display: false,
       },
       tooltip: {
         backgroundColor: '#1e293b',
@@ -198,14 +191,6 @@ export class GrievanceDashboard implements OnInit {
     },
     scales: {
       x: {
-        grid: { color: 'rgba(203, 213, 225, 0.55)', drawBorder: false },
-        ticks: {
-          color: '#475569',
-          font: { size: 11, weight: '500' },
-          maxRotation: 0,
-        },
-      },
-      y: {
         beginAtZero: true,
         grace: '10%',
         grid: { color: 'rgba(203, 213, 225, 0.55)', drawBorder: false },
@@ -214,6 +199,13 @@ export class GrievanceDashboard implements OnInit {
           font: { size: 11 },
           precision: 0,
           callback: (value: any) => Number(value).toLocaleString(),
+        },
+      },
+      y: {
+        grid: { display: false },
+        ticks: {
+          color: '#334155',
+          font: { size: 11, weight: '500' },
         },
       },
     },
@@ -251,6 +243,7 @@ export class GrievanceDashboard implements OnInit {
       'In Progress',
       'Open',
       'New',
+      'Unresolved',
     ]);
     this.ngbvResolvedCases = this.sumByStatus(data.grievancesByStatus ?? [], [
       'Resolved',
@@ -291,6 +284,8 @@ export class GrievanceDashboard implements OnInit {
       'In Progress',
       'Open',
       'New',
+      'Unresolved',
+      'Referred',
     ]);
     this.gbvResolvedCases = this.sumByStatus(data.grievancesByStatus ?? [], [
       'Resolved',
@@ -362,6 +357,7 @@ export class GrievanceDashboard implements OnInit {
       'Open',
       'New',
       'Unresolved',
+      'Referred',
     ]);
     this.allResolvedCases = this.sumByStatus(combinedStatus, [
       'Resolved',
@@ -542,7 +538,7 @@ export class GrievanceDashboard implements OnInit {
   }
 
   private createLocationChart(items: LocationCount[]): any {
-    const sorted = [...items].sort((a, b) => b.count - a.count).slice(0, 10);
+    const sorted = [...items].sort((a, b) => b.count - a.count);
     const locationPalette = [
       '#4b9fe3',
       '#57b86a',
@@ -583,8 +579,7 @@ export class GrievanceDashboard implements OnInit {
 private createResolutionTimeChart(items: ResolutionTime[]): any {
   const sorted = [...items]
     .filter((i) => i.averageResolutionTime > 0)
-    .sort((a, b) => b.averageResolutionTime - a.averageResolutionTime)
-    .slice(0, 8);
+    .sort((a, b) => b.averageResolutionTime - a.averageResolutionTime);
 
   const colors = ['#20c997', '#20c997'];
 
@@ -631,5 +626,11 @@ private createResolutionTimeChart(items: ResolutionTime[]): any {
 
   formatPercentage(value: number): string {
     return `${value.toFixed(1)}%`;
+  }
+
+  getChartHeight(chartData: any, perItem = 28, minHeight = 300): string {
+    if (!chartData?.labels?.length) return minHeight + 'px';
+    const height = Math.max(minHeight, chartData.labels.length * perItem);
+    return height + 'px';
   }
 }
