@@ -11,8 +11,9 @@
       <h4 class="mb-0 fw-bold">
         <i class="pi pi-cog me-2"></i>
         Process Non-GBV Grievance
-        <!-- <span class="badge bg-secondary ms-2">{{ grievanceDetails.trackingNumber }}</span> -->
+        <span class="badge bg-secondary ms-2">{{ grievanceDetails.trackingNumber }}</span>
       </h4>
+      
     </div>
 
     <div class="card-body p-4">
@@ -28,10 +29,10 @@
             <label class="form-label fw-bold">ID:</label>
             <p>{{ grievanceDetails.id }}</p>
           </div>
-          <div class="col-md-4">
+          <!-- <div class="col-md-4">
             <label class="form-label fw-bold">Tracking Number:</label>
             <p>{{ grievanceDetails.trackingNumber }}</p>
-          </div>
+          </div> -->
           <div class="col-md-4">
             <label class="form-label fw-bold">Incident Occurred At:</label>
             <p>{{ formatDisplayDate(grievanceDetails.incidentOccurredAt) }}</p>
