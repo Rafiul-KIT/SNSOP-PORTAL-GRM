@@ -11,7 +11,7 @@
       <h4 class="mb-0 fw-bold">
         <i class="pi pi-cog me-2"></i>
         Process GBV Grievance
-        <span class="badge bg-secondary ms-2">{{ grievanceDetails.trackingNumber }}</span>
+        <!-- <span class="badge bg-secondary ms-2">{{ grievanceDetails.trackingNumber }}</span> -->
       </h4>
     </div>
 
@@ -50,14 +50,6 @@
           <div class="col-md-4">
             <label class="form-label fw-bold">Boma:</label>
             <p>{{ getBomaName(grievanceDetails.bomaId) }}</p>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label fw-bold">Status:</label>
-            <p>
-              <span [class]="'badge ' + getStatusBadgeClass(grievanceDetails.status)">
-                {{ grievanceDetails.status || 'Unresolved' }}
-              </span>
-            </p>
           </div>
           <div class="col-md-4">
             <label class="form-label fw-bold">Incident Reported By:</label>
@@ -202,8 +194,7 @@
         <hr>
         <div
           class="p-4 border rounded bg-light"
-          [ngClass]="{'cursor-pointer hover-shadow': !isProcessFormDisabled, 'bg-secondary-subtle opacity-75': isProcessFormDisabled}"
-          (click)="!isProcessFormDisabled && (displayProcessDialog = true)"
+          [ngClass]="{'hover-shadow': !isProcessFormDisabled, 'bg-secondary-subtle opacity-75': isProcessFormDisabled}"
           style="transition: all 0.3s ease;"
         >
           <div class="row align-items-center">
@@ -222,7 +213,7 @@
                 [outlined]="true"
                 size="small"
                 [disabled]="isProcessFormDisabled"
-                [pTooltip]="isProcessFormDisabled ? 'Grievance is resolved' : ''"
+                [pTooltip]="isProcessFormDisabled ? 'Latest process status is resolved' : ''"
                 (onClick)="$event.stopPropagation(); displayProcessDialog = true"
               ></p-button>
             </div>

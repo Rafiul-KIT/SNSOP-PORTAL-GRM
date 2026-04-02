@@ -103,7 +103,6 @@ interface NonGbvGrievanceDetails {
   grievanceAttachmentFile: string;
   grievanceAttachmentBytes: string;
   grievanceAttachmentFilename: string;
-  status: string;
 }
 
 interface ValueLabelItem {
@@ -268,7 +267,7 @@ export class NonGbvProcessDetails implements OnInit {
   }
 
   get isProcessFormDisabled(): boolean {
-    return this.grievanceDetails?.status === 'Resolved' || !this.isFurtherActionAllowed;
+    return !this.isFurtherActionAllowed;
   }
 
   async viewProcessHistoryDetail(historyId: number) {
@@ -792,6 +791,19 @@ export class NonGbvProcessDetails implements OnInit {
 
   getBeneficiaryStatus(isBeneficiary: boolean): string {
     return isBeneficiary ? 'Yes' : 'No';
+  }
+
+  getSelectionCriteriaName(value: number | string | null | undefined): string {
+    if (value === null || value === undefined || value === '') {
+      return '--';
+    }
+
+    const item = this.lookupService.getSelectionCriteriaEnum().find(
+      (selection: any) =>
+        String(selection.id) === String(value) || String(selection.value) === String(value)
+    );
+
+    return item ? item.label : String(value);
   }
 
   getStatusLabel(statusValue: string | number): string {

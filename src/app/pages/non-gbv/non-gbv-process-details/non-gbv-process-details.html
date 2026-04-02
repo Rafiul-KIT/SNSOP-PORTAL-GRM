@@ -11,7 +11,7 @@
       <h4 class="mb-0 fw-bold">
         <i class="pi pi-cog me-2"></i>
         Process Non-GBV Grievance
-        <span class="badge bg-secondary ms-2">{{ grievanceDetails.trackingNumber }}</span>
+        <!-- <span class="badge bg-secondary ms-2">{{ grievanceDetails.trackingNumber }}</span> -->
       </h4>
     </div>
 
@@ -51,14 +51,6 @@
           <div class="col-md-4">
             <label class="form-label fw-bold">Boma/Quarter Council Name:</label>
             <p>{{ getBomaName(grievanceDetails.bomaId, bomas) }}</p>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label fw-bold">Status:</label>
-            <p>
-              <span [class]="'badge ' + (grievanceDetails.status === 'Resolved' ? 'bg-success' : grievanceDetails.status === 'Rejected' ? 'bg-danger' : 'bg-warning')">
-                {{ getStatusLabel(grievanceDetails.status) }}
-              </span>
-            </p>
           </div>
         </div>
       </div>
@@ -150,6 +142,10 @@
             <label class="form-label fw-bold">SNSOP Beneficiary:</label>
             <p>{{ getBeneficiaryStatus(grievanceDetails.complainantBeneficiary) }}</p>
           </div>
+          <div class="col-md-4" *ngIf="grievanceDetails.complainantBeneficiary">
+            <label class="form-label fw-bold">Selection Criteria:</label>
+            <p>{{ getSelectionCriteriaName(grievanceDetails.complainantBeneficiarySelectionCriteria) }}</p>
+          </div>
         </div>
       </div>
 
@@ -209,37 +205,21 @@
         </h5>
         <hr>
         <div class="p-4 border rounded bg-light" 
-          [ngClass]="{'cursor-pointer hover-shadow': !isProcessFormDisabled, 'bg-secondary-subtle opacity-75': isProcessFormDisabled}"
-          (click)="!isProcessFormDisabled && (displayProcessDialog = true)"
+          [ngClass]="{'hover-shadow': !isProcessFormDisabled, 'bg-secondary-subtle opacity-75': isProcessFormDisabled}"
           style="transition: all 0.3s ease;">
           <div class="row align-items-center">
             <div class="col-md-9">
               <p class="mb-1 text-muted">
-                {{ grievanceDetails.status === 'Resolved'
-                    ? 'This grievance is already resolved and cannot be processed further.'
-                    : (!isFurtherActionAllowed
-                        ? 'Further action is not required, so process form is disabled.'
-                        : 'Click to enter or update process details such as action taken, feedback, and investigation.') }}
+                {{ !isFurtherActionAllowed
+                    ? 'Further action is not required, so process form is disabled.'
+                    : 'Click to enter or update process details such as action taken, feedback, and investigation.' }}
               </p>
-              <div class="mt-2">
-                @if (processForm.get('actionTakenBy')?.value) {
-                <span class="badge bg-success me-2">Details Entered</span>
-                <small class="text-secondary">Process initialized by:
-                  <strong>{{processForm.get('actionTakenBy')?.value}}</strong></small>
-                } @else if (isProcessFormDisabled && grievanceDetails.status === 'Resolved') {
-                  <span class="badge bg-success">Resolved</span>
-                } @else if (isProcessFormDisabled && !isFurtherActionAllowed) {
-                  <span class="badge bg-secondary">Further Action Not Required</span>
-                } @else {
-                <span class="badge bg-warning">No Process Details Added</span>
-                }
-              </div>
             </div>
             <div class="col-md-3 text-end">
               <p-button label="Open Process Form" icon="pi pi-external-link" severity="primary" [outlined]="true"
                 size="small"
                 [disabled]="isProcessFormDisabled"
-                [pTooltip]="grievanceDetails.status === 'Resolved' ? 'Grievance is resolved' : (!isFurtherActionAllowed ? 'Further action is not required' : '')"
+                [pTooltip]="!isFurtherActionAllowed ? 'Further action is not required' : ''"
                 (onClick)="$event.stopPropagation(); displayProcessDialog = true"></p-button>
             </div>
           </div>

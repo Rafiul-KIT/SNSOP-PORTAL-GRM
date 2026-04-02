@@ -69,7 +69,6 @@ interface GbvGrievanceDetails {
   consentFormAttachmentFile: string;
   consentFormAttachmentBytes: string;
   consentFormAttachmentFilename: string;
-  status?: string;
 }
 
 interface GbvProcessHistoryItem {
@@ -134,6 +133,7 @@ export class GbvProcessDetails implements OnInit {
   displayHistoryDetailDialog = false;
   isLoadingHistory = false;
   isLoadingHistoryDetail = false;
+  currentProcessStatus: string | null = null;
 
   breadcrumbItems: MenuItem[] = [];
   breadcrumbHome: MenuItem = { icon: 'pi pi-home', routerLink: '/dashboard' };
@@ -280,9 +280,11 @@ export class GbvProcessDetails implements OnInit {
       });
       const history = res?.data?.content ?? [];
       this.processHistory = [...history].sort((a, b) => b.id - a.id);
+      this.currentProcessStatus = this.processHistory[0]?.status ?? null;
     } catch (error) {
       console.error('Error fetching process history:', error);
       this.processHistory = [];
+      this.currentProcessStatus = null;
     } finally {
       this.isLoadingHistory = false;
       this.cdr.markForCheck();
@@ -317,7 +319,7 @@ export class GbvProcessDetails implements OnInit {
   }
 
   get isProcessFormDisabled(): boolean {
-    const status = String(this.grievanceDetails?.status || '').toLowerCase();
+    const status = String(this.currentProcessStatus || '').toLowerCase();
     return status === 'resolved';
   }
 
@@ -521,7 +523,16 @@ export class GbvProcessDetails implements OnInit {
   }
 
   getSelectionCriteriaName(value: any): string {
-    return this.lookupService.getSelectionCriteriaEnumByValue(value);
+    if (value === null || value === undefined || value === '') {
+      return '--';
+    }
+
+    const item = this.lookupService.getSelectionCriteriaEnum().find(
+      (selection: any) =>
+        String(selection.id) === String(value) || String(selection.value) === String(value)
+    );
+
+    return item ? item.label : String(value);
   }
 
   getBeneficiaryStatus(isBeneficiary: boolean): string {
