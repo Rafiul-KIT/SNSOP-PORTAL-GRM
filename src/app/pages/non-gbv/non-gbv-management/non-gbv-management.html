@@ -132,7 +132,7 @@
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Contact Number</label>
-              <input type="text" pInputText formControlName="contactNumber" inputmode="numeric" class="w-100" />
+              <input type="text" pInputText formControlName="contactNumber" inputmode="numeric" (input)="onContactNumberInput($event)" class="w-100" />
               <small class="text-danger" *ngIf="grievanceForm.get('contactNumber')?.invalid && (grievanceForm.get('contactNumber')?.touched || grievanceForm.get('contactNumber')?.dirty)">
                 Contact number must contain digits only
               </small>

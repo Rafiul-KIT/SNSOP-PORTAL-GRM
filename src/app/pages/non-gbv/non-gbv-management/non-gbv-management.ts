@@ -227,7 +227,7 @@ export class NonGbvManagement implements OnInit, OnDestroy {
       reportingChannel: [null, Validators.required],
       otherReportingChannel: [''],
       dateComplaint: [null, Validators.required],
-      contactNumber: ['', [Validators.pattern(/^[0-9]+$/)]],
+      contactNumber: ['', [Validators.pattern(/^[0-9]*$/)]],
       complainantName: ['', Validators.required],
       gender: [null],
       physicalAddress: [''],
@@ -788,6 +788,15 @@ export class NonGbvManagement implements OnInit, OnDestroy {
       attachment: file,
     });
     this.attachmentFile = file;
+  }
+
+  onContactNumberInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digitsOnly = (input.value || '').replace(/\D+/g, '');
+    if (input.value !== digitsOnly) {
+      input.value = digitsOnly;
+      this.grievanceForm.patchValue({ contactNumber: digitsOnly }, { emitEvent: false });
+    }
   }
 
   onViewFile(): void {
