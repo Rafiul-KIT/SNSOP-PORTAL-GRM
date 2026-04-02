@@ -28,16 +28,12 @@
             <i class="bi bi-info-circle-fill me-2"></i>General Information
           </h5>
           <hr>
-          <div class="row g-3 justify-content-end">
+           <div class="row g-3 justify-content-end">
             <div class="col-md-3">
-              <label class="form-label fw-bold"> Date <span class="text-danger">*</span></label>
-              <p-datepicker formControlName="incidentOccurredAt" [showIcon]="true" appendTo="body" class="w-100" dateFormat="dd/mm/yy"></p-datepicker>
-              <small class="text-danger" *ngIf="gbvForm.get('incidentOccurredAt')?.invalid && (gbvForm.get('incidentOccurredAt')?.touched || gbvForm.get('incidentOccurredAt')?.dirty)">
-                Incident date is required
-              </small>
+              <label class="form-label fw-bold">Date </label>
+              <p-datepicker formControlName="date" [readonlyInput]="true" [showIcon]="false" appendTo="body" class="w-100" dateFormat="dd/mm/yy"></p-datepicker>
             </div>
           </div>
-
           <div class="row g-3 mt-1">
             <div class="col-md-3">
               <label class="form-label fw-bold">State Name <span class="text-danger">*</span></label>
@@ -81,7 +77,7 @@
               <label class="form-label fw-bold">Contact Focal Person Name <span class="text-danger">*</span></label>
               <input type="text" pInputText formControlName="contactFocalPersonName" class="w-100" />
               <small class="text-danger" *ngIf="gbvForm.get('contactFocalPersonName')?.invalid && (gbvForm.get('contactFocalPersonName')?.touched || gbvForm.get('contactFocalPersonName')?.dirty)">
-                Contact focal person name is required
+                {{ gbvForm.get('contactFocalPersonName')?.hasError('pattern') ? 'Contact focal person name must contain letters only' : 'Contact focal person name is required' }}
               </small>
             </div>
             <div class="col-md-4">
@@ -100,6 +96,13 @@
               <p-select [options]="reportingChannels" formControlName="reportingChannelId" placeholder="--Select--" class="w-100" appendTo="body"></p-select>
               <small class="text-danger" *ngIf="gbvForm.get('reportingChannelId')?.invalid && (gbvForm.get('reportingChannelId')?.touched || gbvForm.get('reportingChannelId')?.dirty)">
                 Reporting channel is required
+              </small>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Incident Occurred Date <span class="text-danger">*</span></label>
+              <p-datepicker formControlName="incidentOccurredAt" [showIcon]="true" appendTo="body" class="w-100" dateFormat="dd/mm/yy"></p-datepicker>
+              <small class="text-danger" *ngIf="gbvForm.get('incidentOccurredAt')?.invalid && (gbvForm.get('incidentOccurredAt')?.touched || gbvForm.get('incidentOccurredAt')?.dirty)">
+                {{ gbvForm.get('incidentOccurredAt')?.hasError('futureDate') ? 'Incident occurred date cannot be today or in the future' : 'Incident occurred date is required' }}
               </small>
             </div>
             <div class="col-md-4" *ngIf="isOtherReportingChannelSelected()">
@@ -249,24 +252,48 @@
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label fw-bold">Grievance Attachment <span class="text-danger">*</span></label>
-              <div class="file-upload-wrapper border rounded-2 p-1 bg-light">
-                <input type="file" (change)="onFileUpload($event, 'grievance')" class="form-control form-control-sm border-0 bg-transparent" />
+              <div *ngIf="!grievanceAttachmentFile" class="file-upload-wrapper border rounded-2 p-1 bg-light">
+                <input type="file" #grievanceFileInput (change)="onFileUpload($event, 'grievance')"  class="form-control form-control-sm border-0 bg-transparent" />
               </div>
-              <small class="text-success mt-1" *ngIf="grievanceAttachmentFile">
-                <i class="bi bi-check-circle-fill me-1"></i> {{ grievanceAttachmentFile.name }}
-              </small>
+              <div *ngIf="grievanceAttachmentFile" class="file-attached-card">
+                <div class="file-info">
+                  <i class="bi bi-file-earmark-check-fill file-icon"></i>
+                  <span class="file-name" [title]="grievanceAttachmentFile.name">{{ grievanceAttachmentFile.name }}</span>
+                  <span class="file-size">({{ formatFileSize(grievanceAttachmentFile.size) }})</span>
+                </div>
+                <div class="file-actions">
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="onViewFile('grievance')" title="View">
+                    <i class="bi bi-eye-fill"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveFile('grievance')" title="Delete">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                </div>
+              </div>
               <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('grievanceAttachmentFile')?.invalid && (gbvForm.get('grievanceAttachmentFile')?.touched || gbvForm.get('grievanceAttachmentFile')?.dirty)">
                 Grievance attachment is required
               </small>
             </div>
             <div class="col-md-6">
               <label class="form-label fw-bold">Consent Form Attachment <span class="text-danger">*</span></label>
-              <div class="file-upload-wrapper border rounded-2 p-1 bg-light">
-                <input type="file" (change)="onFileUpload($event, 'consent')" class="form-control form-control-sm border-0 bg-transparent" />
+              <div *ngIf="!consentAttachmentFile" class="file-upload-wrapper border rounded-2 p-1 bg-light">
+                <input type="file" #consentFileInput (change)="onFileUpload($event, 'consent')"  class="form-control form-control-sm border-0 bg-transparent" />
               </div>
-              <small class="text-success mt-1" *ngIf="consentAttachmentFile">
-                <i class="bi bi-check-circle-fill me-1"></i> {{ consentAttachmentFile.name }}
-              </small>
+              <div *ngIf="consentAttachmentFile" class="file-attached-card">
+                <div class="file-info">
+                  <i class="bi bi-file-earmark-check-fill file-icon"></i>
+                  <span class="file-name" [title]="consentAttachmentFile.name">{{ consentAttachmentFile.name }}</span>
+                  <span class="file-size">({{ formatFileSize(consentAttachmentFile.size) }})</span>
+                </div>
+                <div class="file-actions">
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="onViewFile('consent')" title="View">
+                    <i class="bi bi-eye-fill"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveFile('consent')" title="Delete">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                </div>
+              </div>
               <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('consentFormAttachmentFile')?.invalid && (gbvForm.get('consentFormAttachmentFile')?.touched || gbvForm.get('consentFormAttachmentFile')?.dirty)">
                 Consent form attachment is required
               </small>
@@ -383,7 +410,7 @@
       styleClass="p-button-sm"
       (onClick)="downloadSavedIssuePdf()"></p-button>
     <p-button
-      label="Close"
+      label="OK"
       icon="pi pi-times"
       styleClass="p-button-sm"
       (onClick)="displaySavedIssueDialog = false"></p-button>

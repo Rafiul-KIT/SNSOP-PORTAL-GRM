@@ -32,8 +32,8 @@
           <hr>
           <div class="row g-3 justify-content-end">
             <div class="col-md-3">
-              <label class="form-label fw-bold">Date <span class="text-danger">*</span></label>
-              <p-datepicker formControlName="date" [showIcon]="true" appendTo="body" class="w-100" dateFormat="dd/mm/yy"></p-datepicker>
+              <label class="form-label fw-bold">Date </label>
+              <p-datepicker formControlName="date" [readonlyInput]="true" [showIcon]="false" appendTo="body" class="w-100" dateFormat="dd/mm/yy"></p-datepicker>
             </div>
           </div>
           <div class="row g-3 mt-1">
@@ -76,8 +76,23 @@
             </div>
             <div class="col-md-6">
               <label class="form-label fw-bold">Attachment <span class="text-danger">*</span></label>
-              <div class="file-upload-wrapper border rounded-2 p-1 bg-light">
-                 <input type="file" (change)="onFileSelect($event)" class="form-control form-control-sm border-0 bg-transparent" />
+              <div *ngIf="!attachmentFile" class="file-upload-wrapper border rounded-2 p-1 bg-light">
+                 <input type="file" (change)="onFileSelect($event)"  class="form-control form-control-sm border-0 bg-transparent" />
+              </div>
+              <div *ngIf="attachmentFile" class="file-attached-card">
+                <div class="file-info">
+                  <i class="bi bi-file-earmark-check-fill file-icon"></i>
+                  <span class="file-name" [title]="attachmentFile.name">{{ attachmentFile.name }}</span>
+                  <span class="file-size">({{ formatFileSize(attachmentFile.size) }})</span>
+                </div>
+                <div class="file-actions">
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="onViewFile()" title="View">
+                    <i class="bi bi-eye-fill"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveFile()" title="Delete">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                </div>
               </div>
               <small class="text-danger d-block mt-1" *ngIf="grievanceForm.get('attachment')?.invalid && (grievanceForm.get('attachment')?.touched || grievanceForm.get('attachment')?.dirty)">Attachment is required</small>
             </div>
@@ -91,9 +106,11 @@
               <input type="text" pInputText formControlName="otherReportingChannel" class="w-100" />
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-bold">Date Complaint <span class="text-danger">*</span></label>
-              <p-datepicker formControlName="dateComplaint" [showIcon]="true" appendTo="body" class="w-100" dateFormat="mm/dd/yy"></p-datepicker>
-              <small class="text-danger" *ngIf="grievanceForm.get('dateComplaint')?.invalid && (grievanceForm.get('dateComplaint')?.touched || grievanceForm.get('dateComplaint')?.dirty)">Complaint date is required</small>
+              <label class="form-label fw-bold">Incident Occurred Date <span class="text-danger">*</span></label>
+              <p-datepicker formControlName="incidentOccurredAt" [showIcon]="true" appendTo="body" class="w-100" dateFormat="mm/dd/yy"></p-datepicker>
+              <small class="text-danger" *ngIf="grievanceForm.get('incidentOccurredAt')?.invalid && (grievanceForm.get('incidentOccurredAt')?.touched || grievanceForm.get('incidentOccurredAt')?.dirty)">
+                {{ grievanceForm.get('incidentOccurredAt')?.hasError('futureDate') ? 'Incident occurred date cannot be today or in the future' : 'Incident occurred date is required' }}
+              </small>
             </div>
           </div>
         </div>
@@ -109,7 +126,9 @@
             <div class="col-md-4">
               <label class="form-label fw-bold">Complainant's Name <span class="text-danger">*</span></label>
               <input type="text" pInputText formControlName="complainantName" class="w-100" />
-              <small class="text-danger" *ngIf="grievanceForm.get('complainantName')?.invalid && (grievanceForm.get('complainantName')?.touched || grievanceForm.get('complainantName')?.dirty)">Name is required</small>
+              <small class="text-danger" *ngIf="grievanceForm.get('complainantName')?.invalid && (grievanceForm.get('complainantName')?.touched || grievanceForm.get('complainantName')?.dirty)">
+                {{ grievanceForm.get('complainantName')?.hasError('pattern') ? 'Name must contain letters only' : 'Name is required' }}
+              </small>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Gender</label>
@@ -117,7 +136,10 @@
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Contact Number</label>
-              <input type="text" pInputText formControlName="contactNumber" class="w-100" />
+              <input type="text" pInputText formControlName="contactNumber" inputmode="numeric" maxlength="14" (input)="onContactNumberInput($event)" class="w-100" />
+              <small class="text-danger" *ngIf="grievanceForm.get('contactNumber')?.invalid && (grievanceForm.get('contactNumber')?.touched || grievanceForm.get('contactNumber')?.dirty)">
+                Contact number must be exactly 14 digits
+              </small>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold d-block mb-2">SNSOP Beneficiary</label>
@@ -165,7 +187,7 @@
               <small class="text-danger" *ngIf="grievanceForm.get('supportType')?.invalid && (grievanceForm.get('supportType')?.touched || grievanceForm.get('supportType')?.dirty)">Support type is required</small>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-bold">Category of Grievance (grievanceTypeId) <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold">Category of Grievance  <span class="text-danger">*</span></label>
               <p-select [options]="categories" formControlName="categoryOfGrievance" placeholder="--Select--" class="w-100" appendTo="body" (onChange)="onCategoryChange($event)"></p-select>
               <small class="text-danger" *ngIf="grievanceForm.get('categoryOfGrievance')?.invalid && (grievanceForm.get('categoryOfGrievance')?.touched || grievanceForm.get('categoryOfGrievance')?.dirty)">grievanceTypeId is required</small>
             </div>
@@ -229,7 +251,7 @@
       styleClass="p-button-sm"
       (onClick)="downloadSavedIssuePdf()"></p-button>
     <p-button
-      label="Close"
+      label="OK"
       icon="pi pi-times"
       styleClass="p-button-sm"
       (onClick)="displaySavedIssueDialog = false"></p-button>

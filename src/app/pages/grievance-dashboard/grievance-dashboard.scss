@@ -340,6 +340,30 @@
 
   &--triple {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+
+    .chart-card--compact {
+      display: flex;
+      flex-direction: column;
+
+      .chart-card__body {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+        padding: 0.6rem 0.6rem 0.8rem;
+
+        p-chart {
+          width: 100%;
+        }
+      }
+    }
+  }
+
+  &--half {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
   }
 }
 
@@ -352,6 +376,17 @@
 
   &--full {
     margin-bottom: 1rem;
+  }
+
+  &--compact {
+    .chart-card__header {
+      padding: 0.7rem 0.9rem;
+    }
+
+    .chart-card__body {
+      min-height: 200px;
+      padding: 0.5rem 0.5rem 0.7rem;
+    }
   }
 
   &__header {
@@ -437,7 +472,8 @@
   }
 
   .charts-row,
-  .charts-row--triple {
+  .charts-row--triple,
+  .charts-row--half {
     grid-template-columns: 1fr;
   }
 }

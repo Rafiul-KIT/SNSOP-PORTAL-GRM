@@ -2,7 +2,7 @@ import Swal from 'sweetalert2';
 
 const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
 const MAX_FILE_SIZE_LABEL = '25 MB';
-const ALLOWED_FILE_EXTENSIONS = ['pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx'];
+const ALLOWED_FILE_EXTENSIONS: string[] = [];
 
 export interface FileValidationOptions {
   maxSizeBytes?: number;
@@ -20,10 +20,10 @@ export function validateFile(
 
   const maxSize = options?.maxSizeBytes ?? MAX_FILE_SIZE_BYTES;
   const maxLabel = options?.maxSizeLabel ?? MAX_FILE_SIZE_LABEL;
-  const checkExt = options?.checkExtension ?? true;
+  const checkExt = options?.checkExtension ?? ALLOWED_FILE_EXTENSIONS.length > 0;
   const extensions = options?.allowedExtensions ?? ALLOWED_FILE_EXTENSIONS;
 
-  if (checkExt) {
+  if (checkExt && extensions.length > 0) {
     const ext = file.name?.split('.').pop()?.toLowerCase() ?? '';
     if (!extensions.includes(ext)) {
       Swal.fire({

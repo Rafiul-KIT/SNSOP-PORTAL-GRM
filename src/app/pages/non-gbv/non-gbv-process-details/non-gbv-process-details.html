@@ -289,7 +289,7 @@
         <div class="col-md-6">
           <label class="form-label fw-bold">Attachment</label>
           <p-fileUpload mode="basic" chooseLabel="Choose File" [auto]="false"
-            (onSelect)="onFeedbackAttachmentSelect($event)" [multiple]="false" 
+            (onSelect)="onFeedbackAttachmentSelect($event)" [multiple]="false" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
             [maxFileSize]="1000000" styleClass="w-100">
           </p-fileUpload>
           <!-- <small class="p-error" *ngIf="feedbackAttachmentFile">{{ feedbackAttachmentFile.name }}</small> -->
@@ -390,7 +390,7 @@
           <div class="col-md-6">
             <label class="form-label fw-bold">Investigation Report Attachment</label>
             <p-fileUpload mode="basic" chooseLabel="Choose File" [auto]="false"
-              (onSelect)="onInvestigationReportAttachmentSelect($event)" [multiple]="false" accept="image/*,.pdf"
+              (onSelect)="onInvestigationReportAttachmentSelect($event)" [multiple]="false"
               [maxFileSize]="1000000" styleClass="w-100">
             </p-fileUpload>
             <small class="p-error" *ngIf="investigationReportAttachmentFile">
