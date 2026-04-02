@@ -217,7 +217,7 @@ export class NonGbvManagement implements OnInit, OnDestroy {
   initForm(): void {
     this.grievanceForm = this.fb.group({
       serialNumber: [{ value: '', disabled: true }],
-      date: [this.today],
+      date: [{ value: this.today, disabled: true }],
       stateName: [null, Validators.required],
       countyName: [null, Validators.required],
       payamName: [null, Validators.required],
@@ -226,9 +226,9 @@ export class NonGbvManagement implements OnInit, OnDestroy {
       attachment: [null, Validators.required],
       reportingChannel: [null, Validators.required],
       otherReportingChannel: [''],
-      dateComplaint: [null, Validators.required],
-      contactNumber: ['', [Validators.pattern(/^[0-9]*$/)]],
-      complainantName: ['', Validators.required],
+      incidentOccurredAt: [null, [Validators.required, this.noFutureDateValidator()]],
+      contactNumber: ['', [Validators.pattern(/^$|^[0-9]{14}$/)]],
+      complainantName: ['', [Validators.required, this.trimRequiredValidator(), Validators.pattern(/^[A-Za-z\s]+$/)]],
       gender: [null],
       physicalAddress: [''],
       isBeneficiary: [true],
@@ -351,6 +351,17 @@ export class NonGbvManagement implements OnInit, OnDestroy {
     };
   }
 
+  private noFutureDateValidator(): ValidatorFn {
+    return (ctrl: AbstractControl): ValidationErrors | null => {
+      if (!ctrl.value) return null;
+      const d = new Date(ctrl.value);
+      if (isNaN(d.getTime())) return { invalidDate: true };
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      return d >= todayStart ? { futureDate: true } : null;
+    };
+  }
+
   private toDisplayValue(value: any): string {
     if (value === null || value === undefined) return '--';
     const text = String(value).trim();
@@ -378,11 +389,11 @@ export class NonGbvManagement implements OnInit, OnDestroy {
     const content = result?.content || result?.data || {};
     const trackingNumberFromMessage = this.extractTrackingNumber(result?.message);
     const trackingNumber = content?.trackingNumber || trackingNumberFromMessage || '--';
-    const complaintDate = this.formatDateForApi(formValue?.dateComplaint) || '--';
+    const incidentOccurredDate = this.formatDateForApi(formValue?.incidentOccurredAt) || '--';
 
     return [
       { label: 'Tracking Number', value: this.toDisplayValue(trackingNumber) },
-      { label: 'Complaint Date', value: this.toDisplayValue(complaintDate) },
+      { label: 'Incident Occurred Date', value: this.toDisplayValue(incidentOccurredDate) },
       { label: 'State', value: this.findOptionLabel(this.states, formValue?.stateName) },
       { label: 'County', value: this.findOptionLabel(this.counties, formValue?.countyName) },
       { label: 'Payam', value: this.findOptionLabel(this.payams, formValue?.payamName) },
@@ -390,14 +401,20 @@ export class NonGbvManagement implements OnInit, OnDestroy {
       { label: 'Complainant Name', value: this.toDisplayValue(formValue?.complainantName) },
       { label: 'Gender', value: this.findOptionLabel(this.genders, formValue?.gender) },
       { label: 'Contact Number', value: this.toDisplayValue(formValue?.contactNumber) },
-      { label: 'Reporting Channel', value: this.findOptionLabel(this.reportingChannels, formValue?.reportingChannel) },
+      { label: 'Reporting Channel', value: this.isOtherReportingChannelSelected() && formValue?.otherReportingChannel
+        ? `${this.findOptionLabel(this.reportingChannels, formValue?.reportingChannel)} (${formValue.otherReportingChannel})`
+        : this.findOptionLabel(this.reportingChannels, formValue?.reportingChannel) },
       { label: 'Beneficiary', value: this.booleanLabel(formValue?.isBeneficiary) },
       { label: 'Support Type', value: this.findOptionLabel(this.supportTypes, formValue?.supportType) },
       { label: 'Grievance Category', value: this.findOptionLabel(this.categories, formValue?.categoryOfGrievance) },
-      { label: 'Grievance Type', value: this.findOptionLabel(this.grievanceTypes, formValue?.typeOfGrievance) },
+      { label: 'Grievance Type', value: this.isOtherTypeSelected() && formValue?.typeOfGrievanceOther
+        ? `${this.findOptionLabel(this.grievanceTypes, formValue?.typeOfGrievance)} (${formValue.typeOfGrievanceOther})`
+        : this.isOtherCategorySelected() && formValue?.typeOfGrievanceOther
+          ? formValue.typeOfGrievanceOther
+          : this.findOptionLabel(this.grievanceTypes, formValue?.typeOfGrievance) },
       { label: 'Description', value: this.toDisplayValue(formValue?.description) },
       { label: 'Attachment', value: this.toDisplayValue(formValue?.attachment?.name) },
-      { label: 'Note', value: this.toDisplayValue(result?.message) },
+      // { label: 'Note', value: this.toDisplayValue(result?.message) },
     ];
   }
 
@@ -694,7 +711,7 @@ export class NonGbvManagement implements OnInit, OnDestroy {
       formData.append('countyId', String(rawValues.countyName));
       formData.append('payamId', String(rawValues.payamName));
       formData.append('bomaId', String(rawValues.bomaName));
-      formData.append('incidentOccurredAt', this.formatDateForApi(rawValues.dateComplaint));
+      formData.append('incidentOccurredAt', this.formatDateForApi(rawValues.incidentOccurredAt));
       formData.append('reportingChannelId', String(rawValues.reportingChannel));
       formData.append('complainantName', rawValues.complainantName);
       formData.append('grievanceTypeId', String(rawValues.categoryOfGrievance));
@@ -765,7 +782,7 @@ export class NonGbvManagement implements OnInit, OnDestroy {
 
   onReset(): void {
     this.grievanceForm.reset({
-      date: this.today,
+      date: { value: this.today, disabled: true },
       isBeneficiary: true,
       categoryOfGrievance: null,
     });
@@ -792,7 +809,7 @@ export class NonGbvManagement implements OnInit, OnDestroy {
 
   onContactNumberInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const digitsOnly = (input.value || '').replace(/\D+/g, '');
+    const digitsOnly = (input.value || '').replace(/\D+/g, '').slice(0, 14);
     if (input.value !== digitsOnly) {
       input.value = digitsOnly;
       this.grievanceForm.patchValue({ contactNumber: digitsOnly }, { emitEvent: false });

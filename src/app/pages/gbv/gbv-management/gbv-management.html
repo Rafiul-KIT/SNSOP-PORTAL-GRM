@@ -28,16 +28,12 @@
             <i class="bi bi-info-circle-fill me-2"></i>General Information
           </h5>
           <hr>
-          <div class="row g-3 justify-content-end">
+           <div class="row g-3 justify-content-end">
             <div class="col-md-3">
-              <label class="form-label fw-bold"> Date <span class="text-danger">*</span></label>
-              <p-datepicker formControlName="incidentOccurredAt" [showIcon]="true" appendTo="body" class="w-100" dateFormat="dd/mm/yy"></p-datepicker>
-              <small class="text-danger" *ngIf="gbvForm.get('incidentOccurredAt')?.invalid && (gbvForm.get('incidentOccurredAt')?.touched || gbvForm.get('incidentOccurredAt')?.dirty)">
-                Incident date is required
-              </small>
+              <label class="form-label fw-bold">Date </label>
+              <p-datepicker formControlName="date" [readonlyInput]="true" [showIcon]="false" appendTo="body" class="w-100" dateFormat="dd/mm/yy"></p-datepicker>
             </div>
           </div>
-
           <div class="row g-3 mt-1">
             <div class="col-md-3">
               <label class="form-label fw-bold">State Name <span class="text-danger">*</span></label>
@@ -81,7 +77,7 @@
               <label class="form-label fw-bold">Contact Focal Person Name <span class="text-danger">*</span></label>
               <input type="text" pInputText formControlName="contactFocalPersonName" class="w-100" />
               <small class="text-danger" *ngIf="gbvForm.get('contactFocalPersonName')?.invalid && (gbvForm.get('contactFocalPersonName')?.touched || gbvForm.get('contactFocalPersonName')?.dirty)">
-                Contact focal person name is required
+                {{ gbvForm.get('contactFocalPersonName')?.hasError('pattern') ? 'Contact focal person name must contain letters only' : 'Contact focal person name is required' }}
               </small>
             </div>
             <div class="col-md-4">
@@ -100,6 +96,13 @@
               <p-select [options]="reportingChannels" formControlName="reportingChannelId" placeholder="--Select--" class="w-100" appendTo="body"></p-select>
               <small class="text-danger" *ngIf="gbvForm.get('reportingChannelId')?.invalid && (gbvForm.get('reportingChannelId')?.touched || gbvForm.get('reportingChannelId')?.dirty)">
                 Reporting channel is required
+              </small>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Incident Occurred Date <span class="text-danger">*</span></label>
+              <p-datepicker formControlName="incidentOccurredAt" [showIcon]="true" appendTo="body" class="w-100" dateFormat="dd/mm/yy"></p-datepicker>
+              <small class="text-danger" *ngIf="gbvForm.get('incidentOccurredAt')?.invalid && (gbvForm.get('incidentOccurredAt')?.touched || gbvForm.get('incidentOccurredAt')?.dirty)">
+                {{ gbvForm.get('incidentOccurredAt')?.hasError('futureDate') ? 'Incident occurred date cannot be today or in the future' : 'Incident occurred date is required' }}
               </small>
             </div>
             <div class="col-md-4" *ngIf="isOtherReportingChannelSelected()">
@@ -407,7 +410,7 @@
       styleClass="p-button-sm"
       (onClick)="downloadSavedIssuePdf()"></p-button>
     <p-button
-      label="Close"
+      label="OK"
       icon="pi pi-times"
       styleClass="p-button-sm"
       (onClick)="displaySavedIssueDialog = false"></p-button>

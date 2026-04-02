@@ -106,14 +106,15 @@ export class GBVManagement implements OnInit, OnDestroy {
     this.gbvForm = this.fb.group({
       id: [0],
       trackingNumber: [{ value: '', disabled: true }],
+      date: [{ value: this.today, disabled: true }],
 
       stateId: [null, Validators.required],
       countyId: [null, Validators.required],
       payamId: [null, Validators.required],
       bomaId: [null, Validators.required],
-      incidentOccurredAt: [this.today, [Validators.required, this.noFutureDateValidator()]],
+      incidentOccurredAt: [null, [Validators.required, this.noFutureDateValidator()]],
 
-      contactFocalPersonName: ['', [Validators.required, this.trimRequiredValidator(), Validators.maxLength(120)]],
+      contactFocalPersonName: ['', [Validators.required, this.trimRequiredValidator(), Validators.maxLength(120), Validators.pattern(/^[A-Za-z\s]+$/)]],
       incidentReportedBy: [null],
       // NO validators — syncOtherDescValidator manages them
       incidentReportedByOtherDesc: [''],
@@ -377,9 +378,9 @@ export class GBVManagement implements OnInit, OnDestroy {
       if (!ctrl.value) return null;
       const d = new Date(ctrl.value);
       if (isNaN(d.getTime())) return { invalidDate: true };
-      const eod = new Date();
-      eod.setHours(23, 59, 59, 999);
-      return d > eod ? { futureDate: true } : null;
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      return d >= todayStart ? { futureDate: true } : null;
     };
   }
 
@@ -475,7 +476,7 @@ export class GBVManagement implements OnInit, OnDestroy {
     this.appendValue(fd, 'suspectKnown', v.suspectKnown);
     this.appendValue(fd, 'suspectAssociatedWithProject', v.suspectAssociatedWithProject);
     this.appendValue(fd, 'suspectDetails', v.suspectDetails?.trim() || null);
-    this.appendValue(fd, 'recommendedReferralServiceId', v.recommendedReferralServiceId);
+    this.appendValue(fd, 'recommendedReferralServiceId', v.recommendedReferralServiceId != null ? Math.round(v.recommendedReferralServiceId) : null);
     this.appendValue(fd, 'grievanceAttachmentUrl', v.grievanceAttachmentUrl?.trim() || null);
     this.appendValue(fd, 'verbalConsentGranted', v.verbalConsentGranted);
     this.appendValue(fd, 'consentSigned', v.consentSigned);
@@ -534,7 +535,7 @@ export class GBVManagement implements OnInit, OnDestroy {
 
     return [
       { label: 'Tracking Number', value: this.toDisplayValue(trackingNumber) },
-      { label: 'Incident Date', value: this.toDisplayValue(incidentDate) },
+      { label: 'Incident Occurred Date', value: this.toDisplayValue(incidentDate) },
       { label: 'State', value: this.findOptionLabel(this.states, formValue?.stateId) },
       { label: 'County', value: this.findOptionLabel(this.counties, formValue?.countyId) },
       { label: 'Payam', value: this.findOptionLabel(this.payams, formValue?.payamId) },
@@ -550,7 +551,7 @@ export class GBVManagement implements OnInit, OnDestroy {
       { label: 'Grievance Description', value: this.toDisplayValue(formValue?.grievanceDescription) },
       { label: 'Grievance Attachment', value: this.toDisplayValue(this.grievanceAttachmentFile?.name) },
       { label: 'Consent Attachment', value: this.toDisplayValue(this.consentAttachmentFile?.name) },
-      { label: 'Note', value: this.toDisplayValue(result?.message) },
+      // { label: 'Note', value: this.toDisplayValue(result?.message) },
     ];
   }
 
@@ -779,7 +780,8 @@ export class GBVManagement implements OnInit, OnDestroy {
   onReset(): void {
     this.gbvForm.reset({
       id: 0,
-      incidentOccurredAt: this.today,
+      date: { value: this.today, disabled: true },
+      incidentOccurredAt: null,
       complainantBeneficiary: null,
       verbalConsentGranted: null,
       consentSigned: null,
