@@ -232,7 +232,16 @@ export class GbvDetails implements OnInit {
   }
 
   getSelectionCriteriaName(value: any): string {
-    return this.lookupService.getSelectionCriteriaEnumByValue(value);
+    if (value === null || value === undefined || value === '') {
+      return '--';
+    }
+
+    const item = this.lookupService.getSelectionCriteriaEnum().find(
+      (selection: any) =>
+        String(selection.id) === String(value) || String(selection.value) === String(value)
+    );
+
+    return item ? item.label : String(value);
   }
 
   getBeneficiaryStatus(isBeneficiary: boolean): string {

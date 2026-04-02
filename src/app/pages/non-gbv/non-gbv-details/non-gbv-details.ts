@@ -47,7 +47,6 @@ interface NonGbvGrievanceDetails {
   grievanceAttachmentFile: string;
   grievanceAttachmentBytes: string;
   grievanceAttachmentFilename: string;
-  status: string; // Assuming status is returned as a string or number
 }
 
 @Component({
@@ -257,6 +256,19 @@ export class NonGbvDetails implements OnInit {
 
   getBeneficiaryStatus(isBeneficiary: boolean): string {
     return isBeneficiary ? 'Yes' : 'No';
+  }
+
+  getSelectionCriteriaName(value: number | string | null | undefined): string {
+    if (value === null || value === undefined || value === '') {
+      return '--';
+    }
+
+    const item = this.lookupService.getSelectionCriteriaEnum().find(
+      (selection: any) =>
+        String(selection.id) === String(value) || String(selection.value) === String(value)
+    );
+
+    return item ? item.label : String(value);
   }
 
   getStatusLabel(statusValue: string | number): string {
