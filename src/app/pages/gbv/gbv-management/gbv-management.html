@@ -217,7 +217,7 @@
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Recommended Referral Service (ID)</label>
-              <p-inputnumber formControlName="recommendedReferralServiceId" [min]="0" class="w-100"></p-inputnumber>
+              <p-inputnumber formControlName="recommendedReferralServiceId" [min]="0" [max]="2147483647" [useGrouping]="false" class="w-100"></p-inputnumber>
             </div>
             <div class="col-12">
               <label class="form-label fw-bold">Suspect Details</label>

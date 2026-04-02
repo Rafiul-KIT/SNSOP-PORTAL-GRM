@@ -138,7 +138,7 @@
               <label class="form-label fw-bold">Contact Number</label>
               <input type="text" pInputText formControlName="contactNumber" inputmode="numeric" maxlength="14" (input)="onContactNumberInput($event)" class="w-100" />
               <small class="text-danger" *ngIf="grievanceForm.get('contactNumber')?.invalid && (grievanceForm.get('contactNumber')?.touched || grievanceForm.get('contactNumber')?.dirty)">
-                Contact number must be exactly 14 digits
+                Enter numbers only (maximum 14 digits)
               </small>
             </div>
             <div class="col-md-4">

@@ -453,7 +453,7 @@ export class GBVManagement implements OnInit, OnDestroy {
     const fd = new FormData();
 
     // ── Required fields ────────────────────────────────────────────────────
-    this.appendValue(fd, 'id', v.id ?? 0);
+    // this.appendValue(fd, 'id', v.id ?? 0);
     this.appendValue(fd, 'stateId', v.stateId);
     this.appendValue(fd, 'countyId', v.countyId);
     this.appendValue(fd, 'payamId', v.payamId);
@@ -476,7 +476,7 @@ export class GBVManagement implements OnInit, OnDestroy {
     this.appendValue(fd, 'suspectKnown', v.suspectKnown);
     this.appendValue(fd, 'suspectAssociatedWithProject', v.suspectAssociatedWithProject);
     this.appendValue(fd, 'suspectDetails', v.suspectDetails?.trim() || null);
-    this.appendValue(fd, 'recommendedReferralServiceId', v.recommendedReferralServiceId != null ? Math.round(v.recommendedReferralServiceId) : null);
+    this.appendValue(fd, 'recommendedReferralServiceId', v.recommendedReferralServiceId != null ? String(Math.round(v.recommendedReferralServiceId)) : null);
     this.appendValue(fd, 'grievanceAttachmentUrl', v.grievanceAttachmentUrl?.trim() || null);
     this.appendValue(fd, 'verbalConsentGranted', v.verbalConsentGranted);
     this.appendValue(fd, 'consentSigned', v.consentSigned);
@@ -541,8 +541,12 @@ export class GBVManagement implements OnInit, OnDestroy {
       { label: 'Payam', value: this.findOptionLabel(this.payams, formValue?.payamId) },
       { label: 'Boma', value: this.findOptionLabel(this.bomas, formValue?.bomaId) },
       { label: 'Contact Focal Person', value: this.toDisplayValue(formValue?.contactFocalPersonName) },
-      { label: 'Incident Reported By', value: this.findOptionLabel(this.incidentReporters, formValue?.incidentReportedBy) },
-      { label: 'Reporting Channel', value: this.findOptionLabel(this.reportingChannels, formValue?.reportingChannelId) },
+      { label: 'Incident Reported By', value: this.isIncidentReporterOtherSelected() && formValue?.incidentReportedByOtherDesc
+        ? `${this.findOptionLabel(this.incidentReporters, formValue?.incidentReportedBy)} (${formValue.incidentReportedByOtherDesc})`
+        : this.findOptionLabel(this.incidentReporters, formValue?.incidentReportedBy) },
+      { label: 'Reporting Channel', value: this.isOtherReportingChannelSelected() && formValue?.reportingChannelOther
+        ? `${this.findOptionLabel(this.reportingChannels, formValue?.reportingChannelId)} (${formValue.reportingChannelOther})`
+        : this.findOptionLabel(this.reportingChannels, formValue?.reportingChannelId) },
       { label: 'Complainant Gender', value: this.findOptionLabel(this.genders, formValue?.complainantGender) },
       { label: 'Age of Survivor', value: this.toDisplayValue(formValue?.ageOfSurvivor) },
       { label: 'Complainant Beneficiary', value: this.booleanLabel(formValue?.complainantBeneficiary) },

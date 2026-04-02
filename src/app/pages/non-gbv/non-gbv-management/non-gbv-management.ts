@@ -227,7 +227,7 @@ export class NonGbvManagement implements OnInit, OnDestroy {
       reportingChannel: [null, Validators.required],
       otherReportingChannel: [''],
       incidentOccurredAt: [null, [Validators.required, this.noFutureDateValidator()]],
-      contactNumber: ['', [Validators.pattern(/^$|^[0-9]{14}$/)]],
+      contactNumber: ['', [Validators.pattern(/^$|^[0-9]{1,14}$/)]],
       complainantName: ['', [Validators.required, this.trimRequiredValidator(), Validators.pattern(/^[A-Za-z\s]+$/)]],
       gender: [null],
       physicalAddress: [''],
