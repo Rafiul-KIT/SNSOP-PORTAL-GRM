@@ -52,6 +52,7 @@ export class NonGbvManagement implements OnInit, OnDestroy {
   grievanceForm!: FormGroup;
   today: Date = new Date();
   isLoading = false;
+  attachmentFile: File | null = null;
   private subscriptions: Subscription[] = [];
 
   items: MenuItem[] | undefined;
@@ -226,7 +227,7 @@ export class NonGbvManagement implements OnInit, OnDestroy {
       reportingChannel: [null, Validators.required],
       otherReportingChannel: [''],
       dateComplaint: [null, Validators.required],
-      contactNumber: [''],
+      contactNumber: ['', [Validators.pattern(/^[0-9]+$/)]],
       complainantName: ['', Validators.required],
       gender: [null],
       physicalAddress: [''],
@@ -774,6 +775,7 @@ export class NonGbvManagement implements OnInit, OnDestroy {
     this.payams = [];
     this.bomas = [];
     this.grievanceTypes = [];
+    this.attachmentFile = null;
     this.syncSupportTypeValidator(true);
     this.cdr.detectChanges();
   }
@@ -785,5 +787,25 @@ export class NonGbvManagement implements OnInit, OnDestroy {
     this.grievanceForm.patchValue({
       attachment: file,
     });
+    this.attachmentFile = file;
+  }
+
+  onViewFile(): void {
+    if (!this.attachmentFile) return;
+    const url = URL.createObjectURL(this.attachmentFile);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  }
+
+  onRemoveFile(): void {
+    this.attachmentFile = null;
+    this.grievanceForm.patchValue({ attachment: null });
+    this.grievanceForm.get('attachment')?.markAsTouched();
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
   }
 }

@@ -76,8 +76,23 @@
             </div>
             <div class="col-md-6">
               <label class="form-label fw-bold">Attachment <span class="text-danger">*</span></label>
-              <div class="file-upload-wrapper border rounded-2 p-1 bg-light">
-                 <input type="file" (change)="onFileSelect($event)" class="form-control form-control-sm border-0 bg-transparent" />
+              <div *ngIf="!attachmentFile" class="file-upload-wrapper border rounded-2 p-1 bg-light">
+                 <input type="file" (change)="onFileSelect($event)"  class="form-control form-control-sm border-0 bg-transparent" />
+              </div>
+              <div *ngIf="attachmentFile" class="file-attached-card">
+                <div class="file-info">
+                  <i class="bi bi-file-earmark-check-fill file-icon"></i>
+                  <span class="file-name" [title]="attachmentFile.name">{{ attachmentFile.name }}</span>
+                  <span class="file-size">({{ formatFileSize(attachmentFile.size) }})</span>
+                </div>
+                <div class="file-actions">
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="onViewFile()" title="View">
+                    <i class="bi bi-eye-fill"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveFile()" title="Delete">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                </div>
               </div>
               <small class="text-danger d-block mt-1" *ngIf="grievanceForm.get('attachment')?.invalid && (grievanceForm.get('attachment')?.touched || grievanceForm.get('attachment')?.dirty)">Attachment is required</small>
             </div>
@@ -117,7 +132,10 @@
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Contact Number</label>
-              <input type="text" pInputText formControlName="contactNumber" class="w-100" />
+              <input type="text" pInputText formControlName="contactNumber" inputmode="numeric" class="w-100" />
+              <small class="text-danger" *ngIf="grievanceForm.get('contactNumber')?.invalid && (grievanceForm.get('contactNumber')?.touched || grievanceForm.get('contactNumber')?.dirty)">
+                Contact number must contain digits only
+              </small>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold d-block mb-2">SNSOP Beneficiary</label>

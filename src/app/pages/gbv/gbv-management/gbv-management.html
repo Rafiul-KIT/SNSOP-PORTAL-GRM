@@ -249,24 +249,48 @@
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label fw-bold">Grievance Attachment <span class="text-danger">*</span></label>
-              <div class="file-upload-wrapper border rounded-2 p-1 bg-light">
-                <input type="file" (change)="onFileUpload($event, 'grievance')" class="form-control form-control-sm border-0 bg-transparent" />
+              <div *ngIf="!grievanceAttachmentFile" class="file-upload-wrapper border rounded-2 p-1 bg-light">
+                <input type="file" #grievanceFileInput (change)="onFileUpload($event, 'grievance')"  class="form-control form-control-sm border-0 bg-transparent" />
               </div>
-              <small class="text-success mt-1" *ngIf="grievanceAttachmentFile">
-                <i class="bi bi-check-circle-fill me-1"></i> {{ grievanceAttachmentFile.name }}
-              </small>
+              <div *ngIf="grievanceAttachmentFile" class="file-attached-card">
+                <div class="file-info">
+                  <i class="bi bi-file-earmark-check-fill file-icon"></i>
+                  <span class="file-name" [title]="grievanceAttachmentFile.name">{{ grievanceAttachmentFile.name }}</span>
+                  <span class="file-size">({{ formatFileSize(grievanceAttachmentFile.size) }})</span>
+                </div>
+                <div class="file-actions">
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="onViewFile('grievance')" title="View">
+                    <i class="bi bi-eye-fill"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveFile('grievance')" title="Delete">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                </div>
+              </div>
               <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('grievanceAttachmentFile')?.invalid && (gbvForm.get('grievanceAttachmentFile')?.touched || gbvForm.get('grievanceAttachmentFile')?.dirty)">
                 Grievance attachment is required
               </small>
             </div>
             <div class="col-md-6">
               <label class="form-label fw-bold">Consent Form Attachment <span class="text-danger">*</span></label>
-              <div class="file-upload-wrapper border rounded-2 p-1 bg-light">
-                <input type="file" (change)="onFileUpload($event, 'consent')" class="form-control form-control-sm border-0 bg-transparent" />
+              <div *ngIf="!consentAttachmentFile" class="file-upload-wrapper border rounded-2 p-1 bg-light">
+                <input type="file" #consentFileInput (change)="onFileUpload($event, 'consent')"  class="form-control form-control-sm border-0 bg-transparent" />
               </div>
-              <small class="text-success mt-1" *ngIf="consentAttachmentFile">
-                <i class="bi bi-check-circle-fill me-1"></i> {{ consentAttachmentFile.name }}
-              </small>
+              <div *ngIf="consentAttachmentFile" class="file-attached-card">
+                <div class="file-info">
+                  <i class="bi bi-file-earmark-check-fill file-icon"></i>
+                  <span class="file-name" [title]="consentAttachmentFile.name">{{ consentAttachmentFile.name }}</span>
+                  <span class="file-size">({{ formatFileSize(consentAttachmentFile.size) }})</span>
+                </div>
+                <div class="file-actions">
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="onViewFile('consent')" title="View">
+                    <i class="bi bi-eye-fill"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveFile('consent')" title="Delete">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                </div>
+              </div>
               <small class="text-danger d-block mt-1" *ngIf="gbvForm.get('consentFormAttachmentFile')?.invalid && (gbvForm.get('consentFormAttachmentFile')?.touched || gbvForm.get('consentFormAttachmentFile')?.dirty)">
                 Consent form attachment is required
               </small>
