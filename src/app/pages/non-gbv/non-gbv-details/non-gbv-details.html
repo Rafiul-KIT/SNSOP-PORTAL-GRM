@@ -55,8 +55,8 @@
             <div class="col-md-4">
               <label class="form-label fw-bold">Status:</label>
               <p>
-                <span [class]="'badge ' + (grievanceDetails.status === 'Resolved' ? 'bg-success' : grievanceDetails.status === 'Rejected' ? 'bg-danger' : 'bg-warning')">
-                  {{ getStatusLabel(grievanceDetails.status) }}
+                <span class="badge" [ngClass]="grievanceStatusBadgeClass">
+                  {{ grievanceStatusLabel }}
                 </span>
               </p>
             </div>

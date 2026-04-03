@@ -53,6 +53,10 @@
             <label class="form-label fw-bold">Boma/Quarter Council Name:</label>
             <p>{{ getBomaName(grievanceDetails.bomaId, bomas) }}</p>
           </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Status:</label>
+            <p><span class="badge" [ngClass]="grievanceStatusBadgeClass">{{ grievanceStatusLabel }}</span></p>
+          </div>
         </div>
       </div>
 
@@ -205,23 +209,25 @@
           Complaint Process
         </h5>
         <hr>
-        <div class="p-4 border rounded bg-light" 
+        <div class="p-4 border rounded bg-light"
           [ngClass]="{'hover-shadow': !isProcessFormDisabled, 'bg-secondary-subtle opacity-75': isProcessFormDisabled}"
           style="transition: all 0.3s ease;">
           <div class="row align-items-center">
             <div class="col-md-9">
               <p class="mb-1 text-muted">
-                {{ !isFurtherActionAllowed
-                    ? 'Further action is not required, so process form is disabled.'
-                    : 'Click to enter or update process details such as action taken, feedback, and investigation.' }}
+                {{ isGrievanceResolved
+                    ? 'This grievance has been resolved.'
+                    : !isFurtherActionAllowed && !isEditMode
+                      ? 'Further action is not required, so process form is disabled.'
+                      : 'Click to enter or update process details such as action taken, feedback, and investigation.' }}
               </p>
             </div>
             <div class="col-md-3 text-end">
-              <p-button label="Open Process Form" icon="pi pi-external-link" severity="primary" [outlined]="true"
+              <p-button [label]="isEditMode ? 'Update Process' : 'Open Process Form'" [icon]="isEditMode ? 'pi pi-pencil' : 'pi pi-external-link'" severity="primary" [outlined]="true"
                 size="small"
-                [disabled]="isProcessFormDisabled"
-                [pTooltip]="!isFurtherActionAllowed ? 'Further action is not required' : ''"
-                (onClick)="$event.stopPropagation(); displayProcessDialog = true"></p-button>
+                [disabled]="isGrievanceResolved || (isProcessFormDisabled && !isEditMode)"
+                [pTooltip]="isGrievanceResolved ? 'Grievance is resolved' : !isFurtherActionAllowed && !isEditMode ? 'Further action is not required' : ''"
+                (onClick)="$event.stopPropagation(); openProcessDialog()"></p-button>
             </div>
           </div>
         </div>
@@ -231,7 +237,7 @@
 </div>
 
 <!-- Process Details Dialog -->
-<p-dialog header="Enter Process Details" [(visible)]="displayProcessDialog" [modal]="true" [style]="{ width: '80vw' }"
+<p-dialog [header]="isEditMode ? 'Update Process Details' : 'Enter Process Details'" [(visible)]="displayProcessDialog" [modal]="true" [style]="{ width: '80vw' }"
   [breakpoints]="{ '960px': '95vw' }" [draggable]="false" [resizable]="false" styleClass="p-fluid">
 
   <form [formGroup]="processForm" class="mt-3">
@@ -289,11 +295,24 @@
         </div>
         <div class="col-md-6">
           <label class="form-label fw-bold">Attachment</label>
-          <p-fileUpload mode="basic" chooseLabel="Choose File" [auto]="false"
-            (onSelect)="onFeedbackAttachmentSelect($event)" [multiple]="false" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-            [maxFileSize]="1000000" styleClass="w-100">
-          </p-fileUpload>
-          <!-- <small class="p-error" *ngIf="feedbackAttachmentFile">{{ feedbackAttachmentFile.name }}</small> -->
+          <div *ngIf="!feedbackAttachmentFile" class="file-upload-wrapper border rounded-2 p-1 bg-light">
+            <input type="file" #feedbackFileInput (change)="onFeedbackFileChange($event)" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" class="form-control form-control-sm border-0 bg-transparent" />
+          </div>
+          <div *ngIf="feedbackAttachmentFile" class="file-attached-card">
+            <div class="file-info">
+              <i class="bi bi-file-earmark-check-fill file-icon"></i>
+              <span class="file-name" [title]="feedbackAttachmentFile.name">{{ feedbackAttachmentFile.name }}</span>
+              <span class="file-size">({{ formatFileSize(feedbackAttachmentFile.size) }})</span>
+            </div>
+            <div class="file-actions">
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="onViewAttachment('feedback')" title="View">
+                <i class="bi bi-eye-fill"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveAttachment('feedback')" title="Delete">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -307,7 +326,10 @@
       <div class="row g-3">
         <div class="col-md-4">
           <label class="form-label fw-bold">Accused Name</label>
-          <input type="text" pInputText formControlName="accusedName" class="w-100" />
+          <input type="text" pInputText formControlName="accusedName" class="w-100" (input)="onAccusedNameInput($event)" />
+          <small class="text-danger" *ngIf="processForm.get('accusedName')?.hasError('pattern') && (processForm.get('accusedName')?.touched || processForm.get('accusedName')?.dirty)">
+            Accused name must contain letters only
+          </small>
         </div>
         <div class="col-md-4">
           <label class="form-label fw-bold">Accused Type</label>
@@ -390,13 +412,24 @@
           </div>
           <div class="col-md-6">
             <label class="form-label fw-bold">Investigation Report Attachment</label>
-            <p-fileUpload mode="basic" chooseLabel="Choose File" [auto]="false"
-              (onSelect)="onInvestigationReportAttachmentSelect($event)" [multiple]="false"
-              [maxFileSize]="1000000" styleClass="w-100">
-            </p-fileUpload>
-            <small class="p-error" *ngIf="investigationReportAttachmentFile">
-              {{ investigationReportAttachmentFile.name }}
-            </small>
+            <div *ngIf="!investigationReportAttachmentFile" class="file-upload-wrapper border rounded-2 p-1 bg-light">
+              <input type="file" #investigationFileInput (change)="onInvestigationFileChange($event)" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" class="form-control form-control-sm border-0 bg-transparent" />
+            </div>
+            <div *ngIf="investigationReportAttachmentFile" class="file-attached-card">
+              <div class="file-info">
+                <i class="bi bi-file-earmark-check-fill file-icon"></i>
+                <span class="file-name" [title]="investigationReportAttachmentFile.name">{{ investigationReportAttachmentFile.name }}</span>
+                <span class="file-size">({{ formatFileSize(investigationReportAttachmentFile.size) }})</span>
+              </div>
+              <div class="file-actions">
+                <button type="button" class="btn btn-sm btn-outline-primary" (click)="onViewAttachment('investigation')" title="View">
+                  <i class="bi bi-eye-fill"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveAttachment('investigation')" title="Delete">
+                  <i class="bi bi-trash-fill"></i>
+                </button>
+              </div>
+            </div>
           </div>
           <div class="col-12">
             <label class="form-label fw-bold">Action After Investigation</label>
@@ -431,7 +464,7 @@
           <div class="col-md-6">
             <label class="form-label fw-bold">After Appeal Closed On</label>
             <p-datepicker formControlName="afterAppealClosedOn" [showIcon]="true" appendTo="body" class="w-100"
-              dateFormat="dd/mm/yy">
+              dateFormat="dd/mm/yy" [minDate]="processForm.get('appealedOn')?.value">
             </p-datepicker>
           </div>
         </ng-container>
@@ -455,7 +488,7 @@
         [text]="true"></p-button>
       <div class="d-flex gap-2">
         <p-button label="Reset Form" icon="pi pi-refresh" (onClick)="onReset()" severity="warn" [outlined]="true"></p-button>
-        <p-button label="Save & Submit Process" icon="pi pi-check" (onClick)="onSubmit()"
+        <p-button [label]="isEditMode ? 'Update Process' : 'Save & Submit Process'" icon="pi pi-check" (onClick)="onSubmit()"
           [disabled]="isSubmitting || processForm.invalid" [loading]="isSubmitting" severity="primary"></p-button>
       </div>
     </div>

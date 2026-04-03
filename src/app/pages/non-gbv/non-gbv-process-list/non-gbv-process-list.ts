@@ -364,8 +364,10 @@ export class NonGbvProcessList implements OnInit {
 
   trackById = (_: number, grievance: NonGbvGrievance) => grievance.id;
 
-  onView(grievanceId: number): void {
-    this.router.navigate(['/non-gbv-management/process-details', grievanceId]);
+  onView(grievance: NonGbvGrievance): void {
+    this.router.navigate(['/non-gbv-management/process-details', grievance.id], {
+      queryParams: { status: grievance.status }
+    });
   }
 
   onArchive(grievanceId: number): void {
