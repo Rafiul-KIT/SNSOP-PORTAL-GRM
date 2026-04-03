@@ -29,6 +29,30 @@
   </div>
   <!-- Logged In User -->
   @if(userInfo){
+  <div class="help-desk-desktop pe-1">
+    @if(canAccessHelpDesk){
+      <div class="help-desk-menu-container">
+        <button class="helpdesk-trigger" (click)="toggleHelpDeskDropdown()">
+          <i class="fas fa-headset"></i>
+          <span>Help</span>
+          <i class="fas fa-chevron-down chevron" [class.open]="showHelpDeskDropdown"></i>
+        </button>
+
+        <div class="help-desk-menu {{ showHelpDeskDropdown ? 'show' : '' }}" (mouseleave)="hideHelpDeskDropdown()">
+          @for (item of helpDeskChildren; track item.label) {
+            @if (item.separator) {
+              <div class="menu-divider"></div>
+            }
+            <a class="item {{ item.separator ? 'item-highlight' : '' }}" [routerLink]="item.routerLink" (click)="hideHelpDeskDropdown()">
+              <i class="{{ item.icon }} me-2"></i>
+              {{ item.label }}
+            </a>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
   <p-button [text]="true" icon="fas fa-user-circle fa-lg" severity="info"
     (onClick)="showUsermenu = !showUsermenu"></p-button>
 
@@ -41,6 +65,19 @@
       <i class="fas fa-sign-out-alt me-2"></i>
       Logout
     </div>
+    <!-- Mobile Help Desk items -->
+    @if(canAccessHelpDesk && helpDeskChildren.length > 0){
+      <div class="item help-desk-mobile-header">
+        <hr class="my-1">
+        <span class="fw-bold text-muted px-2">Help</span>
+      </div>
+      @for (item of helpDeskChildren; track item.label) {
+        <a class="item help-desk-mobile-item" [routerLink]="item.routerLink" (click)="showUsermenu = false">
+          <i class="{{ item.icon }} me-2"></i>
+          {{ item.label }}
+        </a>
+      }
+    }
   </div>
   }
 </div>

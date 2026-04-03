@@ -84,6 +84,158 @@
         background-color: #b7cfe7;
       }
     }
+
+    .help-desk-mobile-header,
+    .help-desk-mobile-item {
+      display: none;
+      @media (max-width: 767px) {
+        display: flex;
+        align-items: center;
+        padding: 5px 10px;
+      }
+    }
+    .help-desk-mobile-header {
+      padding: 0;
+      span {
+        font-size: 0.9em;
+      }
+    }
+  }
+
+  .help-desk-menu-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .helpdesk-trigger {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 16px;
+    background: #ffffff;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+
+    i:first-child {
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
+    .chevron {
+      font-size: 0.5rem;
+      color: #94a3b8;
+      transition: transform 0.25s ease;
+
+      &.open {
+        transform: rotate(180deg);
+      }
+    }
+
+    &:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+      color: #1e293b;
+
+      i:first-child {
+        color: #475569;
+      }
+    }
+
+    &:active {
+      background: #e2e8f0;
+    }
+  }
+
+  .help-desk-menu {
+    position: absolute;
+    top: calc(100% + 5px);
+    right: 0;
+    z-index: 9998;
+    padding: 6px 0;
+    min-width: 230px;
+    height: auto;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+    border-radius: 10px;
+    transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+
+    &.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .item {
+      width: 100%;
+      padding: 8px 14px;
+      white-space: nowrap;
+      color: #334155;
+      font-size: 0.84rem;
+      font-weight: 500;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.15s ease, color 0.15s ease;
+
+      i {
+        width: 22px;
+        text-align: center;
+        font-size: 0.82rem;
+        color: #64748b;
+      }
+
+      &:hover {
+        cursor: pointer;
+        background-color: #f1f5f9;
+        color: #1e293b;
+
+        i {
+          color: #334155;
+        }
+      }
+
+      &.item-highlight {
+        color: #0d6efd;
+
+        i {
+          color: #0d6efd;
+        }
+
+        &:hover {
+          background-color: #e8f0fe;
+          color: #0a58ca;
+
+          i {
+            color: #0a58ca;
+          }
+        }
+      }
+    }
+
+    .menu-divider {
+      height: 1px;
+      background: #e2e8f0;
+      margin: 4px 12px;
+    }
+  }
+
+  .help-desk-desktop {
+    @media (max-width: 767px) {
+      display: none;
+    }
   }
 
   .portals-option-wrapper {
