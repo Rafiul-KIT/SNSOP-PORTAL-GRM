@@ -154,6 +154,32 @@ export class Header {
       },
      
       {
+        label: 'GRM Report',
+        icon: 'fas fa-file-alt',
+        items: [
+          {
+            label: 'Geo-Based Summary Report',
+            icon: 'fas fa-globe',
+            routerLink: 'grm-report/geo-based-summary',
+          },
+          {
+            label: 'Geo-Based Detail Report',
+            icon: 'fas fa-map-marked-alt',
+            routerLink: 'grm-report/geo-based-detail',
+          },
+          {
+            label: 'Referrer-Based Summary Report',
+            icon: 'fas fa-user-friends',
+            routerLink: 'grm-report/referrer-based-summary',
+          },
+          {
+            label: 'Analytical Report',
+            icon: 'fas fa-chart-bar',
+            routerLink: 'grm-report/analytical',
+          },
+        ],
+      },
+      {
         label: 'Grievances Status Report',
         icon: 'fas fa-bullhorn',
         routerLink: 'grievances-status-report',

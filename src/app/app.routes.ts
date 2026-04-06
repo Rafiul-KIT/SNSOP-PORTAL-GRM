@@ -15,6 +15,10 @@ import { GbvDetails } from './pages/gbv/gbv-details/gbv-details';
 import { GbvProcessList } from './pages/gbv/gbv-process-list/gbv-process-list';
 import { GbvProcessDetails } from './pages/gbv/gbv-process-details/gbv-process-details';
 import { GrievanceDashboard } from './pages/grievance-dashboard/grievance-dashboard';
+import { GeoBasedSummaryReport } from './pages/grm-report/geo-based-summary-report/geo-based-summary-report';
+import { GeoBasedDetailReport } from './pages/grm-report/geo-based-detail-report/geo-based-detail-report';
+import { ReferrerBasedSummaryReport } from './pages/grm-report/referrer-based-summary-report/referrer-based-summary-report';
+import { AnalyticalReport } from './pages/grm-report/analytical-report/analytical-report';
 
 export const routes: Routes = [
   {
@@ -91,6 +95,27 @@ export const routes: Routes = [
   {
     component: NonGbvManagement,
     path: 'non-gbv-management',
+  },
+  {
+    path: 'grm-report',
+    children: [
+      {
+        path: 'geo-based-summary',
+        component: GeoBasedSummaryReport,
+      },
+      {
+        path: 'geo-based-detail',
+        component: GeoBasedDetailReport,
+      },
+      {
+        path: 'referrer-based-summary',
+        component: ReferrerBasedSummaryReport,
+      },
+      {
+        path: 'analytical',
+        component: AnalyticalReport,
+      },
+    ],
   },
   {
     component: GrievancesStatusReport,
