@@ -577,6 +577,15 @@ export class NonGbvProcessDetails implements OnInit {
       afterAppealClosedOnControl?.updateValueAndValidity();
       this.cdr.detectChanges();
     });
+
+    // Reset afterAppealClosedOn when appealedOn changes to a later date
+    this.processForm.get('appealedOn')?.valueChanges?.subscribe((appealedDate: Date | null) => {
+      const afterAppealClosedOnControl = this.processForm.get('afterAppealClosedOn');
+      const closedDate = afterAppealClosedOnControl?.value;
+      if (appealedDate && closedDate && new Date(closedDate) < new Date(appealedDate)) {
+        afterAppealClosedOnControl?.setValue(null);
+      }
+    });
   }
 
   async openProcessDialog() {
