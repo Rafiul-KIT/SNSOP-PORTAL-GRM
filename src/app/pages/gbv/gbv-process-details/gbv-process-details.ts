@@ -334,9 +334,9 @@ export class GbvProcessDetails implements OnInit {
       gbvGrievanceId: [this.gbvGrievanceId, Validators.required],
       followupActionFeedback: ['', Validators.required],
       reportedToMgmtHr: [false],
-      reportedDetails: [''],
+      reportedDetails: [{ value: '', disabled: true }],
       survivorSatisfied: [false],
-      survivorDetails: [''],
+      survivorDetails: [{ value: '', disabled: true }],
       afterMgmtActionClosedAt: [null],
       status: [null, Validators.required],
     });
@@ -345,16 +345,24 @@ export class GbvProcessDetails implements OnInit {
   subscribeToFormChanges(): void {
     this.processForm.get('reportedToMgmtHr')?.valueChanges.subscribe((val: boolean) => {
       this.reportedToMgmtHr = !!val;
-      if (!val) {
-        this.processForm.get('reportedDetails')?.setValue('');
+      const ctrl = this.processForm.get('reportedDetails');
+      if (val) {
+        ctrl?.enable();
+      } else {
+        ctrl?.setValue('');
+        ctrl?.disable();
       }
       this.cdr.markForCheck();
     });
 
     this.processForm.get('survivorSatisfied')?.valueChanges.subscribe((val: boolean) => {
       this.survivorSatisfied = !!val;
-      if (!val) {
-        this.processForm.get('survivorDetails')?.setValue('');
+      const ctrl = this.processForm.get('survivorDetails');
+      if (val) {
+        ctrl?.enable();
+      } else {
+        ctrl?.setValue('');
+        ctrl?.disable();
       }
       this.cdr.markForCheck();
     });

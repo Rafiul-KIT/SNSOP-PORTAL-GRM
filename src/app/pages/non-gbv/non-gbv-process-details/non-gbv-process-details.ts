@@ -148,6 +148,7 @@ interface AccusedType {
 })
 
 export class NonGbvProcessDetails implements OnInit {
+  today: Date = new Date();
   ngbvGrievanceId: number | null = null;
   grievanceDetails: NonGbvGrievanceDetails | null = null;
   processForm!: FormGroup;
@@ -203,6 +204,8 @@ export class NonGbvProcessDetails implements OnInit {
   // File attachments
   feedbackAttachmentFile: File | null = null;
   investigationReportAttachmentFile: File | null = null;
+  actionTakenAttachmentFile: File | null = null;
+  detailsAttachmentFiles: File[] = [];
 
   isAttachmentDownloading = false;
   downloadProgress: Map<string, number> = new Map();
@@ -419,6 +422,7 @@ export class NonGbvProcessDetails implements OnInit {
       actionTakenInResponse: ['', Validators.required],
       actionTakenBy: ['', Validators.required],
       resolvedOn: [null, Validators.required],
+      actionTakenbyAttachmentUrl: [''],
 
       // Feedback — required per API spec (marked with *)
       feedbackToComplainant: ['', Validators.required],
@@ -458,7 +462,8 @@ export class NonGbvProcessDetails implements OnInit {
       investigationFindings: [{ value: '', disabled: true }],
       investigationReportAttachmentUrl: [''],
       investigationReportAttachmentFile: [null],
-      actionAfterInvestigation: [''],
+      actionAfterInvestigation: [{ value: '', disabled: true }],
+      mainFindings: [''],
 
       // Final Status — required per API
       status: [null, Validators.required],
@@ -510,12 +515,14 @@ export class NonGbvProcessDetails implements OnInit {
       const investigatorDesignationControl = this.processForm.get('investigatorDesignation');
       const investigationCompletedOnControl = this.processForm.get('investigationCompletedOn');
       const investigationFindingsControl = this.processForm.get('investigationFindings');
+      const actionAfterInvestigationControl = this.processForm.get('actionAfterInvestigation');
 
       if (val) {
         investigatorNameControl?.enable();
         investigatorDesignationControl?.enable();
         investigationCompletedOnControl?.enable();
         investigationFindingsControl?.enable();
+        actionAfterInvestigationControl?.enable();
         investigatorNameControl?.setValidators(Validators.required);
         investigatorDesignationControl?.setValidators(Validators.required);
         investigationCompletedOnControl?.setValidators(Validators.required);
@@ -525,6 +532,7 @@ export class NonGbvProcessDetails implements OnInit {
         investigatorDesignationControl?.disable();
         investigationCompletedOnControl?.disable();
         investigationFindingsControl?.disable();
+        actionAfterInvestigationControl?.disable();
         investigatorNameControl?.clearValidators();
         investigatorDesignationControl?.clearValidators();
         investigationCompletedOnControl?.clearValidators();
@@ -533,11 +541,13 @@ export class NonGbvProcessDetails implements OnInit {
         investigatorDesignationControl?.setValue('');
         investigationCompletedOnControl?.setValue(null);
         investigationFindingsControl?.setValue('');
+        actionAfterInvestigationControl?.setValue('');
       }
       investigatorNameControl?.updateValueAndValidity();
       investigatorDesignationControl?.updateValueAndValidity();
       investigationCompletedOnControl?.updateValueAndValidity();
       investigationFindingsControl?.updateValueAndValidity();
+      actionAfterInvestigationControl?.updateValueAndValidity();
       this.cdr.detectChanges();
     });
 
@@ -641,6 +651,7 @@ export class NonGbvProcessDetails implements OnInit {
         investigationCompletedOn: data.investigationCompletedOn ? new Date(data.investigationCompletedOn) : null,
         investigationFindings: data.investigationFindings || '',
         actionAfterInvestigation: data.actionAfterInvestigation || '',
+        mainFindings: data.mainFindings || '',
         status: data.status || null,
       });
 
@@ -756,20 +767,41 @@ export class NonGbvProcessDetails implements OnInit {
     this.investigationReportAttachmentFile = file;
   }
 
-  onViewAttachment(type: 'feedback' | 'investigation'): void {
-    const file = type === 'feedback' ? this.feedbackAttachmentFile : this.investigationReportAttachmentFile;
+  onActionTakenFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    if (!file) return;
+    this.actionTakenAttachmentFile = file;
+  }
+
+  onDetailsAttachmentsChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    this.detailsAttachmentFiles = Array.from(input.files);
+  }
+
+  onViewAttachment(type: 'feedback' | 'investigation' | 'actionTaken'): void {
+    const file = type === 'feedback' ? this.feedbackAttachmentFile
+      : type === 'investigation' ? this.investigationReportAttachmentFile
+      : this.actionTakenAttachmentFile;
     if (!file) return;
     const url = URL.createObjectURL(file);
     window.open(url, '_blank');
     setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
 
-  onRemoveAttachment(type: 'feedback' | 'investigation'): void {
+  onRemoveAttachment(type: 'feedback' | 'investigation' | 'actionTaken'): void {
     if (type === 'feedback') {
       this.feedbackAttachmentFile = null;
-    } else {
+    } else if (type === 'investigation') {
       this.investigationReportAttachmentFile = null;
+    } else {
+      this.actionTakenAttachmentFile = null;
     }
+  }
+
+  onRemoveDetailsAttachment(index: number): void {
+    this.detailsAttachmentFiles.splice(index, 1);
   }
 
   onAccusedNameInput(event: Event): void {
@@ -806,12 +838,16 @@ export class NonGbvProcessDetails implements OnInit {
     formData.append('actionTakenBy', rawValues.actionTakenBy);
     formData.append('feedbackToComplainant', rawValues.feedbackToComplainant || '');
 
+    formData.append('feedbackToComplainantAttachmentUrl', rawValues.feedbackToComplainantAttachmentUrl || '');
+    formData.append('feedbackToComplainantAttachmentFilePath', '');
     if (this.feedbackAttachmentFile) {
-      formData.append(
-        'feedbackToComplainantAttachmentFile',
-        this.feedbackAttachmentFile,
-        this.feedbackAttachmentFile.name
-      );
+      formData.append('feedbackToComplainantAttachmentFile', this.feedbackAttachmentFile, this.feedbackAttachmentFile.name);
+    }
+
+    formData.append('actionTakenbyAttachmentUrl', rawValues.actionTakenbyAttachmentUrl || '');
+    formData.append('actionTakenbyAttachmentFilePath', '');
+    if (this.actionTakenAttachmentFile) {
+      formData.append('actionTakenbyAttachment', this.actionTakenAttachmentFile, this.actionTakenAttachmentFile.name);
     }
 
     formData.append('accusedName', rawValues.accusedName || '');
@@ -850,6 +886,8 @@ export class NonGbvProcessDetails implements OnInit {
 
     formData.append('investigationFindings', rawValues.investigationFindings || '');
 
+    formData.append('investigationReportAttachmentUrl', rawValues.investigationReportAttachmentUrl || '');
+    formData.append('investigationReportAttachmentFilePath', '');
     if (this.investigationReportAttachmentFile) {
       formData.append(
         'investigationReportAttachment',
@@ -863,6 +901,12 @@ export class NonGbvProcessDetails implements OnInit {
     // FIX #3: Use formatDateForApi for all date fields
     formData.append('afterAppealClosedOn', this.formatDateForApi(rawValues.afterAppealClosedOn));
 
+    formData.append('mainFindings', rawValues.mainFindings || '');
+
+    this.detailsAttachmentFiles.forEach((file) => {
+      formData.append('detailsAttachments', file, file.name);
+    });
+
     formData.append('status', rawValues.status);
 
     this.apiService
@@ -871,7 +915,6 @@ export class NonGbvProcessDetails implements OnInit {
       })
       .then((res: any) => {
         const result = res?.data;
-          console.log("ssdfsdf",result);
         // Check for both result.code (standard success) or result.statusCode (if API returns that)
         if ((result && result.code === 200) || (result && result.statusCode === 200) || (result && result.success === true)) {
           Swal.fire({
@@ -882,8 +925,6 @@ export class NonGbvProcessDetails implements OnInit {
           });
           this.router.navigate(['/non-gbv-management/process']);
         } else {
-          console.log("ssdfsdf",result);
-       
           Swal.fire({
             title: 'Process Failed',
             text: result?.message || 'Failed to process grievance.',
@@ -924,6 +965,8 @@ export class NonGbvProcessDetails implements OnInit {
     });
     this.feedbackAttachmentFile = null;
     this.investigationReportAttachmentFile = null;
+    this.actionTakenAttachmentFile = null;
+    this.detailsAttachmentFiles = [];
     this.accusedCounties = [];
     this.accusedPayams = [];
     this.accusedBomas = [];

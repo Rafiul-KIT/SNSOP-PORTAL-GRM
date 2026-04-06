@@ -159,6 +159,17 @@
   min-height: 41px !important;
 }
 
+:host ::ng-deep .p-inputtext:disabled,
+:host ::ng-deep .p-textarea:disabled,
+:host ::ng-deep .p-select.p-disabled,
+:host ::ng-deep .p-datepicker.p-disabled .p-inputtext,
+:host ::ng-deep .p-checkbox.p-disabled {
+  background: #e9ecef !important;
+  color: #6c757d !important;
+  cursor: not-allowed !important;
+  opacity: 1 !important;
+}
+
 :host ::ng-deep .p-inputtext:focus,
 :host ::ng-deep .p-select.p-focus,
 :host ::ng-deep .p-datepicker .p-inputtext:focus,

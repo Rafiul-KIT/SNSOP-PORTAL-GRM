@@ -262,7 +262,7 @@
           <label class="form-label fw-bold d-block mb-2">Reported to Management/HR?</label>
           <p-checkbox formControlName="reportedToMgmtHr" binary="true" label="Yes"></p-checkbox>
         </div>
-        <div class="col-md-6" *ngIf="reportedToMgmtHr">
+        <div class="col-md-6">
           <label class="form-label fw-bold">Reported Details</label>
           <textarea pTextarea formControlName="reportedDetails" rows="3" class="w-100"></textarea>
         </div>
@@ -279,7 +279,7 @@
           <label class="form-label fw-bold d-block mb-2">Survivor Satisfied?</label>
           <p-checkbox formControlName="survivorSatisfied" binary="true" label="Yes"></p-checkbox>
         </div>
-        <div class="col-md-6" *ngIf="survivorSatisfied">
+        <div class="col-md-6">
           <label class="form-label fw-bold">Survivor Details</label>
           <textarea pTextarea formControlName="survivorDetails" rows="3" class="w-100"></textarea>
           <small class="text-danger"
