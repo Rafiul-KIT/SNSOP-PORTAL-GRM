@@ -111,6 +111,7 @@ interface GbvProcessHistoryItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GbvProcessDetails implements OnInit {
+  today: Date = new Date();
   gbvGrievanceId: number | null = null;
   grievanceDetails: GbvGrievanceDetails | null = null;
   processForm!: FormGroup;

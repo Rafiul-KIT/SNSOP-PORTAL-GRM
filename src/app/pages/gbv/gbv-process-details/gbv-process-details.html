@@ -298,7 +298,7 @@
       <div class="row g-3">
         <div class="col-md-6">
           <label class="form-label fw-bold">After Management Action Closed At</label>
-          <p-datepicker formControlName="afterMgmtActionClosedAt" [showIcon]="true" appendTo="body" class="w-100" dateFormat="dd/mm/yy"></p-datepicker>
+          <p-datepicker formControlName="afterMgmtActionClosedAt" [showIcon]="true" appendTo="body" class="w-100" dateFormat="dd/mm/yy" [maxDate]="today"></p-datepicker>
         </div>
         <div class="col-md-6">
           <label class="form-label fw-bold">Final Status <span class="text-danger">*</span></label>
