@@ -1041,7 +1041,7 @@ export class NonGbvProcessDetails implements OnInit {
         String(selection.id) === String(value) || String(selection.value) === String(value)
     );
 
-    return item ? item.label : String(value);
+    return item ? item.value : String(value);
   }
 
   formatDisplayDate(value: string | null | undefined): string {

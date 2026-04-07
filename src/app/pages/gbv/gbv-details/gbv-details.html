@@ -61,6 +61,10 @@
               <label class="form-label fw-bold">Reported By (Other):</label>
               <p>{{ grievanceDetails.incidentReportedByOtherDesc || '--' }}</p>
             </div>
+            <div class="col-md-4" *ngIf="grievanceStatusLabel">
+              <label class="form-label fw-bold">Status:</label>
+              <p><span class="badge" [ngClass]="grievanceStatusBadgeClass">{{ grievanceStatusLabel }}</span></p>
+            </div>
           </div>
         </div>
 

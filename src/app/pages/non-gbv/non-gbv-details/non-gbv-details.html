@@ -155,6 +155,10 @@
               <label class="form-label fw-bold">SNSOP Beneficiary:</label>
               <p>{{ getBeneficiaryStatus(grievanceDetails.complainantBeneficiary) }}</p>
             </div>
+            <div class="col-md-4" *ngIf="grievanceDetails.complainantBeneficiary && grievanceDetails.complainantBeneficiarySelectionCriteria !== null && grievanceDetails.complainantBeneficiarySelectionCriteria !== undefined">
+              <label class="form-label fw-bold">Selection Criteria:</label>
+              <p>{{ getSelectionCriteriaName(grievanceDetails.complainantBeneficiarySelectionCriteria) }}</p>
+            </div>
           </div>
         </div>
 

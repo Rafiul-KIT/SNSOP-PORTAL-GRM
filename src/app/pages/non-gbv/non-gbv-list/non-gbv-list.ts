@@ -99,7 +99,6 @@ export class NonGbvList implements OnInit {
   statusOptions = [
     { label: 'Unresolved', value: 1 },
     { label: 'Resolved', value: 5 },
-    { label: 'Referred', value: 15 },
   ];
 
   constructor(

@@ -88,6 +88,8 @@ export class GbvDetails implements OnInit {
   grievanceId: number | null = null;
   grievanceDetails: GbvGrievanceDetails | null = null;
   isLoading = true;
+  grievanceStatusLabel = '';
+  grievanceStatusBadgeClass = '';
 
   isGrievanceAttachmentDownloading = false;
   isConsentFormAttachmentDownloading = false;
@@ -120,6 +122,11 @@ export class GbvDetails implements OnInit {
   async ngOnInit() {
     this.initBreadcrumb();
     this.grievanceId = Number(this.route.snapshot.paramMap.get('id'));
+    const statusParam = this.route.snapshot.queryParamMap.get('status');
+    if (statusParam) {
+      this.grievanceStatusLabel = this.getStatusLabel(statusParam);
+      this.grievanceStatusBadgeClass = this.getStatusBadgeClass(statusParam);
+    }
 
     if (this.grievanceId) {
       await this.loadLookups();
@@ -243,6 +250,20 @@ export class GbvDetails implements OnInit {
     if (value === true) return 'Yes';
     if (value === false) return 'No';
     return '--';
+  }
+
+  getStatusLabel(status: string | number): string {
+    const s = String(status).toLowerCase();
+    if (s === '5' || s === 'resolved') return 'Resolved';
+    if (s === '15' || s === 'referred') return 'Referred';
+    return 'Unresolved';
+  }
+
+  getStatusBadgeClass(status: string | number): string {
+    const label = this.getStatusLabel(status);
+    if (label === 'Resolved') return 'bg-success';
+    if (label === 'Referred') return 'bg-danger';
+    return 'bg-warning';
   }
 
   formatDisplayDate(value: string | null | undefined): string {

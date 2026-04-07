@@ -117,6 +117,8 @@ export class GbvProcessDetails implements OnInit {
   processForm!: FormGroup;
   isLoading = true;
   isSubmitting = false;
+  grievanceStatusLabel = '';
+  grievanceStatusBadgeClass = '';
   displayProcessDialog = false;
 
   isGrievanceAttachmentDownloading = false;
@@ -174,6 +176,11 @@ export class GbvProcessDetails implements OnInit {
     const idParam = this.route.snapshot.paramMap.get('id');
     const parsedId = Number(idParam);
     this.gbvGrievanceId = Number.isInteger(parsedId) && parsedId > 0 ? parsedId : null;
+    const statusParam = this.route.snapshot.queryParamMap.get('status');
+    if (statusParam) {
+      this.grievanceStatusLabel = this.getStatusLabel(statusParam);
+      this.grievanceStatusBadgeClass = this.getStatusBadgeClass(statusParam);
+    }
     this.initBreadcrumb();
 
     if (!this.gbvGrievanceId) {
@@ -541,7 +548,7 @@ export class GbvProcessDetails implements OnInit {
         String(selection.id) === String(value) || String(selection.value) === String(value)
     );
 
-    return item ? item.label : String(value);
+    return item ? item.value : String(value);
   }
 
   getBeneficiaryStatus(isBeneficiary: boolean): string {
@@ -552,6 +559,13 @@ export class GbvProcessDetails implements OnInit {
     if (value === true) return 'Yes';
     if (value === false) return 'No';
     return '--';
+  }
+
+  getStatusLabel(status: string | number): string {
+    const s = String(status).toLowerCase();
+    if (s === '5' || s === 'resolved') return 'Resolved';
+    if (s === '15' || s === 'referred' || s === 'reffered') return 'Referred';
+    return 'Unresolved';
   }
 
   getStatusBadgeClass(statusValue: string | null | undefined): string {
