@@ -180,6 +180,7 @@ export class GbvProcessDetails implements OnInit {
     if (statusParam) {
       this.grievanceStatusLabel = this.getStatusLabel(statusParam);
       this.grievanceStatusBadgeClass = this.getStatusBadgeClass(statusParam);
+      this.currentProcessStatus = this.getStatusLabel(statusParam);
     }
     this.initBreadcrumb();
 
@@ -289,6 +290,7 @@ export class GbvProcessDetails implements OnInit {
       const history = res?.data?.content ?? [];
       this.processHistory = [...history].sort((a, b) => b.id - a.id);
       this.currentProcessStatus = this.processHistory[0]?.status ?? null;
+      this.populateFormFromLatestHistory();
     } catch (error) {
       console.error('Error fetching process history:', error);
       this.processHistory = [];
@@ -296,6 +298,30 @@ export class GbvProcessDetails implements OnInit {
     } finally {
       this.isLoadingHistory = false;
       this.cdr.markForCheck();
+    }
+  }
+
+  private populateFormFromLatestHistory(): void {
+    if (!this.processHistory.length || !this.processForm) return;
+    const latest = this.processHistory[0];
+    this.processForm.patchValue({
+      id: latest.id,
+      gbvGrievanceId: latest.gbvGrievanceId,
+      followupActionFeedback: latest.followupActionFeedback || '',
+      reportedToMgmtHr: latest.reportedToMgmtHr ?? false,
+      reportedDetails: latest.reportedDetails || '',
+      survivorSatisfied: latest.survivorSatisfied ?? false,
+      survivorDetails: latest.survivorDetails || '',
+      afterMgmtActionClosedAt: latest.afterMgmtActionClosedAt ? new Date(latest.afterMgmtActionClosedAt) : null,
+      status: this.normalizeStatusForApi(latest.status) || null,
+    });
+    this.reportedToMgmtHr = !!latest.reportedToMgmtHr;
+    this.survivorSatisfied = !!latest.survivorSatisfied;
+    if (this.reportedToMgmtHr) {
+      this.processForm.get('reportedDetails')?.enable();
+    }
+    if (this.survivorSatisfied) {
+      this.processForm.get('survivorDetails')?.enable();
     }
   }
 
@@ -327,8 +353,13 @@ export class GbvProcessDetails implements OnInit {
   }
 
   get isProcessFormDisabled(): boolean {
-    const status = String(this.currentProcessStatus || '').toLowerCase();
-    return status === 'resolved';
+    return this.isResolvedStatus(this.currentProcessStatus || this.grievanceStatusLabel);
+  }
+
+  private isResolvedStatus(status: string | number | null | undefined): boolean {
+    if (status === null || status === undefined || status === '') return false;
+    const normalized = String(status).trim().toLowerCase();
+    return normalized === '5' || normalized === 'resolved';
   }
 
   viewProcessHistoryDetail(history: GbvProcessHistoryItem) {
@@ -442,7 +473,7 @@ export class GbvProcessDetails implements OnInit {
       .POST('api/gbv-grievance/process', formData, 'global', {
         headers: { 'Content-Type': undefined },
       })
-      .then((res: any) => {
+      .then(async (res: any) => {
         const result = res?.data;
         if (
           result?.code === 200 ||
@@ -455,10 +486,7 @@ export class GbvProcessDetails implements OnInit {
             icon: 'success',
             confirmButtonColor: '#0d6efd',
           });
-          this.displayProcessDialog = false;
-          this.onReset();
-          this.fetchProcessHistory(this.gbvGrievanceId!);
-          this.fetchGrievanceDetails(this.gbvGrievanceId!);
+           this.router.navigate(['/gbv-management/process']);
         } else {
           Swal.fire({
             title: 'Process Failed',
@@ -486,20 +514,36 @@ export class GbvProcessDetails implements OnInit {
       });
   }
 
+  openProcessDialog(): void {
+    if (this.isProcessFormDisabled) {
+      return;
+    }
+    this.populateFormFromLatestHistory();
+    this.displayProcessDialog = true;
+  }
+
+  get isEditMode(): boolean {
+    return this.processHistory.length > 0;
+  }
+
   onReset(): void {
-    this.processForm.reset({
-      id: null,
-      gbvGrievanceId: this.gbvGrievanceId,
-      followupActionFeedback: '',
-      reportedToMgmtHr: false,
-      reportedDetails: '',
-      survivorSatisfied: false,
-      survivorDetails: '',
-      afterMgmtActionClosedAt: null,
-      status: null,
-    });
-    this.reportedToMgmtHr = false;
-    this.survivorSatisfied = false;
+    if (this.isEditMode) {
+      this.populateFormFromLatestHistory();
+    } else {
+      this.processForm.reset({
+        id: null,
+        gbvGrievanceId: this.gbvGrievanceId,
+        followupActionFeedback: '',
+        reportedToMgmtHr: false,
+        reportedDetails: '',
+        survivorSatisfied: false,
+        survivorDetails: '',
+        afterMgmtActionClosedAt: null,
+        status: null,
+      });
+      this.reportedToMgmtHr = false;
+      this.survivorSatisfied = false;
+    }
     this.cdr.markForCheck();
   }
 
