@@ -128,6 +128,10 @@ export class Header {
             icon: 'fas fa-list',
             routerLink: 'gbv-management/process',
           },
+           { label: 'Monitoring & Evaluation',
+      link: environment.portals.mNe,
+      icon: 'fas fa-chart-bar'
+    },
         ],
       },
       
