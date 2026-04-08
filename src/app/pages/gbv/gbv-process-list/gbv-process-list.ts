@@ -47,6 +47,8 @@ interface GbvGrievance {
   status: string | number;
   statusLabel?: string;
   statusBadgeClass?: string;
+  isOverdue?: boolean;
+  daysElapsed?: number;
 }
 
 @Component({
@@ -326,6 +328,7 @@ export class GbvProcessList implements OnInit {
   }
 
   private enrichGrievances(list: GbvGrievance[]): GbvGrievance[] {
+    const now = new Date();
     return list.map((item) => {
       const row: any = item as any;
       const grievanceType =
@@ -343,6 +346,14 @@ export class GbvProcessList implements OnInit {
       const beneficiaryRaw = row.isComplainantBeneficiary ?? '';
       const statusLabel = this.getStatusLabel(row.status);
 
+      const isResolved = String(row.status).toLowerCase() === '5' || String(row.status).toLowerCase() === 'resolved';
+      let daysElapsed = 0;
+      let isOverdue = false;
+      if (createdAt && !isResolved) {
+        daysElapsed = Math.floor((now.getTime() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24));
+        isOverdue = daysElapsed > 15;
+      }
+
       return {
         ...item,
         grievanceType,
@@ -359,6 +370,8 @@ export class GbvProcessList implements OnInit {
               : String(beneficiaryRaw || '-'),
         statusLabel,
         statusBadgeClass: this.getStatusBadgeClass(row.status),
+        isOverdue,
+        daysElapsed,
       };
     });
   }

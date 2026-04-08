@@ -90,7 +90,10 @@
     <ng-template pTemplate="body" let-item let-i="rowIndex">
    <tr>
         <td class="text-center">{{ (currentPage * pageSize) + i + 1 }}</td>
-        <td class="text-center">{{ item.trackingNumber }}</td>
+        <td class="text-center ">
+          <i class="pi pi-check-circle me-1 " [ngStyle]="{'color': item.isOverdue ? '#dc3545' : '#198754'}" [pTooltip]="item.isOverdue ? item.daysElapsed + ' days elapsed' : 'Within 15 days'" tooltipPosition="top"></i>
+          {{ item.trackingNumber }}
+        </td>
         <td class="text-center">{{ item.grievanceType }}</td>
         <td class="text-center">{{ item.incidentOccurredAt }}</td>
         <td class="text-center">{{ item.complainantName }}</td>
