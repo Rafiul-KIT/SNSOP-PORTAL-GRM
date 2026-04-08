@@ -184,10 +184,7 @@ export class NonGbvProcessDetails implements OnInit {
   accusedCounties: LookupItem[] = [];
   accusedPayams: LookupItem[] = [];
   accusedBomas: LookupItem[] = [];
-  accusedTypes: AccusedType[] = [
-    { label: 'Individual', value: 1 },
-    { label: 'Group', value: 2 },
-  ];
+  accusedTypes: AccusedType[] = [];
   statusOptions: { label: string; value: string }[] = [
     { label: 'Resolved', value: 'Resolved' },
     { label: 'Unresolved', value: 'Unresolved' },
@@ -341,11 +338,13 @@ export class NonGbvProcessDetails implements OnInit {
         categoriesRes,
         reportingChannelsRes,
         gendersList,
+        accusedTypesRes,
       ] = await Promise.all([
         this.lookupService.getOrFetchStateList(),
         this.apiService.GET('api/grievance/type'),
         this.apiService.GET('api/grievance/reporting-channel'),
         this.lookupService.getGenderListbyId(),
+        this.apiService.GET('api/grievance/accused-type'),
       ]);
 
       this.states = statesRes;
@@ -357,6 +356,9 @@ export class NonGbvProcessDetails implements OnInit {
         .filter((item: any) => item.ngbvChannel === true)
         .map((item: any) => ({ label: item.detail, value: item.id }));
       this.genders = gendersList.map((item) => ({ label: item.name, value: parseInt(item.id) }));
+      this.accusedTypes = accusedTypesRes?.data?.content
+        ?.filter((item: any) => item.status === true)
+        .map((item: any) => ({ label: item.details, value: item.id })) ?? [];
     } catch (error) {
       console.error('Error loading lookups:', error);
       this.messageService.add({
