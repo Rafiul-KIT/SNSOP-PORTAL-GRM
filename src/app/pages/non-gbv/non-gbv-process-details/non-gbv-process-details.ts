@@ -52,6 +52,7 @@ interface NonGbvProcessHistoryDetail {
   actionTakenBy: string;
   feedbackToComplainant: string;
   feedbackToComplainantAttachmentUrl: string;
+  actionTakenbyAttachmentUrl: string;
   accusedName: string;
   accusedDetails: string;
   accusedOtherDetails: string;
@@ -76,6 +77,7 @@ interface NonGbvProcessHistoryDetail {
   investigationReportAttachmentUrl: string;
   actionAfterInvestigation: string;
   afterAppealClosedOn: string;
+  detailsAttachmentsUrls: string[];
   status: string;
 }
 
@@ -155,6 +157,7 @@ export class NonGbvProcessDetails implements OnInit {
   isLoading = true;
   isSubmitting = false;
   displayProcessDialog = false;
+  isLoadingProcessData = false;
   isFurtherActionAllowed = true;
   isGrievanceResolved = false;
   grievanceStatusLabel = '';
@@ -206,6 +209,12 @@ export class NonGbvProcessDetails implements OnInit {
   investigationReportAttachmentFile: File | null = null;
   actionTakenAttachmentFile: File | null = null;
   detailsAttachmentFiles: File[] = [];
+
+  // Existing attachment URLs (loaded from API in edit mode)
+  existingActionTakenAttachmentUrl: string | null = null;
+  existingFeedbackAttachmentUrl: string | null = null;
+  existingInvestigationAttachmentUrl: string | null = null;
+  existingDetailsAttachmentUrls: string[] = [];
 
   isAttachmentDownloading = false;
   downloadProgress: Map<string, number> = new Map();
@@ -590,13 +599,19 @@ export class NonGbvProcessDetails implements OnInit {
 
   async openProcessDialog() {
     this.displayProcessDialog = true;
-
-    if (this.isEditMode && this.editProcessId) {
-      await this.loadProcessDataForEdit(this.editProcessId);
-    } else {
-      await this.autoPopulateLocation();
-    }
+    this.isLoadingProcessData = true;
     this.cdr.markForCheck();
+
+    try {
+      if (this.isEditMode && this.editProcessId) {
+        await this.loadProcessDataForEdit(this.editProcessId);
+      } else {
+        await this.autoPopulateLocation();
+      }
+    } finally {
+      this.isLoadingProcessData = false;
+      this.cdr.markForCheck();
+    }
   }
 
   private async autoPopulateLocation() {
@@ -663,6 +678,12 @@ export class NonGbvProcessDetails implements OnInit {
         mainFindings: data.mainFindings || '',
         status: data.status || null,
       });
+
+      // Load existing attachment URLs
+      this.existingActionTakenAttachmentUrl = data.actionTakenbyAttachmentUrl || null;
+      this.existingFeedbackAttachmentUrl = data.feedbackToComplainantAttachmentUrl || null;
+      this.existingInvestigationAttachmentUrl = data.investigationReportAttachmentUrl || null;
+      this.existingDetailsAttachmentUrls = data.detailsAttachmentsUrls || [];
 
       // Load accused location
       const stateId = data.accusedStateId;
@@ -786,7 +807,8 @@ export class NonGbvProcessDetails implements OnInit {
   onDetailsAttachmentsChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
-    this.detailsAttachmentFiles = Array.from(input.files);
+    this.detailsAttachmentFiles = [...this.detailsAttachmentFiles, ...Array.from(input.files)];
+    input.value = '';
   }
 
   onViewAttachment(type: 'feedback' | 'investigation' | 'actionTaken'): void {
@@ -794,9 +816,7 @@ export class NonGbvProcessDetails implements OnInit {
       : type === 'investigation' ? this.investigationReportAttachmentFile
       : this.actionTakenAttachmentFile;
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    window.open(url, '_blank');
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    this.openFileInNewTab(file);
   }
 
   onRemoveAttachment(type: 'feedback' | 'investigation' | 'actionTaken'): void {
@@ -809,8 +829,115 @@ export class NonGbvProcessDetails implements OnInit {
     }
   }
 
+  onViewDetailsAttachment(index: number): void {
+    const file = this.detailsAttachmentFiles[index];
+    if (!file) return;
+    this.openFileInNewTab(file);
+  }
+
   onRemoveDetailsAttachment(index: number): void {
     this.detailsAttachmentFiles.splice(index, 1);
+  }
+
+  getFilenameFromUrl(url: string): string {
+    if (!url) return 'Attachment';
+    const urlWithoutQuery = url.split('?')[0];
+    const parts = urlWithoutQuery.split('/');
+    return decodeURIComponent(parts[parts.length - 1]) || 'Attachment';
+  }
+
+  private getMimeType(filename: string): string {
+    const ext = filename.split('.').pop()?.toLowerCase() || '';
+    const mimeTypes: Record<string, string> = {
+      'pdf': 'application/pdf',
+      'png': 'image/png',
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'doc': 'application/msword',
+      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    };
+    return mimeTypes[ext] || 'application/octet-stream';
+  }
+
+  private openFileInNewTab(file: File): void {
+    const blob = new Blob([file], { type: file.type || this.getMimeType(file.name) });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  }
+
+  viewExistingAttachment(url: string): void {
+    if (!url) return;
+    this.downloadAndOpenExistingAttachment(url);
+  }
+
+  async downloadAndOpenExistingAttachment(attachmentUrl: string): Promise<void> {
+    const bucketName = 'grievance-files';
+    const urlWithoutQuery = attachmentUrl.split('?')[0];
+    const filePath = decodeURIComponent(
+      urlWithoutQuery.substring(urlWithoutQuery.indexOf(bucketName) + bucketName.length + 1)
+    );
+    if (!filePath) return;
+
+    const filename = this.getFilenameFromUrl(attachmentUrl);
+
+    this.displayDownloadDialog = true;
+    this.downloadDialogMessage = 'Downloading attachment...';
+    this.currentDownloadProgress = 0;
+    this.cdr.detectChanges();
+
+    try {
+      const response: any = await this.apiService.GET(
+        '/api/grievance/attachment/get',
+        { filePath },
+        'global',
+        {
+          responseType: 'blob',
+          onDownloadProgress: (progressEvent: any) => {
+            if (progressEvent.total) {
+              this.currentDownloadProgress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            }
+            this.cdr.detectChanges();
+          },
+        }
+      );
+
+      const contentType = response.headers?.get?.('Content-Type') || this.getMimeType(filename);
+      const blob = new Blob([response.data], { type: contentType });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+    } catch (error) {
+      console.error('Failed to download attachment:', error);
+      Swal.fire({ icon: 'error', title: 'Download Failed', text: 'Could not download the attachment.' });
+    } finally {
+      this.displayDownloadDialog = false;
+      this.currentDownloadProgress = 0;
+      this.downloadDialogMessage = '';
+      this.cdr.detectChanges();
+    }
+  }
+
+  onRemoveExistingAttachment(type: 'actionTaken' | 'feedback' | 'investigation'): void {
+    if (type === 'actionTaken') this.existingActionTakenAttachmentUrl = null;
+    else if (type === 'feedback') this.existingFeedbackAttachmentUrl = null;
+    else this.existingInvestigationAttachmentUrl = null;
+  }
+
+  onRemoveExistingDetailsAttachment(index: number): void {
+    this.existingDetailsAttachmentUrls.splice(index, 1);
   }
 
   onAccusedNameInput(event: Event): void {
@@ -847,13 +974,13 @@ export class NonGbvProcessDetails implements OnInit {
     formData.append('actionTakenBy', rawValues.actionTakenBy);
     formData.append('feedbackToComplainant', rawValues.feedbackToComplainant || '');
 
-    formData.append('feedbackToComplainantAttachmentUrl', rawValues.feedbackToComplainantAttachmentUrl || '');
+    formData.append('feedbackToComplainantAttachmentUrl', this.feedbackAttachmentFile ? '' : (this.existingFeedbackAttachmentUrl || rawValues.feedbackToComplainantAttachmentUrl || ''));
     formData.append('feedbackToComplainantAttachmentFilePath', '');
     if (this.feedbackAttachmentFile) {
       formData.append('feedbackToComplainantAttachmentFile', this.feedbackAttachmentFile, this.feedbackAttachmentFile.name);
     }
 
-    formData.append('actionTakenbyAttachmentUrl', rawValues.actionTakenbyAttachmentUrl || '');
+    formData.append('actionTakenbyAttachmentUrl', this.actionTakenAttachmentFile ? '' : (this.existingActionTakenAttachmentUrl || rawValues.actionTakenbyAttachmentUrl || ''));
     formData.append('actionTakenbyAttachmentFilePath', '');
     if (this.actionTakenAttachmentFile) {
       formData.append('actionTakenbyAttachment', this.actionTakenAttachmentFile, this.actionTakenAttachmentFile.name);
@@ -895,7 +1022,7 @@ export class NonGbvProcessDetails implements OnInit {
 
     formData.append('investigationFindings', rawValues.investigationFindings || '');
 
-    formData.append('investigationReportAttachmentUrl', rawValues.investigationReportAttachmentUrl || '');
+    formData.append('investigationReportAttachmentUrl', this.investigationReportAttachmentFile ? '' : (this.existingInvestigationAttachmentUrl || rawValues.investigationReportAttachmentUrl || ''));
     formData.append('investigationReportAttachmentFilePath', '');
     if (this.investigationReportAttachmentFile) {
       formData.append(
@@ -976,6 +1103,10 @@ export class NonGbvProcessDetails implements OnInit {
     this.investigationReportAttachmentFile = null;
     this.actionTakenAttachmentFile = null;
     this.detailsAttachmentFiles = [];
+    this.existingActionTakenAttachmentUrl = null;
+    this.existingFeedbackAttachmentUrl = null;
+    this.existingInvestigationAttachmentUrl = null;
+    this.existingDetailsAttachmentUrls = [];
     this.accusedCounties = [];
     this.accusedPayams = [];
     this.accusedBomas = [];

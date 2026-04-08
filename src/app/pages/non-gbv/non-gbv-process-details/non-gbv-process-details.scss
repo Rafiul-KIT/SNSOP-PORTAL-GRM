@@ -203,6 +203,10 @@
   background: #f9fbff;
 }
 
+:host ::ng-deep .p-dialog .p-progressspinner-circle {
+  stroke: #56b8e6 !important;
+}
+
 :host ::ng-deep .download-progress-bar.p-progressbar {
   height: 0.85rem;
   background: #eaf7ee;

@@ -118,18 +118,18 @@
           <div class="col-md-4" *ngIf="grievanceDetails.grievanceAttachmentUrl">
             <label class="form-label fw-bold">Grievance Attachment:</label>
             <div>
-              <button class="btn btn-sm btn-outline-primary attachment-btn" (click)="downloadGrievanceAttachment()" [disabled]="isGrievanceAttachmentDownloading" [title]="grievanceDetails.grievanceAttachmentFilename || 'Download'">
+              <button class="btn btn-sm btn-outline-primary attachment-btn" (click)="downloadGrievanceAttachment()" [disabled]="isGrievanceAttachmentDownloading" [title]="grievanceDetails.grievanceAttachmentFilename || getFilenameFromUrl(grievanceDetails.grievanceAttachmentUrl)">
                 <i class="pi pi-download me-2"></i>
-                <span class="attachment-name">{{ isGrievanceAttachmentDownloading ? 'Downloading...' : (grievanceDetails.grievanceAttachmentFilename || 'Download') }}</span>
+                <span class="attachment-name">{{ isGrievanceAttachmentDownloading ? 'Downloading...' : (grievanceDetails.grievanceAttachmentFilename || getFilenameFromUrl(grievanceDetails.grievanceAttachmentUrl)) }}</span>
               </button>
             </div>
           </div>
           <div class="col-md-4" *ngIf="grievanceDetails.consentFormAttachmentUrl">
             <label class="form-label fw-bold">Consent Form:</label>
             <div>
-              <button class="btn btn-sm btn-outline-primary attachment-btn" (click)="downloadConsentFormAttachment()" [disabled]="isConsentFormAttachmentDownloading" [title]="grievanceDetails.consentFormAttachmentFilename || 'Download'">
+              <button class="btn btn-sm btn-outline-primary attachment-btn" (click)="downloadConsentFormAttachment()" [disabled]="isConsentFormAttachmentDownloading" [title]="getFilenameFromUrl(grievanceDetails.consentFormAttachmentUrl)">
                 <i class="pi pi-download me-2"></i>
-                <span class="attachment-name">{{ isConsentFormAttachmentDownloading ? 'Downloading...' : (grievanceDetails.consentFormAttachmentFilename || 'Download') }}</span>
+                <span class="attachment-name">{{ isConsentFormAttachmentDownloading ? 'Downloading...' : getFilenameFromUrl(grievanceDetails.consentFormAttachmentUrl) }}</span>
               </button>
             </div>
           </div>
