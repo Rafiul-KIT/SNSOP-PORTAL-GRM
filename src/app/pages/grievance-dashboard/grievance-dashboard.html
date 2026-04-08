@@ -23,7 +23,7 @@
   }
 
   <!-- Dashboard Content -->
-  @if (!loading && !error && apiResponse) {
+  @if (!loading && !error && dataLoaded) {
   <p-tabs [(value)]="activeTab" class="dashboard-tabs">
     <p-tablist>
       <p-tab value="0">
@@ -101,7 +101,7 @@
               </div>
             </div>
 
-            <div class="chart-card chart-card--wide">
+            <div class="chart-card">
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
                   <span class="chart-icon chart-icon--blue"><i class="bi bi-geo-alt"></i></span>
@@ -111,7 +111,7 @@
               <div class="chart-card__body chart-scroll-x-wrapper">
                 @if (hasChartData(allLocationChartData)) {
                 <div class="chart-scroll-x-inner" [style.min-width]="getChartWidth(allLocationChartData)">
-                  <p-chart type="bar" [data]="allLocationChartData" [options]="locationBarChartOptions" height="320px"></p-chart>
+                  <p-chart type="bar" [data]="allLocationChartData" [options]="locationBarChartOptions" height="260px"></p-chart>
                 </div>
                 } @else {
                 <p class="no-data">No data available</p>
@@ -130,7 +130,7 @@
             <div class="chart-card__body chart-scroll-x-wrapper">
               @if (hasChartData(allResolutionChartData)) {
               <div class="chart-scroll-x-inner" [style.min-width]="getChartWidth(allResolutionChartData)">
-                <p-chart type="bar" [data]="allResolutionChartData" [options]="barChartOptions" height="320px" ></p-chart>
+                <p-chart type="bar" [data]="allResolutionChartData" [options]="barChartOptions" height="260px" ></p-chart>
               </div>
               } @else {
               <p class="no-data">No data available</p>
@@ -203,7 +203,7 @@
             </div>
 
             <!-- Cases by Location -->
-            <div class="chart-card chart-card--wide">
+            <div class="chart-card">
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
                   <span class="chart-icon chart-icon--blue"><i class="bi bi-geo-alt"></i></span>
@@ -213,7 +213,7 @@
               <div class="chart-card__body chart-scroll-x-wrapper">
                 @if (hasChartData(ngbvLocationChartData)) {
                 <div class="chart-scroll-x-inner" [style.min-width]="getChartWidth(ngbvLocationChartData)">
-                  <p-chart type="bar" [data]="ngbvLocationChartData" [options]="locationBarChartOptions" height="320px"></p-chart>
+                  <p-chart type="bar" [data]="ngbvLocationChartData" [options]="locationBarChartOptions" height="260px"></p-chart>
                 </div>
                 } @else {
                 <p class="no-data">No data available</p>
@@ -239,7 +239,7 @@
               }
 
             @if (hasChartData(ngbvResolutionChartData)) {
-            <div class="chart-card" [class.chart-card--wide]="!hasChartData(ngbvTypeChartData)">
+            <div class="chart-card">
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
                   <span class="chart-icon chart-icon--amber"><i class="bi bi-stopwatch"></i></span>
@@ -248,7 +248,7 @@
               </div>
               <div class="chart-card__body chart-scroll-x-wrapper">
                 <div class="chart-scroll-x-inner" [style.min-width]="getChartWidth(ngbvResolutionChartData)">
-                  <p-chart type="bar" [data]="ngbvResolutionChartData" [options]="barChartOptions" height="320px"></p-chart>
+                  <p-chart type="bar" [data]="ngbvResolutionChartData" [options]="barChartOptions" height="260px"></p-chart>
                 </div>
               </div>
             </div>
@@ -320,7 +320,7 @@
             </div>
 
             <!-- Cases by Location -->
-            <div class="chart-card chart-card--wide">
+            <div class="chart-card">
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
                   <span class="chart-icon chart-icon--blue"><i class="bi bi-geo-alt"></i></span>
@@ -330,7 +330,7 @@
               <div class="chart-card__body chart-scroll-x-wrapper">
                 @if (hasChartData(gbvLocationChartData)) {
                 <div class="chart-scroll-x-inner" [style.min-width]="getChartWidth(gbvLocationChartData)">
-                  <p-chart type="bar" [data]="gbvLocationChartData" [options]="locationBarChartOptions" height="320px"></p-chart>
+                  <p-chart type="bar" [data]="gbvLocationChartData" [options]="locationBarChartOptions" height="260px"></p-chart>
                 </div>
                 } @else {
                 <p class="no-data">No data available</p>
@@ -340,21 +340,7 @@
           </div>
 
           <!-- GBV-Specific Charts Row -->
-          <div class="charts-row charts-row--triple">
-            @if (hasChartData(gbvReferralChartData)) {
-            <div class="chart-card chart-card--compact">
-              <div class="chart-card__header">
-                <h3 class="chart-card__title">
-                  <span class="chart-icon chart-icon--teal"><i class="bi bi-signpost-2"></i></span>
-                  Referral Types
-                </h3>
-              </div>
-              <div class="chart-card__body">
-                <p-chart type="pie" [data]="gbvReferralChartData" [options]="chartOptions"></p-chart>
-              </div>
-            </div>
-            }
-
+          <div class="charts-row">
             @if (hasChartData(gbvReferralServiceChartData)) {
             <div class="chart-card chart-card--compact">
               <div class="chart-card__header">
@@ -395,7 +381,7 @@
             </div>
             <div class="chart-card__body chart-scroll-x-wrapper">
               <div class="chart-scroll-x-inner" [style.min-width]="getChartWidth(gbvResolutionChartData)">
-                <p-chart type="bar" [data]="gbvResolutionChartData" [options]="barChartOptions" height="320px"></p-chart>
+                <p-chart type="bar" [data]="gbvResolutionChartData" [options]="barChartOptions" height="260px"></p-chart>
               </div>
             </div>
           </div>

@@ -52,6 +52,14 @@
               <label class="form-label fw-bold">Boma/Quarter Council Name:</label>
               <p>{{ getBomaName(grievanceDetails.bomaId) }}</p>
             </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Status:</label>
+              <p>
+                <span class="badge" [ngClass]="grievanceStatusBadgeClass">
+                  {{ grievanceStatusLabel }}
+                </span>
+              </p>
+            </div>
           </div>
         </div>
 
@@ -147,7 +155,7 @@
               <label class="form-label fw-bold">SNSOP Beneficiary:</label>
               <p>{{ getBeneficiaryStatus(grievanceDetails.complainantBeneficiary) }}</p>
             </div>
-            <div class="col-md-4" *ngIf="grievanceDetails.complainantBeneficiary">
+            <div class="col-md-4" *ngIf="grievanceDetails.complainantBeneficiary && grievanceDetails.complainantBeneficiarySelectionCriteria !== null && grievanceDetails.complainantBeneficiarySelectionCriteria !== undefined">
               <label class="form-label fw-bold">Selection Criteria:</label>
               <p>{{ getSelectionCriteriaName(grievanceDetails.complainantBeneficiarySelectionCriteria) }}</p>
             </div>

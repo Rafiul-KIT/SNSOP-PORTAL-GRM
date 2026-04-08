@@ -90,7 +90,10 @@
     <ng-template pTemplate="body" let-item let-i="rowIndex">
       <tr>
         <td class="text-center">{{ (currentPage * pageSize) + i + 1 }}</td>
-        <td class="text-center">{{ item.trackingNumber }}</td>
+        <td class="text-center">
+          <i class="pi pi-check-circle me-1 cursor-pointer" [ngStyle]="{'color': item.isOverdue ? '#dc3545' : '#198754'}" [pTooltip]="item.isOverdue ? item.daysElapsed + ' days elapsed' : 'Within 15 days'" tooltipPosition="top"></i>
+          {{ item.trackingNumber }}
+        </td>
         <td class="text-center">{{ item.grievanceType }}</td>
         <td class="text-center">{{ item.incidentOccurredAtDisplay }}</td>
         <td class="text-center">{{ item.complainantName }}</td>
@@ -102,8 +105,7 @@
           </span>
         </td>
         <td class="text-center">
-          <p-button type="button" icon="pi pi-eye" pTooltip="View Details" tooltipPosition="top" size="small" outlined="true" severity="secondary" class="me-2" (onClick)="onView(item.id)" />
-          <!-- <p-button type="button" icon="fa fa-archive" pTooltip="Archive" tooltipPosition="top" size="small" outlined="true" severity="danger" [loading]="archivingId === item.id" [disabled]="archivingId === item.id" (onClick)="onArchive(item.id)" /> -->
+          <p-button type="button" icon="pi pi-eye" pTooltip="View Details" tooltipPosition="top" size="small" outlined="true" severity="secondary" class="me-2" (onClick)="onView(item)" />
         </td>
       </tr>
     </ng-template>

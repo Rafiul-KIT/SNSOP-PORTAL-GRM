@@ -77,6 +77,16 @@ export class GBVManagement implements OnInit, OnDestroy {
     { label: 'DIS', value: 1 },
   ];
 
+  referralServices = [
+    { label: 'GBV Case Management', value: 1 },
+    { label: 'Protection Services', value: 2 },
+    { label: 'Medical Services', value: 3 },
+    { label: 'Psychosocial Services', value: 4 },
+    { label: 'Legal Assistances', value: 5 },
+    { label: 'Safe Space', value: 6 },
+    { label: 'Other', value: 7 },
+  ];
+
   grievanceAttachmentFile: File | null = null;
   consentAttachmentFile: File | null = null;
   displaySavedIssueDialog = false;
@@ -137,8 +147,11 @@ export class GBVManagement implements OnInit, OnDestroy {
       complainantBeneficiarySelectionCriteria: [null],
       suspectKnown: [null],
       suspectAssociatedWithProject: [null],
-      suspectDetails: ['', [Validators.maxLength(1000)]],
+      suspectDetails: [{ value: '', disabled: true }, [Validators.maxLength(1000)]],
       recommendedReferralServiceId: [null],
+      availableInfoSuspectedPerpetrator: [{ value: '', disabled: true }, [Validators.maxLength(1000)]],
+      referralServicesRecommendedDetails: [{ value: '', disabled: true }, [Validators.maxLength(1000)]],
+      statusAfterReferral: ['', [Validators.maxLength(500)]],
       grievanceDescription: ['', [Validators.required, this.trimRequiredValidator(), Validators.maxLength(3000)]],
       grievanceAttachmentUrl: ['', [this.optionalUrlValidator()]],
       grievanceAttachmentFile: [null, Validators.required],
@@ -288,6 +301,30 @@ export class GBVManagement implements OnInit, OnDestroy {
       );
       this.syncBeneficiarySelectionCriteriaValidator(complainantBeneficiaryCtrl.value);
     }
+
+    // Suspect Known → enable/disable Suspect Details
+    const suspectKnownCtrl = this.gbvForm.get('suspectKnown');
+    if (suspectKnownCtrl) {
+      this.subscriptions.push(
+        suspectKnownCtrl.valueChanges.subscribe((val) => this.syncSuspectDetails(val))
+      );
+    }
+
+    // Suspect Associated With Project → enable/disable Available Info on Suspected Perpetrator
+    const suspectAssociatedCtrl = this.gbvForm.get('suspectAssociatedWithProject');
+    if (suspectAssociatedCtrl) {
+      this.subscriptions.push(
+        suspectAssociatedCtrl.valueChanges.subscribe((val) => this.syncAvailableInfoPerpetrator(val))
+      );
+    }
+
+    // Recommended Referral Service → enable/disable Referral Services Recommended Details when "Other" (7)
+    const referralServiceCtrl = this.gbvForm.get('recommendedReferralServiceId');
+    if (referralServiceCtrl) {
+      this.subscriptions.push(
+        referralServiceCtrl.valueChanges.subscribe((val) => this.syncReferralDetails(val))
+      );
+    }
   }
 
   private syncOtherDescValidator(reportedByValue: any): void {
@@ -324,6 +361,39 @@ export class GBVManagement implements OnInit, OnDestroy {
       ctrl.setValidators(null);
     }
     ctrl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private syncSuspectDetails(suspectKnown: any): void {
+    const ctrl = this.gbvForm.get('suspectDetails');
+    if (!ctrl) return;
+    if (suspectKnown === true) {
+      ctrl.enable({ emitEvent: false });
+    } else {
+      ctrl.setValue('', { emitEvent: false });
+      ctrl.disable({ emitEvent: false });
+    }
+  }
+
+  private syncAvailableInfoPerpetrator(suspectAssociated: any): void {
+    const ctrl = this.gbvForm.get('availableInfoSuspectedPerpetrator');
+    if (!ctrl) return;
+    if (suspectAssociated === true) {
+      ctrl.enable({ emitEvent: false });
+    } else {
+      ctrl.setValue('', { emitEvent: false });
+      ctrl.disable({ emitEvent: false });
+    }
+  }
+
+  private syncReferralDetails(referralServiceId: any): void {
+    const ctrl = this.gbvForm.get('referralServicesRecommendedDetails');
+    if (!ctrl) return;
+    if (referralServiceId === 7) {
+      ctrl.enable({ emitEvent: false });
+    } else {
+      ctrl.setValue('', { emitEvent: false });
+      ctrl.disable({ emitEvent: false });
+    }
   }
 
   isIncidentReporterOtherSelected(): boolean {
@@ -402,7 +472,8 @@ export class GBVManagement implements OnInit, OnDestroy {
   private trimTextFields(): void {
     const fields = [
       'contactFocalPersonName', 'incidentReportedByOtherDesc', 'reportingChannelOther',
-      'complainantContactNumber', 'suspectDetails', 'grievanceDescription',
+      'complainantContactNumber', 'suspectDetails', 'availableInfoSuspectedPerpetrator',
+      'referralServicesRecommendedDetails', 'statusAfterReferral', 'grievanceDescription',
       'grievanceAttachmentUrl', 'consentFormAttachmentUrl',
     ];
     const patch: Record<string, string> = {};
@@ -453,7 +524,7 @@ export class GBVManagement implements OnInit, OnDestroy {
     const fd = new FormData();
 
     // ── Required fields ────────────────────────────────────────────────────
-    this.appendValue(fd, 'id', v.id ?? 0);
+    // this.appendValue(fd, 'id', v.id ?? 0);
     this.appendValue(fd, 'stateId', v.stateId);
     this.appendValue(fd, 'countyId', v.countyId);
     this.appendValue(fd, 'payamId', v.payamId);
@@ -476,7 +547,10 @@ export class GBVManagement implements OnInit, OnDestroy {
     this.appendValue(fd, 'suspectKnown', v.suspectKnown);
     this.appendValue(fd, 'suspectAssociatedWithProject', v.suspectAssociatedWithProject);
     this.appendValue(fd, 'suspectDetails', v.suspectDetails?.trim() || null);
-    this.appendValue(fd, 'recommendedReferralServiceId', v.recommendedReferralServiceId != null ? Math.round(v.recommendedReferralServiceId) : null);
+    this.appendValue(fd, 'recommendedReferralServiceId', v.recommendedReferralServiceId != null ? String(Math.round(v.recommendedReferralServiceId)) : null);
+    this.appendValue(fd, 'availableInfoSuspectedPerpetrator', v.availableInfoSuspectedPerpetrator?.trim() || null);
+    this.appendValue(fd, 'referralServicesRecommendedDetails', v.referralServicesRecommendedDetails?.trim() || null);
+    this.appendValue(fd, 'statusAfterReferral', v.statusAfterReferral?.trim() || null);
     this.appendValue(fd, 'grievanceAttachmentUrl', v.grievanceAttachmentUrl?.trim() || null);
     this.appendValue(fd, 'verbalConsentGranted', v.verbalConsentGranted);
     this.appendValue(fd, 'consentSigned', v.consentSigned);
@@ -541,8 +615,12 @@ export class GBVManagement implements OnInit, OnDestroy {
       { label: 'Payam', value: this.findOptionLabel(this.payams, formValue?.payamId) },
       { label: 'Boma', value: this.findOptionLabel(this.bomas, formValue?.bomaId) },
       { label: 'Contact Focal Person', value: this.toDisplayValue(formValue?.contactFocalPersonName) },
-      { label: 'Incident Reported By', value: this.findOptionLabel(this.incidentReporters, formValue?.incidentReportedBy) },
-      { label: 'Reporting Channel', value: this.findOptionLabel(this.reportingChannels, formValue?.reportingChannelId) },
+      { label: 'Incident Reported By', value: this.isIncidentReporterOtherSelected() && formValue?.incidentReportedByOtherDesc
+        ? `${this.findOptionLabel(this.incidentReporters, formValue?.incidentReportedBy)} (${formValue.incidentReportedByOtherDesc})`
+        : this.findOptionLabel(this.incidentReporters, formValue?.incidentReportedBy) },
+      { label: 'Reporting Channel', value: this.isOtherReportingChannelSelected() && formValue?.reportingChannelOther
+        ? `${this.findOptionLabel(this.reportingChannels, formValue?.reportingChannelId)} (${formValue.reportingChannelOther})`
+        : this.findOptionLabel(this.reportingChannels, formValue?.reportingChannelId) },
       { label: 'Complainant Gender', value: this.findOptionLabel(this.genders, formValue?.complainantGender) },
       { label: 'Age of Survivor', value: this.toDisplayValue(formValue?.ageOfSurvivor) },
       { label: 'Complainant Beneficiary', value: this.booleanLabel(formValue?.complainantBeneficiary) },
@@ -789,6 +867,9 @@ export class GBVManagement implements OnInit, OnDestroy {
     this.syncOtherDescValidator(null);
     this.syncChannelOtherValidator();
     this.syncBeneficiarySelectionCriteriaValidator(null);
+    this.syncSuspectDetails(null);
+    this.syncAvailableInfoPerpetrator(null);
+    this.syncReferralDetails(null);
     this.counties = [];
     this.payams = [];
     this.bomas = [];

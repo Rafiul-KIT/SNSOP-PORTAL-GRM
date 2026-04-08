@@ -59,6 +59,10 @@
             <label class="form-label fw-bold">Reported By (Other):</label>
             <p>{{ grievanceDetails.incidentReportedByOtherDesc || '--' }}</p>
           </div>
+          <div class="col-md-4" *ngIf="grievanceStatusLabel">
+            <label class="form-label fw-bold">Status:</label>
+            <p><span class="badge" [ngClass]="grievanceStatusBadgeClass">{{ grievanceStatusLabel }}</span></p>
+          </div>
         </div>
       </div>
 
@@ -114,18 +118,18 @@
           <div class="col-md-4" *ngIf="grievanceDetails.grievanceAttachmentUrl">
             <label class="form-label fw-bold">Grievance Attachment:</label>
             <div>
-              <button class="btn btn-sm btn-outline-primary attachment-btn" (click)="downloadGrievanceAttachment()" [disabled]="isGrievanceAttachmentDownloading" [title]="grievanceDetails.grievanceAttachmentFilename || 'Download'">
+              <button class="btn btn-sm btn-outline-primary attachment-btn" (click)="downloadGrievanceAttachment()" [disabled]="isGrievanceAttachmentDownloading" [title]="grievanceDetails.grievanceAttachmentFilename || getFilenameFromUrl(grievanceDetails.grievanceAttachmentUrl)">
                 <i class="pi pi-download me-2"></i>
-                <span class="attachment-name">{{ isGrievanceAttachmentDownloading ? 'Downloading...' : (grievanceDetails.grievanceAttachmentFilename || 'Download') }}</span>
+                <span class="attachment-name">{{ isGrievanceAttachmentDownloading ? 'Downloading...' : (grievanceDetails.grievanceAttachmentFilename || getFilenameFromUrl(grievanceDetails.grievanceAttachmentUrl)) }}</span>
               </button>
             </div>
           </div>
           <div class="col-md-4" *ngIf="grievanceDetails.consentFormAttachmentUrl">
             <label class="form-label fw-bold">Consent Form:</label>
             <div>
-              <button class="btn btn-sm btn-outline-primary attachment-btn" (click)="downloadConsentFormAttachment()" [disabled]="isConsentFormAttachmentDownloading" [title]="grievanceDetails.consentFormAttachmentFilename || 'Download'">
+              <button class="btn btn-sm btn-outline-primary attachment-btn" (click)="downloadConsentFormAttachment()" [disabled]="isConsentFormAttachmentDownloading" [title]="getFilenameFromUrl(grievanceDetails.consentFormAttachmentUrl)">
                 <i class="pi pi-download me-2"></i>
-                <span class="attachment-name">{{ isConsentFormAttachmentDownloading ? 'Downloading...' : (grievanceDetails.consentFormAttachmentFilename || 'Download') }}</span>
+                <span class="attachment-name">{{ isConsentFormAttachmentDownloading ? 'Downloading...' : getFilenameFromUrl(grievanceDetails.consentFormAttachmentUrl) }}</span>
               </button>
             </div>
           </div>
@@ -202,19 +206,21 @@
               <p class="mb-1 text-muted">
                 {{ isProcessFormDisabled
                     ? 'This grievance is already resolved and cannot be processed further.'
-                    : 'Click to add process details and submit follow-up action.' }}
+                    : isEditMode
+                      ? 'Click to update existing process details.'
+                      : 'Click to add process details and submit follow-up action.' }}
               </p>
             </div>
             <div class="col-md-3 text-end">
               <p-button
-                label="Open Process Form"
+                [label]="isEditMode ? 'Update Process Form' : 'Open Process Form'"
                 icon="pi pi-external-link"
                 severity="primary"
                 [outlined]="true"
                 size="small"
                 [disabled]="isProcessFormDisabled"
                 [pTooltip]="isProcessFormDisabled ? 'Latest process status is resolved' : ''"
-                (onClick)="$event.stopPropagation(); displayProcessDialog = true"
+                (onClick)="$event.stopPropagation(); openProcessDialog()"
               ></p-button>
             </div>
           </div>
@@ -225,7 +231,7 @@
 </div>
 
 <p-dialog
-  header="Enter Process Details"
+  [header]="isEditMode ? 'Update Process Details' : 'Enter Process Details'"
   [(visible)]="displayProcessDialog"
   [modal]="true"
   [style]="{ width: '70vw' }"
@@ -262,7 +268,7 @@
           <label class="form-label fw-bold d-block mb-2">Reported to Management/HR?</label>
           <p-checkbox formControlName="reportedToMgmtHr" binary="true" label="Yes"></p-checkbox>
         </div>
-        <div class="col-md-6" *ngIf="reportedToMgmtHr">
+        <div class="col-md-6">
           <label class="form-label fw-bold">Reported Details</label>
           <textarea pTextarea formControlName="reportedDetails" rows="3" class="w-100"></textarea>
         </div>
@@ -279,7 +285,7 @@
           <label class="form-label fw-bold d-block mb-2">Survivor Satisfied?</label>
           <p-checkbox formControlName="survivorSatisfied" binary="true" label="Yes"></p-checkbox>
         </div>
-        <div class="col-md-6" *ngIf="survivorSatisfied">
+        <div class="col-md-6">
           <label class="form-label fw-bold">Survivor Details</label>
           <textarea pTextarea formControlName="survivorDetails" rows="3" class="w-100"></textarea>
           <small class="text-danger"
@@ -298,7 +304,7 @@
       <div class="row g-3">
         <div class="col-md-6">
           <label class="form-label fw-bold">After Management Action Closed At</label>
-          <p-datepicker formControlName="afterMgmtActionClosedAt" [showIcon]="true" appendTo="body" class="w-100" dateFormat="dd/mm/yy"></p-datepicker>
+          <p-datepicker formControlName="afterMgmtActionClosedAt" [showIcon]="true" appendTo="body" class="w-100" dateFormat="dd/mm/yy" [maxDate]="today"></p-datepicker>
         </div>
         <div class="col-md-6">
           <label class="form-label fw-bold">Final Status <span class="text-danger">*</span></label>
@@ -326,7 +332,7 @@
       <div class="d-flex gap-2">
         <p-button label="Reset Form" icon="pi pi-refresh" (onClick)="onReset()" severity="warn" [outlined]="true"></p-button>
         <p-button
-          label="Save & Submit Process"
+          [label]="isEditMode ? 'Update & Submit Process' : 'Save & Submit Process'"
           icon="pi pi-check"
           (onClick)="onSubmit()"
           [disabled]="isSubmitting || processForm.invalid"

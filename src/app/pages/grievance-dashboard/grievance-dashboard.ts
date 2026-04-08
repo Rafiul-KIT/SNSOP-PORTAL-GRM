@@ -13,40 +13,55 @@ interface StatusCount {
 
 interface TypeCount {
   type?: string;
-  referralService?: string;
   title?: string;
   count: number;
 }
 
-interface LocationCount {
-  state?: string;
-  county?: string;
-  payam?: string;
-  boma?: string;
+interface CountyCount {
+  county: string;
   count: number;
 }
 
-interface ResolutionTime {
-  state?: string;
-  county?: string;
-  payam?: string;
-  boma?: string;
+interface ResolutionTimeByCounty {
+  county: string;
   averageResolutionTime: number;
 }
 
-interface DashboardData {
-  grievancesByStatus: StatusCount[];
-  grievancesByType?: TypeCount[];
-  grievancesByLocation: LocationCount[];
-  averageResolutionTimeByLocation: ResolutionTime[];
-  typesOfReferralMade?: TypeCount[];
-  sentToReferralServices?: TypeCount[];
-  perpetratorAssociatedWithProject?: TypeCount[];
+interface SectionSummary {
+  totalGrievances: number;
+  resolved: number;
+  pending: number;
+  resolvedPercentage: number;
 }
 
-interface ApiResponse {
-  ngbvData: DashboardData;
-  gbvData: DashboardData;
+interface AllGrievancesSection {
+  summary: SectionSummary;
+  grievancesByStatus: StatusCount[];
+  grievancesByCounty: CountyCount[];
+  avgResolutionTimeByCounty: ResolutionTimeByCounty[];
+}
+
+interface GbvSection {
+  summary: SectionSummary;
+  grievancesByStatus: StatusCount[];
+  grievancesByCounty: CountyCount[];
+  avgResolutionTimeByCounty: ResolutionTimeByCounty[];
+  referralServices: TypeCount[];
+  perpetratorInfo: TypeCount[];
+}
+
+interface NgbvSection {
+  summary: SectionSummary;
+  grievancesByStatus: StatusCount[];
+  grievancesByCounty: CountyCount[];
+  avgResolutionTimeByCounty: ResolutionTimeByCounty[];
+  grievancesByType: TypeCount[];
+}
+
+interface ApiResponseV2 {
+  allGrievances: AllGrievancesSection;
+  gbvGrievances: GbvSection;
+  ngbvGrievances: NgbvSection;
 }
 
 @Component({
@@ -58,7 +73,6 @@ interface ApiResponse {
 export class GrievanceDashboard implements OnInit {
   private apiService = inject(ApiService);
   private cdr = inject(ChangeDetectorRef);
-  private readonly brandPalette = ['#00b579', '#f06292', '#0dcaf0'];
   private readonly extendedPalette = [
     '#00b579',
     '#f06292',
@@ -76,9 +90,8 @@ export class GrievanceDashboard implements OnInit {
 
   loading = true;
   error: string | null = null;
+  dataLoaded = false;
 
-  // Data
-  apiResponse: ApiResponse | null = null;
   activeTab = '0';
 
   // NGBV Stats
@@ -86,21 +99,18 @@ export class GrievanceDashboard implements OnInit {
   ngbvPendingCases = 0;
   ngbvResolvedCases = 0;
   ngbvResolvedPercentage = 0;
-  ngbvAvgResolutionTime = 0;
 
   // GBV Stats
   gbvTotalCases = 0;
   gbvPendingCases = 0;
   gbvResolvedCases = 0;
   gbvResolvedPercentage = 0;
-  gbvAvgResolutionTime = 0;
 
   // Combined Stats
   allTotalCases = 0;
   allPendingCases = 0;
   allResolvedCases = 0;
   allResolvedPercentage = 0;
-  allAvgResolutionTime = 0;
 
   // Chart data
   ngbvStatusChartData: any;
@@ -111,7 +121,6 @@ export class GrievanceDashboard implements OnInit {
   gbvStatusChartData: any;
   gbvLocationChartData: any;
   gbvResolutionChartData: any;
-  gbvReferralChartData: any;
   gbvReferralServiceChartData: any;
   gbvPerpetratorChartData: any;
 
@@ -217,13 +226,16 @@ export class GrievanceDashboard implements OnInit {
 
   async fetchDashboardData() {
     try {
-      const response = await this.apiService.GET<ApiResponse>(
-        '/api/grievance/dashboard',
+      const response = await this.apiService.GET<ApiResponseV2>(
+        '/api/grievance/dashboard/v2',
       );
-      this.apiResponse = response.data;
-      this.processNGBVData();
-      this.processGBVData();
-      this.processCombinedData();
+      const data = response.data;
+      if (data) {
+        this.processAllData(data.allGrievances);
+        this.processNGBVData(data.ngbvGrievances);
+        this.processGBVData(data.gbvGrievances);
+        this.dataLoaded = true;
+      }
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
       this.error = 'Failed to load dashboard data. Please try again later.';
@@ -233,256 +245,55 @@ export class GrievanceDashboard implements OnInit {
     }
   }
 
-  processNGBVData() {
-    const data = this.apiResponse?.ngbvData;
-    if (!data) return;
+  private processAllData(section: AllGrievancesSection | undefined) {
+    if (!section) return;
 
-    this.ngbvTotalCases = this.sumCount(data.grievancesByStatus ?? []);
-    this.ngbvPendingCases = this.sumByStatus(data.grievancesByStatus ?? [], [
-      'Pending',
-      'In Progress',
-      'Open',
-      'New',
-      'Unresolved',
-    ]);
-    this.ngbvResolvedCases = this.sumByStatus(data.grievancesByStatus ?? [], [
-      'Resolved',
-      'Closed',
-      'Completed',
-    ]);
-    this.ngbvResolvedPercentage = this.calculateResolvedPercentage(
-      this.ngbvResolvedCases,
-      this.ngbvTotalCases,
-    );
-    this.ngbvAvgResolutionTime = this.calculateAvgResolutionTime(
-      data.averageResolutionTimeByLocation ?? [],
-    );
+    this.allTotalCases = section.summary?.totalGrievances ?? 0;
+    this.allResolvedCases = section.summary?.resolved ?? 0;
+    this.allPendingCases = section.summary?.pending ?? 0;
+    this.allResolvedPercentage = section.summary?.resolvedPercentage ?? 0;
 
-    this.ngbvStatusChartData = this.createStatusChart(
-      data.grievancesByStatus ?? [],
-    );
-
-    if (data.grievancesByType && data.grievancesByType.length > 0) {
-      this.ngbvTypeChartData = this.createTypeChart(data.grievancesByType);
-    }
-
-    this.ngbvLocationChartData = this.createLocationChart(
-      data.grievancesByLocation ?? [],
-    );
-    this.ngbvResolutionChartData = this.createResolutionTimeChart(
-      data.averageResolutionTimeByLocation ?? [],
-    );
+    this.allStatusChartData = this.createStatusChart(section.grievancesByStatus ?? []);
+    this.allLocationChartData = this.createCountyChart(section.grievancesByCounty ?? []);
+    this.allResolutionChartData = this.createResolutionTimeChart(section.avgResolutionTimeByCounty ?? []);
   }
 
-  processGBVData() {
-    const data = this.apiResponse?.gbvData;
-    if (!data) return;
+  private processNGBVData(section: NgbvSection | undefined) {
+    if (!section) return;
 
-    this.gbvTotalCases = this.sumCount(data.grievancesByStatus ?? []);
-    this.gbvPendingCases = this.sumByStatus(data.grievancesByStatus ?? [], [
-      'Pending',
-      'In Progress',
-      'Open',
-      'New',
-      'Unresolved',
-      'Referred',
-    ]);
-    this.gbvResolvedCases = this.sumByStatus(data.grievancesByStatus ?? [], [
-      'Resolved',
-      'Closed',
-      'Completed',
-    ]);
-    this.gbvResolvedPercentage = this.calculateResolvedPercentage(
-      this.gbvResolvedCases,
-      this.gbvTotalCases,
-    );
-    this.gbvAvgResolutionTime = this.calculateAvgResolutionTime(
-      data.averageResolutionTimeByLocation ?? [],
-    );
+    this.ngbvTotalCases = section.summary?.totalGrievances ?? 0;
+    this.ngbvResolvedCases = section.summary?.resolved ?? 0;
+    this.ngbvPendingCases = section.summary?.pending ?? 0;
+    this.ngbvResolvedPercentage = section.summary?.resolvedPercentage ?? 0;
 
-    this.gbvStatusChartData = this.createStatusChart(
-      data.grievancesByStatus ?? [],
-    );
-    this.gbvLocationChartData = this.createLocationChart(
-      data.grievancesByLocation ?? [],
-    );
-    this.gbvResolutionChartData = this.createResolutionTimeChart(
-      data.averageResolutionTimeByLocation ?? [],
-    );
+    this.ngbvStatusChartData = this.createStatusChart(section.grievancesByStatus ?? []);
+    this.ngbvLocationChartData = this.createCountyChart(section.grievancesByCounty ?? []);
+    this.ngbvResolutionChartData = this.createResolutionTimeChart(section.avgResolutionTimeByCounty ?? []);
 
-    if (data.typesOfReferralMade && data.typesOfReferralMade.length > 0) {
-      this.gbvReferralChartData = this.createTypeChart(
-        data.typesOfReferralMade,
-      );
-    }
-
-    if (data.sentToReferralServices && data.sentToReferralServices.length > 0) {
-      this.gbvReferralServiceChartData = this.createTypeChart(
-        data.sentToReferralServices,
-      );
-    }
-
-    if (
-      data.perpetratorAssociatedWithProject &&
-      data.perpetratorAssociatedWithProject.length > 0
-    ) {
-      this.gbvPerpetratorChartData = this.createTypeChart(
-        data.perpetratorAssociatedWithProject,
-      );
+    if (section.grievancesByType?.length) {
+      this.ngbvTypeChartData = this.createTypeChart(section.grievancesByType);
     }
   }
 
-  processCombinedData() {
-    const ngbv = this.apiResponse?.ngbvData;
-    const gbv = this.apiResponse?.gbvData;
-    if (!ngbv && !gbv) return;
+  private processGBVData(section: GbvSection | undefined) {
+    if (!section) return;
 
-    const combinedStatus = this.mergeStatusCounts(
-      ngbv?.grievancesByStatus ?? [],
-      gbv?.grievancesByStatus ?? [],
-    );
-    const combinedLocations = this.mergeLocationCounts(
-      ngbv?.grievancesByLocation ?? [],
-      gbv?.grievancesByLocation ?? [],
-    );
-    const combinedResolution = this.mergeResolutionTimes(
-      ngbv?.averageResolutionTimeByLocation ?? [],
-      gbv?.averageResolutionTimeByLocation ?? [],
-    );
+    this.gbvTotalCases = section.summary?.totalGrievances ?? 0;
+    this.gbvResolvedCases = section.summary?.resolved ?? 0;
+    this.gbvPendingCases = section.summary?.pending ?? 0;
+    this.gbvResolvedPercentage = section.summary?.resolvedPercentage ?? 0;
 
-    this.allTotalCases = this.sumCount(combinedStatus);
-    this.allPendingCases = this.sumByStatus(combinedStatus, [
-      'Pending',
-      'In Progress',
-      'Open',
-      'New',
-      'Unresolved',
-      'Referred',
-    ]);
-    this.allResolvedCases = this.sumByStatus(combinedStatus, [
-      'Resolved',
-      'Closed',
-      'Completed',
-    ]);
-    this.allResolvedPercentage = this.calculateResolvedPercentage(
-      this.allResolvedCases,
-      this.allTotalCases,
-    );
-    this.allAvgResolutionTime = this.calculateAvgResolutionTime(
-      combinedResolution,
-    );
+    this.gbvStatusChartData = this.createStatusChart(section.grievancesByStatus ?? []);
+    this.gbvLocationChartData = this.createCountyChart(section.grievancesByCounty ?? []);
+    this.gbvResolutionChartData = this.createResolutionTimeChart(section.avgResolutionTimeByCounty ?? []);
 
-    this.allStatusChartData = this.createStatusChart(combinedStatus);
-    this.allLocationChartData = this.createLocationChart(combinedLocations);
-    this.allResolutionChartData = this.createResolutionTimeChart(
-      combinedResolution,
-    );
-  }
+    if (section.referralServices?.length) {
+      this.gbvReferralServiceChartData = this.createTypeChart(section.referralServices);
+    }
 
-  private sumCount(items: { count: number }[]): number {
-    return items.reduce((sum, item) => sum + (item.count || 0), 0);
-  }
-
-  private sumByStatus(items: StatusCount[], statusKeywords: string[]): number {
-    return items
-      .filter((item) =>
-        statusKeywords.some((kw) =>
-          item.status?.trim().toLowerCase() === kw.toLowerCase(),
-        ),
-      )
-      .reduce((sum, item) => sum + (item.count || 0), 0);
-  }
-
-  private calculateAvgResolutionTime(items: ResolutionTime[]): number {
-    if (!items || !items.length) return 0;
-    const validItems = items.filter((i) => i.averageResolutionTime > 0);
-    if (!validItems.length) return 0;
-    return (
-      validItems.reduce((sum, item) => sum + item.averageResolutionTime, 0) /
-      validItems.length
-    );
-  }
-
-  private calculateResolvedPercentage(resolved: number, total: number): number {
-    if (!total) return 0;
-    return (resolved / total) * 100;
-  }
-
-  private mergeStatusCounts(
-    first: StatusCount[],
-    second: StatusCount[],
-  ): StatusCount[] {
-    const merged = new Map<string, { status: string; count: number }>();
-    [...first, ...second].forEach((item) => {
-      const rawStatus = (item.status || 'Unknown').trim();
-      const lowered = rawStatus.toLowerCase();
-      const isReferredVariant =
-        lowered.includes('referred') ||
-        lowered.includes('refered') ||
-        lowered.includes('reffrered') ||
-        lowered.includes('reffered');
-      const status = isReferredVariant ? 'Referred' : rawStatus;
-      const key = status.toLowerCase();
-      const existing = merged.get(key);
-      const count = Number(item.count) || 0;
-      if (existing) {
-        existing.count += count;
-      } else {
-        merged.set(key, { status, count });
-      }
-    });
-    return Array.from(merged.values());
-  }
-
-  private mergeLocationCounts(
-    first: LocationCount[],
-    second: LocationCount[],
-  ): LocationCount[] {
-    const merged = new Map<string, LocationCount>();
-    [...first, ...second].forEach((item) => {
-      const label =
-        item.county || item.state || item.payam || item.boma || 'Unknown';
-      const key = label.toLowerCase();
-      const existing = merged.get(key);
-      if (existing) {
-        existing.count = (existing.count || 0) + (item.count || 0);
-      } else {
-        merged.set(key, { ...item, count: item.count || 0 });
-      }
-    });
-    return Array.from(merged.values());
-  }
-
-  private mergeResolutionTimes(
-    first: ResolutionTime[],
-    second: ResolutionTime[],
-  ): ResolutionTime[] {
-    const merged = new Map<
-      string,
-      { item: ResolutionTime; total: number; parts: number }
-    >();
-
-    [...first, ...second]
-      .filter((i) => i.averageResolutionTime > 0)
-      .forEach((item) => {
-        const label =
-          item.county || item.state || item.payam || item.boma || 'Unknown';
-        const key = label.toLowerCase();
-        const existing = merged.get(key);
-        if (existing) {
-          existing.total += item.averageResolutionTime;
-          existing.parts += 1;
-          existing.item.averageResolutionTime = existing.total / existing.parts;
-        } else {
-          merged.set(key, {
-            item: { ...item },
-            total: item.averageResolutionTime,
-            parts: 1,
-          });
-        }
-      });
-
-    return Array.from(merged.values()).map((entry) => entry.item);
+    if (section.perpetratorInfo?.length) {
+      this.gbvPerpetratorChartData = this.createTypeChart(section.perpetratorInfo);
+    }
   }
 
   private createStatusChart(items: StatusCount[]): any {
@@ -494,16 +305,18 @@ export class GrievanceDashboard implements OnInit {
         status === 'in progress' ||
         status === 'open' ||
         status === 'new' ||
-        status === 'unresolved' ||
-        status === 'referred';
+        status === 'unresolved';
 
       const isResolved =
         status === 'resolved' ||
         status === 'closed' ||
         status === 'completed';
 
+      const isReferred = status === 'referred';
+
       if (isUnresolved) return '#f06292';
       if (isResolved) return '#00b579';
+      if (isReferred) return '#ffb74d';
       return '#0dcaf0';
     });
 
@@ -524,9 +337,7 @@ export class GrievanceDashboard implements OnInit {
   private createTypeChart(items: TypeCount[]): any {
     const colors = this.buildPalette(items.length);
     return {
-      labels: items.map(
-        (i) => i.type || i.referralService || i.title || 'Unknown',
-      ),
+      labels: items.map((i) => i.type || i.title || 'Unknown'),
       datasets: [
         {
           data: items.map((i) => i.count),
@@ -538,7 +349,7 @@ export class GrievanceDashboard implements OnInit {
     };
   }
 
-  private createLocationChart(items: LocationCount[]): any {
+  private createCountyChart(items: CountyCount[]): any {
     const sorted = [...items].sort((a, b) => b.count - a.count);
     const locationPalette = [
       '#4b9fe3',
@@ -553,9 +364,7 @@ export class GrievanceDashboard implements OnInit {
       '#ab47bc',
     ];
     return {
-      labels: sorted.map(
-        (i) => i.county || i.state || i.payam || i.boma || 'Unknown',
-      ),
+      labels: sorted.map((i) => i.county || 'Unknown'),
       datasets: [
         {
           label: 'Total Cases',
@@ -577,36 +386,33 @@ export class GrievanceDashboard implements OnInit {
     };
   }
 
-private createResolutionTimeChart(items: ResolutionTime[]): any {
-  const sorted = [...items]
-    .filter((i) => i.averageResolutionTime > 0)
-    .sort((a, b) => b.averageResolutionTime - a.averageResolutionTime);
+  private createResolutionTimeChart(items: ResolutionTimeByCounty[]): any {
+    const sorted = [...items]
+      .filter((i) => i.averageResolutionTime > 0)
+      .sort((a, b) => b.averageResolutionTime - a.averageResolutionTime);
 
-  const colors = ['#20c997', '#20c997'];
+    const colors = ['#20c997', '#20c997'];
 
-  return {
-    labels: sorted.map(
-      (i) => i.county || i.state || i.payam || i.boma || 'Unknown'
-    ),
-    datasets: [
-      {
-        label: 'Avg Days',
-        data: sorted.map(
-          (i) => Math.round(i.averageResolutionTime * 10) / 10
-        ),
-        backgroundColor: sorted.map((_, index) => colors[index % 2]),
-        borderRadius: 6,
-        borderSkipped: false,
-      },
-    ],
-  };
-}
+    return {
+      labels: sorted.map((i) => i.county || 'Unknown'),
+      datasets: [
+        {
+          label: 'Avg Days',
+          data: sorted.map(
+            (i) => Math.round(i.averageResolutionTime * 10) / 10,
+          ),
+          backgroundColor: sorted.map((_, index) => colors[index % 2]),
+          borderRadius: 6,
+          borderSkipped: false,
+          barThickness: 32,
+          maxBarThickness: 40,
+        },
+      ],
+    };
+  }
 
   private buildPalette(length: number): string[] {
-    const base = this.extendedPalette.length
-      ? this.extendedPalette
-      : this.brandPalette;
-    return Array.from({ length }, (_, index) => base[index % base.length]);
+    return Array.from({ length }, (_, index) => this.extendedPalette[index % this.extendedPalette.length]);
   }
 
   hasChartData(chartData: any): boolean {

@@ -287,11 +287,11 @@ export class LookupService {
   };
 
   getSelectionCriteriaEnumByValue = (value: any) => {
-    const dataFpund = this.SelectionCriteriaEnum.find(
-      (sce: any) => sce.value == value
+    const dataFound = this.SelectionCriteriaEnum.find(
+      (sce: any) => sce.value == value || sce.id == value
     );
-    if (dataFpund) {
-      return dataFpund.label;
+    if (dataFound) {
+      return dataFound.value;
     } else {
       return '--';
     }

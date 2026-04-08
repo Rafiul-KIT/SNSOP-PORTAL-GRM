@@ -138,10 +138,10 @@
               <label class="form-label fw-bold">Contact Number</label>
               <input type="text" pInputText formControlName="contactNumber" inputmode="numeric" maxlength="14" (input)="onContactNumberInput($event)" class="w-100" />
               <small class="text-danger" *ngIf="grievanceForm.get('contactNumber')?.invalid && (grievanceForm.get('contactNumber')?.touched || grievanceForm.get('contactNumber')?.dirty)">
-                Contact number must be exactly 14 digits
+                Enter numbers only (maximum 14 digits)
               </small>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
               <label class="form-label fw-bold d-block mb-2">SNSOP Beneficiary</label>
               <div class="yes-no-radio-group">
                 <div class="yes-no-option">
@@ -162,11 +162,16 @@
                 </div>
               </div>
             </div>
+            <div class="col-md-3" *ngIf="isBeneficiarySelected()">
+              <label class="form-label fw-bold">Support Type <span class="text-danger">*</span></label>
+              <p-select [options]="supportTypes" formControlName="supportType" placeholder="--Select--" class="w-100" appendTo="body"></p-select>
+              <small class="text-danger" *ngIf="grievanceForm.get('supportType')?.invalid && (grievanceForm.get('supportType')?.touched || grievanceForm.get('supportType')?.dirty)">Support type is required</small>
+            </div>
             <div class="col-md-2">
               <label class="form-label fw-bold">Age</label>
               <p-inputnumber formControlName="age" [min]="0" [max]="120" class="w-100"></p-inputnumber>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
               <label class="form-label fw-bold">Physical Address</label>
               <input type="text" pInputText formControlName="physicalAddress" class="w-100" />
             </div>
@@ -181,23 +186,18 @@
           </h5>
           <hr>
           <div class="row g-3">
-            <div class="col-md-3" *ngIf="isBeneficiarySelected()">
-              <label class="form-label fw-bold">Support Type <span class="text-danger">*</span></label>
-              <p-select [options]="supportTypes" formControlName="supportType" placeholder="--Select--" class="w-100" appendTo="body"></p-select>
-              <small class="text-danger" *ngIf="grievanceForm.get('supportType')?.invalid && (grievanceForm.get('supportType')?.touched || grievanceForm.get('supportType')?.dirty)">Support type is required</small>
-            </div>
             <div class="col-md-3">
               <label class="form-label fw-bold">Category of Grievance  <span class="text-danger">*</span></label>
               <p-select [options]="categories" formControlName="categoryOfGrievance" placeholder="--Select--" class="w-100" appendTo="body" (onChange)="onCategoryChange($event)"></p-select>
               <small class="text-danger" *ngIf="grievanceForm.get('categoryOfGrievance')?.invalid && (grievanceForm.get('categoryOfGrievance')?.touched || grievanceForm.get('categoryOfGrievance')?.dirty)">grievanceTypeId is required</small>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3" *ngIf="!isOtherCategorySelected()">
               <label class="form-label fw-bold">Type of Grievance <span class="text-danger">*</span></label>
               <p-select [options]="grievanceTypes" formControlName="typeOfGrievance" placeholder="--Select--" class="w-100" appendTo="body" (onChange)="onTypeChange($event)"></p-select>
               <small class="text-danger" *ngIf="grievanceForm.get('typeOfGrievance')?.invalid && (grievanceForm.get('typeOfGrievance')?.touched || grievanceForm.get('typeOfGrievance')?.dirty)">Type of grievance is required</small>
             </div>
-            <div class="col-md-3">
-              <label class="form-label fw-bold">Type Of Grievance (Other)</label>
+            <div class="col-md-3" *ngIf="isOtherCategorySelected() || isOtherTypeSelected()">
+              <label class="form-label fw-bold">Type Of Grievance (Other) <span class="text-danger">*</span></label>
               <input type="text" pInputText formControlName="typeOfGrievanceOther" class="w-100" />
               <small class="text-danger" *ngIf="grievanceForm.get('typeOfGrievanceOther')?.invalid && (grievanceForm.get('typeOfGrievanceOther')?.touched || grievanceForm.get('typeOfGrievanceOther')?.dirty)">Other grievance type is required</small>
             </div>

@@ -91,13 +91,8 @@ export class NonGbvDetails implements OnInit {
   grievanceCategories: ValueLabelItem[] = []; // Categories (parent)
   grievanceTypes: ValueLabelItem[] = []; // Detailed types (child)
 
-  // Status options (example, adjust as per actual statuses)
-  statusOptions = [
-    { label: 'Pending', value: 'Pending' },
-    { label: 'In Progress', value: 'In Progress' },
-    { label: 'Resolved', value: 'Resolved' },
-    { label: 'Rejected', value: 'Rejected' },
-  ];
+  grievanceStatusLabel = '';
+  grievanceStatusBadgeClass = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -111,6 +106,11 @@ export class NonGbvDetails implements OnInit {
   async ngOnInit() {
     this.initBreadcrumb();
     this.grievanceId = Number(this.route.snapshot.paramMap.get('id'));
+    const statusParam = this.route.snapshot.queryParamMap.get('status');
+    if (statusParam) {
+      this.grievanceStatusLabel = this.getStatusLabel(statusParam);
+      this.grievanceStatusBadgeClass = this.getStatusBadgeClass(statusParam);
+    }
 
     if (this.grievanceId) {
       await this.loadLookups(); // Load all necessary lookups first
@@ -271,9 +271,18 @@ export class NonGbvDetails implements OnInit {
     return item ? item.label : String(value);
   }
 
-  getStatusLabel(statusValue: string | number): string {
-    const status = this.statusOptions.find(s => s.value === statusValue);
-    return status ? status.label : String(statusValue);
+  getStatusLabel(status: string | number): string {
+    const s = String(status).toLowerCase();
+    if (s === '5' || s === 'resolved') return 'Resolved';
+    if (s === '15' || s === 'referred') return 'Referred';
+    return 'Unresolved';
+  }
+
+  getStatusBadgeClass(status: string | number): string {
+    const s = String(status).toLowerCase();
+    if (s === '5' || s === 'resolved') return 'bg-success';
+    if (s === '15' || s === 'referred') return 'bg-danger';
+    return 'bg-warning';
   }
 
   formatDisplayDate(value: string | null | undefined): string {

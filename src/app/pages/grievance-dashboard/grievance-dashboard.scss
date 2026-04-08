@@ -245,9 +245,9 @@
 .stat-card {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-  padding: 1.1rem;
-  border-radius: 16px;
+  gap: 0.7rem;
+  padding: 0.8rem;
+  border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.25);
   background: #fff;
   box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
@@ -259,9 +259,9 @@
   }
 
   &__icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
     display: grid;
     place-items: center;
     flex-shrink: 0;
@@ -275,17 +275,17 @@
 
   &__title {
     display: block;
-    margin-bottom: 0.16rem;
+    margin-bottom: 0.1rem;
     color: #4b5c72;
     text-transform: none;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     letter-spacing: 0;
     font-weight: 600;
   }
 
   &__value {
     color: #1f344d;
-    font-size: 1.35rem;
+    font-size: 1.15rem;
     font-weight: 800;
     letter-spacing: -0.02em;
     line-height: 1.1;
@@ -334,41 +334,18 @@
 
 .charts-row {
   display: grid;
-  grid-template-columns: 1fr 1.45fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   margin-bottom: 1rem;
+  align-items: stretch;
 
   &--triple {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    align-items: stretch;
-
-    .chart-card--compact {
-      display: flex;
-      flex-direction: column;
-
-      .chart-card__body {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 200px;
-        padding: 0.6rem 0.6rem 0.8rem;
-
-        p-chart {
-          width: 100%;
-        }
-      }
-    }
-  }
-
-  &--half {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
   }
 }
 
 .chart-card {
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid #dfe8f2;
   background: #fff;
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
@@ -379,19 +356,30 @@
   }
 
   &--compact {
+    display: flex;
+    flex-direction: column;
+
     .chart-card__header {
       padding: 0.7rem 0.9rem;
     }
 
     .chart-card__body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       min-height: 200px;
-      padding: 0.5rem 0.5rem 0.7rem;
+      padding: 0.4rem;
+
+      p-chart {
+        width: 100%;
+      }
     }
   }
 
   &__header {
     border-bottom: 1px solid #edf2f7;
-    padding: 0.95rem 1.1rem;
+    padding: 0.6rem 0.9rem;
     background: #ffffff;
   }
 
@@ -406,11 +394,18 @@
   }
 
   &__body {
-    min-height: 280px;
-    padding: 1rem 1rem 1.2rem;
+    min-height: 200px;
+    max-height: 320px;
+    padding: 0.6rem;
+
+    p-chart {
+      display: block;
+      width: 100%;
+      max-height: 280px;
+    }
 
     .no-data {
-      height: 220px;
+      height: 180px;
       display: grid;
       place-items: center;
       margin: 0;
@@ -472,8 +467,7 @@
   }
 
   .charts-row,
-  .charts-row--triple,
-  .charts-row--half {
+  .charts-row--triple {
     grid-template-columns: 1fr;
   }
 }

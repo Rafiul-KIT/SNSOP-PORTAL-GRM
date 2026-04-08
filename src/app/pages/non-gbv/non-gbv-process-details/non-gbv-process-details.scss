@@ -159,6 +159,17 @@
   min-height: 41px !important;
 }
 
+:host ::ng-deep .p-inputtext:disabled,
+:host ::ng-deep .p-textarea:disabled,
+:host ::ng-deep .p-select.p-disabled,
+:host ::ng-deep .p-datepicker.p-disabled .p-inputtext,
+:host ::ng-deep .p-checkbox.p-disabled {
+  background: #e9ecef !important;
+  color: #6c757d !important;
+  cursor: not-allowed !important;
+  opacity: 1 !important;
+}
+
 :host ::ng-deep .p-inputtext:focus,
 :host ::ng-deep .p-select.p-focus,
 :host ::ng-deep .p-datepicker .p-inputtext:focus,
@@ -190,6 +201,10 @@
 
 :host ::ng-deep .p-dialog .p-dialog-content {
   background: #f9fbff;
+}
+
+:host ::ng-deep .p-dialog .p-progressspinner-circle {
+  stroke: #56b8e6 !important;
 }
 
 :host ::ng-deep .download-progress-bar.p-progressbar {
@@ -247,5 +262,59 @@
 
   .section-block > .row {
     padding: 0.72rem 0.72rem 0.82rem;
+  }
+}
+
+.file-attached-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 41px;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid #b0d4a8;
+  border-radius: 6px;
+  background: #f0faf0;
+
+  .file-info {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+
+  .file-icon {
+    font-size: 1.15rem;
+    color: #2e7d32;
+    flex-shrink: 0;
+  }
+
+  .file-name {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #1b5e20;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+  }
+
+  .file-size {
+    font-size: 0.75rem;
+    color: #5f6f84;
+    flex-shrink: 0;
+  }
+
+  .file-actions {
+    display: flex;
+    gap: 0.35rem;
+    flex-shrink: 0;
+
+    .btn {
+      padding: 0.15rem 0.4rem;
+      font-size: 0.78rem;
+      line-height: 1;
+      border-radius: 4px;
+    }
   }
 }

@@ -11,8 +11,9 @@
       <h4 class="mb-0 fw-bold">
         <i class="pi pi-cog me-2"></i>
         Process Non-GBV Grievance
-        <!-- <span class="badge bg-secondary ms-2">{{ grievanceDetails.trackingNumber }}</span> -->
+        <span class="badge bg-secondary ms-2">{{ grievanceDetails.trackingNumber }}</span>
       </h4>
+      
     </div>
 
     <div class="card-body p-4">
@@ -28,10 +29,10 @@
             <label class="form-label fw-bold">ID:</label>
             <p>{{ grievanceDetails.id }}</p>
           </div>
-          <div class="col-md-4">
+          <!-- <div class="col-md-4">
             <label class="form-label fw-bold">Tracking Number:</label>
             <p>{{ grievanceDetails.trackingNumber }}</p>
-          </div>
+          </div> -->
           <div class="col-md-4">
             <label class="form-label fw-bold">Incident Occurred At:</label>
             <p>{{ formatDisplayDate(grievanceDetails.incidentOccurredAt) }}</p>
@@ -51,6 +52,10 @@
           <div class="col-md-4">
             <label class="form-label fw-bold">Boma/Quarter Council Name:</label>
             <p>{{ getBomaName(grievanceDetails.bomaId, bomas) }}</p>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Status:</label>
+            <p><span class="badge" [ngClass]="grievanceStatusBadgeClass">{{ grievanceStatusLabel }}</span></p>
           </div>
         </div>
       </div>
@@ -204,23 +209,25 @@
           Complaint Process
         </h5>
         <hr>
-        <div class="p-4 border rounded bg-light" 
+        <div class="p-4 border rounded bg-light"
           [ngClass]="{'hover-shadow': !isProcessFormDisabled, 'bg-secondary-subtle opacity-75': isProcessFormDisabled}"
           style="transition: all 0.3s ease;">
           <div class="row align-items-center">
             <div class="col-md-9">
               <p class="mb-1 text-muted">
-                {{ !isFurtherActionAllowed
-                    ? 'Further action is not required, so process form is disabled.'
-                    : 'Click to enter or update process details such as action taken, feedback, and investigation.' }}
+                {{ isGrievanceResolved
+                    ? 'This grievance has been resolved.'
+                    : !isFurtherActionAllowed && !isEditMode
+                      ? 'Further action is not required, so process form is disabled.'
+                      : 'Click to enter or update process details such as action taken, feedback, and investigation.' }}
               </p>
             </div>
             <div class="col-md-3 text-end">
-              <p-button label="Open Process Form" icon="pi pi-external-link" severity="primary" [outlined]="true"
+              <p-button [label]="isEditMode ? 'Update Process' : 'Open Process Form'" [icon]="isEditMode ? 'pi pi-pencil' : 'pi pi-external-link'" severity="primary" [outlined]="true"
                 size="small"
-                [disabled]="isProcessFormDisabled"
-                [pTooltip]="!isFurtherActionAllowed ? 'Further action is not required' : ''"
-                (onClick)="$event.stopPropagation(); displayProcessDialog = true"></p-button>
+                [disabled]="isGrievanceResolved || (isProcessFormDisabled && !isEditMode)"
+                [pTooltip]="isGrievanceResolved ? 'Grievance is resolved' : !isFurtherActionAllowed && !isEditMode ? 'Further action is not required' : ''"
+                (onClick)="$event.stopPropagation(); openProcessDialog()"></p-button>
             </div>
           </div>
         </div>
@@ -230,10 +237,15 @@
 </div>
 
 <!-- Process Details Dialog -->
-<p-dialog header="Enter Process Details" [(visible)]="displayProcessDialog" [modal]="true" [style]="{ width: '80vw' }"
+<p-dialog [header]="isEditMode ? 'Update Process Details' : 'Enter Process Details'" [(visible)]="displayProcessDialog" [modal]="true" [style]="{ width: '80vw' }"
   [breakpoints]="{ '960px': '95vw' }" [draggable]="false" [resizable]="false" styleClass="p-fluid">
 
-  <form [formGroup]="processForm" class="mt-3">
+  <div *ngIf="isLoadingProcessData" class="text-center p-5">
+    <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4"></p-progressSpinner>
+    <p class="mt-2">Loading process data...</p>
+  </div>
+
+  <form *ngIf="!isLoadingProcessData" [formGroup]="processForm" class="mt-3">
     <!-- Action Taken Section -->
     <div class="section-block mb-4">
       <h5 class="section-title fw-bold text-secondary mb-3">
@@ -261,11 +273,46 @@
         <div class="col-md-6">
           <label class="form-label fw-bold">Resolved On <span class="text-danger">*</span></label>
           <p-datepicker formControlName="resolvedOn" [showIcon]="true" appendTo="body" class="w-100"
-            dateFormat="dd/mm/yy"></p-datepicker>
+            dateFormat="dd/mm/yy" [maxDate]="today"></p-datepicker>
           <small class="text-danger"
             *ngIf="processForm.get('resolvedOn')?.invalid && (processForm.get('resolvedOn')?.touched || processForm.get('resolvedOn')?.dirty)">
-            Resolved date is required
+            Resolved date is required and cannot be in the future
           </small>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold">Action Taken Attachment</label>
+          <div *ngIf="!actionTakenAttachmentFile && !existingActionTakenAttachmentUrl" class="file-upload-wrapper border rounded-2 p-1 bg-light">
+            <input type="file" (change)="onActionTakenFileChange($event)" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" class="form-control form-control-sm border-0 bg-transparent" />
+          </div>
+          <div *ngIf="existingActionTakenAttachmentUrl && !actionTakenAttachmentFile" class="file-attached-card">
+            <div class="file-info">
+              <i class="bi bi-file-earmark-check-fill file-icon"></i>
+              <span class="file-name" [title]="getFilenameFromUrl(existingActionTakenAttachmentUrl)">{{ getFilenameFromUrl(existingActionTakenAttachmentUrl) }}</span>
+            </div>
+            <div class="file-actions">
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="viewExistingAttachment(existingActionTakenAttachmentUrl!)" title="View">
+                <i class="bi bi-eye-fill"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveExistingAttachment('actionTaken')" title="Remove">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
+          </div>
+          <div *ngIf="actionTakenAttachmentFile" class="file-attached-card">
+            <div class="file-info">
+              <i class="bi bi-file-earmark-check-fill file-icon"></i>
+              <span class="file-name" [title]="actionTakenAttachmentFile.name">{{ actionTakenAttachmentFile.name }}</span>
+              <span class="file-size">({{ formatFileSize(actionTakenAttachmentFile.size) }})</span>
+            </div>
+            <div class="file-actions">
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="onViewAttachment('actionTaken')" title="View">
+                <i class="bi bi-eye-fill"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveAttachment('actionTaken')" title="Delete">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -288,11 +335,38 @@
         </div>
         <div class="col-md-6">
           <label class="form-label fw-bold">Attachment</label>
-          <p-fileUpload mode="basic" chooseLabel="Choose File" [auto]="false"
-            (onSelect)="onFeedbackAttachmentSelect($event)" [multiple]="false" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-            [maxFileSize]="1000000" styleClass="w-100">
-          </p-fileUpload>
-          <!-- <small class="p-error" *ngIf="feedbackAttachmentFile">{{ feedbackAttachmentFile.name }}</small> -->
+          <div *ngIf="!feedbackAttachmentFile && !existingFeedbackAttachmentUrl" class="file-upload-wrapper border rounded-2 p-1 bg-light">
+            <input type="file" #feedbackFileInput (change)="onFeedbackFileChange($event)" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" class="form-control form-control-sm border-0 bg-transparent" />
+          </div>
+          <div *ngIf="existingFeedbackAttachmentUrl && !feedbackAttachmentFile" class="file-attached-card">
+            <div class="file-info">
+              <i class="bi bi-file-earmark-check-fill file-icon"></i>
+              <span class="file-name" [title]="getFilenameFromUrl(existingFeedbackAttachmentUrl)">{{ getFilenameFromUrl(existingFeedbackAttachmentUrl) }}</span>
+            </div>
+            <div class="file-actions">
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="viewExistingAttachment(existingFeedbackAttachmentUrl!)" title="View">
+                <i class="bi bi-eye-fill"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveExistingAttachment('feedback')" title="Remove">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
+          </div>
+          <div *ngIf="feedbackAttachmentFile" class="file-attached-card">
+            <div class="file-info">
+              <i class="bi bi-file-earmark-check-fill file-icon"></i>
+              <span class="file-name" [title]="feedbackAttachmentFile.name">{{ feedbackAttachmentFile.name }}</span>
+              <span class="file-size">({{ formatFileSize(feedbackAttachmentFile.size) }})</span>
+            </div>
+            <div class="file-actions">
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="onViewAttachment('feedback')" title="View">
+                <i class="bi bi-eye-fill"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveAttachment('feedback')" title="Delete">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -306,7 +380,10 @@
       <div class="row g-3">
         <div class="col-md-4">
           <label class="form-label fw-bold">Accused Name</label>
-          <input type="text" pInputText formControlName="accusedName" class="w-100" />
+          <input type="text" pInputText formControlName="accusedName" class="w-100" (input)="onAccusedNameInput($event)" />
+          <small class="text-danger" *ngIf="processForm.get('accusedName')?.hasError('pattern') && (processForm.get('accusedName')?.touched || processForm.get('accusedName')?.dirty)">
+            Accused name must contain letters only
+          </small>
         </div>
         <div class="col-md-4">
           <label class="form-label fw-bold">Accused Type</label>
@@ -314,9 +391,13 @@
             appendTo="body" placeholder="--Select--" class="w-100">
           </p-select>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
           <label class="form-label fw-bold">Accused Details</label>
           <input type="text" pInputText formControlName="accusedDetails" class="w-100" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold">Accused Other Details</label>
+          <input type="text" pInputText formControlName="accusedOtherDetails" class="w-100" />
         </div>
         <div class="col-md-3">
           <label class="form-label fw-bold">State</label>
@@ -345,18 +426,23 @@
       </div>
     </div>
 
-    <!-- Further Actions & Investigation Section -->
+    <!-- Further Actions Section -->
     <div class="section-block mb-4">
       <h5 class="section-title fw-bold text-secondary mb-3">
-        <i class="pi pi-search me-2"></i>
-        Investigation & Further Actions
+        <i class="pi pi-directions me-2"></i>
+        Further Actions
       </h5>
       <div class="row g-3">
-        <div class="col-md-6">
+        <div class="col-md-4">
           <label class="form-label fw-bold d-block mb-2">Further Action Required? <span class="text-danger">*</span></label>
           <p-checkbox formControlName="furtherActionRequired" binary="true" label="Yes" />
         </div>
-        <div class="col-md-6" *ngIf="furtherActionRequired">
+        <div class="col-md-4">
+          <label class="form-label fw-bold d-block mb-2">Escalated/Referred Externally? <span class="text-danger">*</span></label>
+          <p-checkbox formControlName="escalatedReferredExternally" binary="true" label="Yes" />
+        </div>
+        <div class="col-md-4"></div>
+        <div class="col-12">
           <label class="form-label fw-bold">Further Required Action Details <span class="text-danger">*</span></label>
           <textarea pTextarea formControlName="furtherRequiredActionDetails" rows="2" class="w-100"></textarea>
           <small class="text-danger"
@@ -364,44 +450,77 @@
             Details are required
           </small>
         </div>
-        <div class="col-md-6">
-          <label class="form-label fw-bold d-block mb-2">Investigation Carried Out? <span class="text-danger">*</span></label>
+      </div>
+    </div>
+
+    <!-- Investigation Section -->
+    <div class="section-block mb-4">
+      <h5 class="section-title fw-bold text-secondary mb-3">
+        <i class="pi pi-search me-2"></i>
+        Investigation
+      </h5>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-bold d-block mb-2">Investigation Carried Out?</label>
           <p-checkbox formControlName="investigationCarriedOut" binary="true" label="Yes" />
         </div>
-        <ng-container *ngIf="investigationCarriedOut">
-          <div class="col-md-4">
-            <label class="form-label fw-bold">Investigator Name <span class="text-danger">*</span></label>
-            <input type="text" pInputText formControlName="investigatorName" class="w-100" />
+        <div class="col-md-4">
+          <label class="form-label fw-bold">Investigator Name <span class="text-danger">*</span></label>
+          <input type="text" pInputText formControlName="investigatorName" class="w-100" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold">Investigator Designation <span class="text-danger">*</span></label>
+          <input type="text" pInputText formControlName="investigatorDesignation" class="w-100" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold">Investigation Completed On <span class="text-danger">*</span></label>
+          <p-datepicker formControlName="investigationCompletedOn" [showIcon]="true" appendTo="body" class="w-100"
+            dateFormat="dd/mm/yy" [maxDate]="today">
+          </p-datepicker>
+        </div>
+        <div class="col-md-8">
+          <label class="form-label fw-bold">Investigation Report Attachment</label>
+          <div *ngIf="!investigationReportAttachmentFile && !existingInvestigationAttachmentUrl" class="file-upload-wrapper border rounded-2 p-1 bg-light">
+            <input type="file" #investigationFileInput (change)="onInvestigationFileChange($event)" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" class="form-control form-control-sm border-0 bg-transparent" [disabled]="!investigationCarriedOut" />
           </div>
-          <div class="col-md-4">
-            <label class="form-label fw-bold">Investigator Designation <span class="text-danger">*</span></label>
-            <input type="text" pInputText formControlName="investigatorDesignation" class="w-100" />
+          <div *ngIf="existingInvestigationAttachmentUrl && !investigationReportAttachmentFile" class="file-attached-card">
+            <div class="file-info">
+              <i class="bi bi-file-earmark-check-fill file-icon"></i>
+              <span class="file-name" [title]="getFilenameFromUrl(existingInvestigationAttachmentUrl)">{{ getFilenameFromUrl(existingInvestigationAttachmentUrl) }}</span>
+            </div>
+            <div class="file-actions">
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="viewExistingAttachment(existingInvestigationAttachmentUrl!)" title="View">
+                <i class="bi bi-eye-fill"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveExistingAttachment('investigation')" title="Remove">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
           </div>
-          <div class="col-md-4">
-            <label class="form-label fw-bold">Investigation Completed On <span class="text-danger">*</span></label>
-            <p-datepicker formControlName="investigationCompletedOn" [showIcon]="true" appendTo="body" class="w-100"
-              dateFormat="dd/mm/yy">
-            </p-datepicker>
+          <div *ngIf="investigationReportAttachmentFile" class="file-attached-card">
+            <div class="file-info">
+              <i class="bi bi-file-earmark-check-fill file-icon"></i>
+              <span class="file-name" [title]="investigationReportAttachmentFile.name">{{ investigationReportAttachmentFile.name }}</span>
+              <span class="file-size">({{ formatFileSize(investigationReportAttachmentFile.size) }})</span>
+            </div>
+            <div class="file-actions">
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="onViewAttachment('investigation')" title="View">
+                <i class="bi bi-eye-fill"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveAttachment('investigation')" title="Delete">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
           </div>
-          <div class="col-12">
-            <label class="form-label fw-bold">Investigation Findings <span class="text-danger">*</span></label>
-            <textarea pTextarea formControlName="investigationFindings" rows="3" class="w-100"></textarea>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-bold">Investigation Report Attachment</label>
-            <p-fileUpload mode="basic" chooseLabel="Choose File" [auto]="false"
-              (onSelect)="onInvestigationReportAttachmentSelect($event)" [multiple]="false"
-              [maxFileSize]="1000000" styleClass="w-100">
-            </p-fileUpload>
-            <small class="p-error" *ngIf="investigationReportAttachmentFile">
-              {{ investigationReportAttachmentFile.name }}
-            </small>
-          </div>
-          <div class="col-12">
-            <label class="form-label fw-bold">Action After Investigation</label>
-            <textarea pTextarea formControlName="actionAfterInvestigation" rows="3" class="w-100"></textarea>
-          </div>
-        </ng-container>
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-bold">Investigation Findings <span class="text-danger">*</span></label>
+          <textarea pTextarea formControlName="investigationFindings" rows="3" class="w-100"></textarea>
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-bold">Action After Investigation</label>
+          <textarea pTextarea formControlName="actionAfterInvestigation" rows="3" class="w-100"></textarea>
+        </div>
       </div>
     </div>
 
@@ -412,49 +531,96 @@
         Appeal Information
       </h5>
       <div class="row g-3">
-        <div class="col-md-6">
+        <div class="col-md-4">
           <label class="form-label fw-bold d-block mb-2">Appeal Lodged? <span class="text-danger">*</span></label>
           <p-checkbox formControlName="appealLodged" binary="true" label="Yes" />
         </div>
-        <ng-container *ngIf="appealLodged">
-          <div class="col-md-6">
-            <label class="form-label fw-bold">Appealed On <span class="text-danger">*</span></label>
-            <p-datepicker formControlName="appealedOn" [showIcon]="true" appendTo="body" class="w-100"
-              dateFormat="dd/mm/yy">
-            </p-datepicker>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-bold d-block mb-2">Appeal Outcome Satisfactory?</label>
-            <p-checkbox formControlName="appealOutcomeSatisfactory" binary="true" label="Yes" />
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-bold">After Appeal Closed On</label>
-            <p-datepicker formControlName="afterAppealClosedOn" [showIcon]="true" appendTo="body" class="w-100"
-              dateFormat="dd/mm/yy">
-            </p-datepicker>
-          </div>
-        </ng-container>
-        <div class="col-12">
-          <label class="form-label fw-bold">Unresolved Recommended Action</label>
-          <textarea pTextarea formControlName="unresolvedRecommendedAction" rows="3" class="w-100"></textarea>
+        <div class="col-md-4">
+          <label class="form-label fw-bold">Appealed On <span class="text-danger">*</span></label>
+          <p-datepicker formControlName="appealedOn" [showIcon]="true" appendTo="body" class="w-100"
+            dateFormat="dd/mm/yy" [maxDate]="today">
+          </p-datepicker>
         </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold d-block mb-2">Appeal Outcome Satisfactory?</label>
+          <p-checkbox formControlName="appealOutcomeSatisfactory" binary="true" label="Yes" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold">After Appeal Closed On</label>
+          <p-datepicker formControlName="afterAppealClosedOn" [showIcon]="true" appendTo="body" class="w-100"
+            dateFormat="dd/mm/yy" [minDate]="processForm.get('appealedOn')?.value" [maxDate]="today">
+          </p-datepicker>
+        </div>
+        <div class="col-md-8">
+          <label class="form-label fw-bold">Unresolved Recommended Action</label>
+          <textarea pTextarea formControlName="unresolvedRecommendedAction" rows="2" class="w-100"></textarea>
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-bold">Main Findings</label>
+          <textarea pTextarea formControlName="mainFindings" rows="3" class="w-100"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Final Status & Attachments Section -->
+    <div class="section-block mb-4">
+      <h5 class="section-title fw-bold text-secondary mb-3">
+        <i class="pi pi-check-circle me-2"></i>
+        Final Status & Attachments
+      </h5>
+      <div class="row g-3">
         <div class="col-md-6">
           <label class="form-label fw-bold">Final Status <span class="text-danger">*</span></label>
           <p-select [options]="statusOptions" formControlName="status" optionLabel="label" optionValue="value"
             appendTo="body" placeholder="--Select--" class="w-100">
           </p-select>
         </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold">Details Attachments</label>
+          <div class="file-upload-wrapper border rounded-2 p-1 bg-light">
+            <input type="file" (change)="onDetailsAttachmentsChange($event)" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" multiple class="form-control form-control-sm border-0 bg-transparent" />
+          </div>
+          <div *ngFor="let url of existingDetailsAttachmentUrls; let i = index" class="file-attached-card mt-1">
+            <div class="file-info">
+              <i class="bi bi-file-earmark-check-fill file-icon"></i>
+              <span class="file-name" [title]="getFilenameFromUrl(url)">{{ getFilenameFromUrl(url) }}</span>
+            </div>
+            <div class="file-actions">
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="viewExistingAttachment(url)" title="View">
+                <i class="bi bi-eye-fill"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveExistingDetailsAttachment(i)" title="Remove">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
+          </div>
+          <div *ngFor="let file of detailsAttachmentFiles; let i = index" class="file-attached-card mt-1">
+            <div class="file-info">
+              <i class="bi bi-file-earmark-check-fill file-icon"></i>
+              <span class="file-name" [title]="file.name">{{ file.name }}</span>
+              <span class="file-size">({{ formatFileSize(file.size) }})</span>
+            </div>
+            <div class="file-actions">
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="onViewDetailsAttachment(i)" title="View">
+                <i class="bi bi-eye-fill"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveDetailsAttachment(i)" title="Remove">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </form>
 
   <ng-template pTemplate="footer">
-    <div class="d-flex justify-content-between w-100">
+    <div *ngIf="!isLoadingProcessData" class="d-flex justify-content-between w-100">
       <p-button label="Discard" icon="pi pi-times" (onClick)="displayProcessDialog = false" severity="secondary"
         [text]="true"></p-button>
       <div class="d-flex gap-2">
         <p-button label="Reset Form" icon="pi pi-refresh" (onClick)="onReset()" severity="warn" [outlined]="true"></p-button>
-        <p-button label="Save & Submit Process" icon="pi pi-check" (onClick)="onSubmit()"
+        <p-button [label]="isEditMode ? 'Update Process' : 'Save & Submit Process'" icon="pi pi-check" (onClick)="onSubmit()"
           [disabled]="isSubmitting || processForm.invalid" [loading]="isSubmitting" severity="primary"></p-button>
       </div>
     </div>
@@ -518,6 +684,10 @@
           <div class="col-md-4">
             <label class="fw-bold text-muted small d-block">Appeal Lodged</label>
             <p class="fw-medium">{{ selectedHistoryDetail.appealLodged ? 'Yes' : 'No' }}</p>
+          </div>
+          <div class="col-md-4">
+            <label class="fw-bold text-muted small d-block">Escalated/Referred Externally</label>
+            <p class="fw-medium">{{ selectedHistoryDetail.escalatedReferredExternally ? 'Yes' : 'No' }}</p>
           </div>
         </div>
       </div>

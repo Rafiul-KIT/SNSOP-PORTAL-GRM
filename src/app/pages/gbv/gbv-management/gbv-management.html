@@ -98,6 +98,13 @@
                 Reporting channel is required
               </small>
             </div>
+             <div class="col-md-4" *ngIf="isOtherReportingChannelSelected()">
+              <label class="form-label fw-bold">Other Reporting Channel <span class="text-danger">*</span></label>
+              <input type="text" pInputText formControlName="reportingChannelOther" class="w-100" />
+              <small class="text-danger" *ngIf="gbvForm.get('reportingChannelOther')?.invalid && (gbvForm.get('reportingChannelOther')?.touched || gbvForm.get('reportingChannelOther')?.dirty)">
+                Other reporting channel is required
+              </small>
+            </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Incident Occurred Date <span class="text-danger">*</span></label>
               <p-datepicker formControlName="incidentOccurredAt" [showIcon]="true" appendTo="body" class="w-100" dateFormat="dd/mm/yy"></p-datepicker>
@@ -105,13 +112,7 @@
                 {{ gbvForm.get('incidentOccurredAt')?.hasError('futureDate') ? 'Incident occurred date cannot be today or in the future' : 'Incident occurred date is required' }}
               </small>
             </div>
-            <div class="col-md-4" *ngIf="isOtherReportingChannelSelected()">
-              <label class="form-label fw-bold">Other Reporting Channel <span class="text-danger">*</span></label>
-              <input type="text" pInputText formControlName="reportingChannelOther" class="w-100" />
-              <small class="text-danger" *ngIf="gbvForm.get('reportingChannelOther')?.invalid && (gbvForm.get('reportingChannelOther')?.touched || gbvForm.get('reportingChannelOther')?.dirty)">
-                Other reporting channel is required
-              </small>
-            </div>
+           
             <div class="col-md-4">
               <label class="form-label fw-bold">Complainant Contact Number <span class="text-danger">*</span></label>
               <input type="text" pInputText formControlName="complainantContactNumber" class="w-100" inputmode="numeric" maxlength="10" (input)="onContactNumberInput($event)" />
@@ -173,7 +174,7 @@
           </h5>
           <hr>
           <div class="row g-3">
-            <div class="col-md-4">
+            <div class="col-md-6">
               <label class="form-label fw-bold d-block mb-2">Suspect Known</label>
               <div class="yes-no-radio-group">
                 <div class="yes-no-option">
@@ -194,7 +195,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
               <label class="form-label fw-bold d-block mb-2">Suspect Associated With Project</label>
               <div class="yes-no-radio-group">
                 <div class="yes-no-option">
@@ -215,13 +216,26 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Recommended Referral Service (ID)</label>
-              <p-inputnumber formControlName="recommendedReferralServiceId" [min]="0" class="w-100"></p-inputnumber>
-            </div>
-            <div class="col-12">
+     
+            <div class="col-md-6">
               <label class="form-label fw-bold">Suspect Details</label>
               <textarea pTextarea formControlName="suspectDetails" rows="3" class="w-100"></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Available Info on Suspected Perpetrator</label>
+              <textarea pTextarea formControlName="availableInfoSuspectedPerpetrator" rows="3" class="w-100"></textarea>
+            </div>
+                   <div class="col-md-4">
+              <label class="form-label fw-bold">Recommended Referral Service</label>
+              <p-select [options]="referralServices" formControlName="recommendedReferralServiceId" placeholder="--Select--" class="w-100" appendTo="body"></p-select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Referral Services Recommended Details</label>
+              <textarea pTextarea formControlName="referralServicesRecommendedDetails" rows="3" class="w-100"></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Status After Referral</label>
+              <input type="text" pInputText formControlName="statusAfterReferral" class="w-100" />
             </div>
           </div>
         </div>
@@ -346,20 +360,20 @@
                 Please select Yes or No
               </small>
             </div>
-            <div class="col-md-4">
+            <!-- <div class="col-md-4">
               <label class="form-label fw-bold">Grievance Attachment URL</label>
               <input type="text" pInputText formControlName="grievanceAttachmentUrl" class="w-100" />
               <small class="text-danger" *ngIf="gbvForm.get('grievanceAttachmentUrl')?.hasError('invalidUrl') && (gbvForm.get('grievanceAttachmentUrl')?.touched || gbvForm.get('grievanceAttachmentUrl')?.dirty)">
                 Enter a valid URL
               </small>
-            </div>
-            <div class="col-md-4">
+            </div> -->
+            <!-- <div class="col-md-4">
               <label class="form-label fw-bold">Consent Form Attachment URL</label>
               <input type="text" pInputText formControlName="consentFormAttachmentUrl" class="w-100" />
               <small class="text-danger" *ngIf="gbvForm.get('consentFormAttachmentUrl')?.hasError('invalidUrl') && (gbvForm.get('consentFormAttachmentUrl')?.touched || gbvForm.get('consentFormAttachmentUrl')?.dirty)">
                 Enter a valid URL
               </small>
-            </div>
+            </div> -->
           </div>
         </div>
 
