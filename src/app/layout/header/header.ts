@@ -50,6 +50,10 @@ export class Header {
       link: environment.portals.surveyCTO,
       icon: 'fas fa-poll',
     },
+      { label: 'Monitoring & Evaluation',
+      link: environment.portals.mNe,
+      icon: 'fas fa-chart-bar'
+    },
   ];
 
   constructor(
@@ -128,6 +132,7 @@ export class Header {
             icon: 'fas fa-list',
             routerLink: 'gbv-management/process',
           },
+         
         ],
       },
       

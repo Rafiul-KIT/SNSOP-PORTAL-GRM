@@ -240,7 +240,12 @@
 <p-dialog [header]="isEditMode ? 'Update Process Details' : 'Enter Process Details'" [(visible)]="displayProcessDialog" [modal]="true" [style]="{ width: '80vw' }"
   [breakpoints]="{ '960px': '95vw' }" [draggable]="false" [resizable]="false" styleClass="p-fluid">
 
-  <form [formGroup]="processForm" class="mt-3">
+  <div *ngIf="isLoadingProcessData" class="text-center p-5">
+    <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4"></p-progressSpinner>
+    <p class="mt-2">Loading process data...</p>
+  </div>
+
+  <form *ngIf="!isLoadingProcessData" [formGroup]="processForm" class="mt-3">
     <!-- Action Taken Section -->
     <div class="section-block mb-4">
       <h5 class="section-title fw-bold text-secondary mb-3">
@@ -276,8 +281,22 @@
         </div>
         <div class="col-md-6">
           <label class="form-label fw-bold">Action Taken Attachment</label>
-          <div *ngIf="!actionTakenAttachmentFile" class="file-upload-wrapper border rounded-2 p-1 bg-light">
+          <div *ngIf="!actionTakenAttachmentFile && !existingActionTakenAttachmentUrl" class="file-upload-wrapper border rounded-2 p-1 bg-light">
             <input type="file" (change)="onActionTakenFileChange($event)" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" class="form-control form-control-sm border-0 bg-transparent" />
+          </div>
+          <div *ngIf="existingActionTakenAttachmentUrl && !actionTakenAttachmentFile" class="file-attached-card">
+            <div class="file-info">
+              <i class="bi bi-file-earmark-check-fill file-icon"></i>
+              <span class="file-name" [title]="getFilenameFromUrl(existingActionTakenAttachmentUrl)">{{ getFilenameFromUrl(existingActionTakenAttachmentUrl) }}</span>
+            </div>
+            <div class="file-actions">
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="viewExistingAttachment(existingActionTakenAttachmentUrl!)" title="View">
+                <i class="bi bi-eye-fill"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveExistingAttachment('actionTaken')" title="Remove">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
           </div>
           <div *ngIf="actionTakenAttachmentFile" class="file-attached-card">
             <div class="file-info">
@@ -316,8 +335,22 @@
         </div>
         <div class="col-md-6">
           <label class="form-label fw-bold">Attachment</label>
-          <div *ngIf="!feedbackAttachmentFile" class="file-upload-wrapper border rounded-2 p-1 bg-light">
+          <div *ngIf="!feedbackAttachmentFile && !existingFeedbackAttachmentUrl" class="file-upload-wrapper border rounded-2 p-1 bg-light">
             <input type="file" #feedbackFileInput (change)="onFeedbackFileChange($event)" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" class="form-control form-control-sm border-0 bg-transparent" />
+          </div>
+          <div *ngIf="existingFeedbackAttachmentUrl && !feedbackAttachmentFile" class="file-attached-card">
+            <div class="file-info">
+              <i class="bi bi-file-earmark-check-fill file-icon"></i>
+              <span class="file-name" [title]="getFilenameFromUrl(existingFeedbackAttachmentUrl)">{{ getFilenameFromUrl(existingFeedbackAttachmentUrl) }}</span>
+            </div>
+            <div class="file-actions">
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="viewExistingAttachment(existingFeedbackAttachmentUrl!)" title="View">
+                <i class="bi bi-eye-fill"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveExistingAttachment('feedback')" title="Remove">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
           </div>
           <div *ngIf="feedbackAttachmentFile" class="file-attached-card">
             <div class="file-info">
@@ -358,11 +391,11 @@
             appendTo="body" placeholder="--Select--" class="w-100">
           </p-select>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
           <label class="form-label fw-bold">Accused Details</label>
           <input type="text" pInputText formControlName="accusedDetails" class="w-100" />
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
           <label class="form-label fw-bold">Accused Other Details</label>
           <input type="text" pInputText formControlName="accusedOtherDetails" class="w-100" />
         </div>
@@ -447,8 +480,22 @@
         </div>
         <div class="col-md-8">
           <label class="form-label fw-bold">Investigation Report Attachment</label>
-          <div *ngIf="!investigationReportAttachmentFile" class="file-upload-wrapper border rounded-2 p-1 bg-light">
+          <div *ngIf="!investigationReportAttachmentFile && !existingInvestigationAttachmentUrl" class="file-upload-wrapper border rounded-2 p-1 bg-light">
             <input type="file" #investigationFileInput (change)="onInvestigationFileChange($event)" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" class="form-control form-control-sm border-0 bg-transparent" [disabled]="!investigationCarriedOut" />
+          </div>
+          <div *ngIf="existingInvestigationAttachmentUrl && !investigationReportAttachmentFile" class="file-attached-card">
+            <div class="file-info">
+              <i class="bi bi-file-earmark-check-fill file-icon"></i>
+              <span class="file-name" [title]="getFilenameFromUrl(existingInvestigationAttachmentUrl)">{{ getFilenameFromUrl(existingInvestigationAttachmentUrl) }}</span>
+            </div>
+            <div class="file-actions">
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="viewExistingAttachment(existingInvestigationAttachmentUrl!)" title="View">
+                <i class="bi bi-eye-fill"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveExistingAttachment('investigation')" title="Remove">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
           </div>
           <div *ngIf="investigationReportAttachmentFile" class="file-attached-card">
             <div class="file-info">
@@ -533,6 +580,20 @@
           <div class="file-upload-wrapper border rounded-2 p-1 bg-light">
             <input type="file" (change)="onDetailsAttachmentsChange($event)" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" multiple class="form-control form-control-sm border-0 bg-transparent" />
           </div>
+          <div *ngFor="let url of existingDetailsAttachmentUrls; let i = index" class="file-attached-card mt-1">
+            <div class="file-info">
+              <i class="bi bi-file-earmark-check-fill file-icon"></i>
+              <span class="file-name" [title]="getFilenameFromUrl(url)">{{ getFilenameFromUrl(url) }}</span>
+            </div>
+            <div class="file-actions">
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="viewExistingAttachment(url)" title="View">
+                <i class="bi bi-eye-fill"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveExistingDetailsAttachment(i)" title="Remove">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
+          </div>
           <div *ngFor="let file of detailsAttachmentFiles; let i = index" class="file-attached-card mt-1">
             <div class="file-info">
               <i class="bi bi-file-earmark-check-fill file-icon"></i>
@@ -540,6 +601,9 @@
               <span class="file-size">({{ formatFileSize(file.size) }})</span>
             </div>
             <div class="file-actions">
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="onViewDetailsAttachment(i)" title="View">
+                <i class="bi bi-eye-fill"></i>
+              </button>
               <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveDetailsAttachment(i)" title="Remove">
                 <i class="bi bi-trash-fill"></i>
               </button>
@@ -551,7 +615,7 @@
   </form>
 
   <ng-template pTemplate="footer">
-    <div class="d-flex justify-content-between w-100">
+    <div *ngIf="!isLoadingProcessData" class="d-flex justify-content-between w-100">
       <p-button label="Discard" icon="pi pi-times" (onClick)="displayProcessDialog = false" severity="secondary"
         [text]="true"></p-button>
       <div class="d-flex gap-2">

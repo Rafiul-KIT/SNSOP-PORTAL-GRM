@@ -191,13 +191,13 @@
               <p-select [options]="categories" formControlName="categoryOfGrievance" placeholder="--Select--" class="w-100" appendTo="body" (onChange)="onCategoryChange($event)"></p-select>
               <small class="text-danger" *ngIf="grievanceForm.get('categoryOfGrievance')?.invalid && (grievanceForm.get('categoryOfGrievance')?.touched || grievanceForm.get('categoryOfGrievance')?.dirty)">grievanceTypeId is required</small>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3" *ngIf="!isOtherCategorySelected()">
               <label class="form-label fw-bold">Type of Grievance <span class="text-danger">*</span></label>
               <p-select [options]="grievanceTypes" formControlName="typeOfGrievance" placeholder="--Select--" class="w-100" appendTo="body" (onChange)="onTypeChange($event)"></p-select>
               <small class="text-danger" *ngIf="grievanceForm.get('typeOfGrievance')?.invalid && (grievanceForm.get('typeOfGrievance')?.touched || grievanceForm.get('typeOfGrievance')?.dirty)">Type of grievance is required</small>
             </div>
-            <div class="col-md-3">
-              <label class="form-label fw-bold">Type Of Grievance (Other)</label>
+            <div class="col-md-3" *ngIf="isOtherCategorySelected() || isOtherTypeSelected()">
+              <label class="form-label fw-bold">Type Of Grievance (Other) <span class="text-danger">*</span></label>
               <input type="text" pInputText formControlName="typeOfGrievanceOther" class="w-100" />
               <small class="text-danger" *ngIf="grievanceForm.get('typeOfGrievanceOther')?.invalid && (grievanceForm.get('typeOfGrievanceOther')?.touched || grievanceForm.get('typeOfGrievanceOther')?.dirty)">Other grievance type is required</small>
             </div>
