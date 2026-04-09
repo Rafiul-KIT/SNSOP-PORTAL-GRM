@@ -1,8 +1,9 @@
 @if (isLoading) {
   <app-loader></app-loader>
 } @else {
-  <p-breadcrumb [model]="breadcrumbItems" [home]="breadcrumbHome" class="w-100"></p-breadcrumb>
-
+  <div class="breadcrumb-wrapper">
+    <p-breadcrumb [model]="breadcrumbItems" [home]="breadcrumbHome" class="w-100"></p-breadcrumb>
+  </div>
   <div class="card p-3 mb-2">
     <form [formGroup]="filterForm" class="row g-3">
 
@@ -39,12 +40,12 @@
       </div>
 
       <!-- Status -->
-      <div class="col-md-3">
+      <!-- <div class="col-md-3">
         <p-floatlabel variant="on" class="w-100">
           <p-select [options]="statusOptions" optionLabel="label" optionValue="value" appendTo="body" formControlName="status" />
           <label>Status</label>
         </p-floatlabel>
-      </div>
+      </div> -->
 
       <!-- Category -->
       <div class="col-md-3">
@@ -66,7 +67,7 @@
   <p-table [value]="reportData" [loading]="isTableLoading" [tableStyle]="{ 'min-width': '100%', 'margin-bottom': '5px' }" size="small">
     <ng-template pTemplate="header">
       <tr>
-        <th colspan="9" class="text-end">
+        <th colspan="7" class="text-end">
           <p class="fw-bold mb-2">
             Showing <kbd>{{ reportData.length }}</kbd> of
             <kbd>{{ reportData.length }}</kbd> records
@@ -78,46 +79,35 @@
         <th class="text-center">Geo Location</th>
         <th class="text-center">Category</th>
         <th class="text-center">Complainant</th>
-        <th class="text-center">HH No.</th>
-        <th class="text-center">Complaint</th>
-        <th class="text-center">Resolved</th>
-        <th class="text-center">In Progress</th>
-        <th class="text-center">Unresolved</th>
+        <th class="text-center">Beneficiary</th>
+        <th class="text-center">Grievance Description</th>
+        <!-- <th class="text-center">ID</th> -->
       </tr>
     </ng-template>
 
     <ng-template pTemplate="body" let-row let-i="rowIndex">
       <tr>
         <td class="text-center">{{ i + 1 }}</td>
-        <td class="text-center">{{ row.geoLocation }}</td>
+        <td class="text-center">{{ getGeoLabel(row) }}</td>
         <td class="text-center">
-          <span class="badge" [ngClass]="row.category === 'GBV' ? 'bg-danger' : 'bg-info'">
-            {{ row.category }}
+          <span class="badge" [ngClass]="row.grievanceCategory === 'GBV' ? 'bg-danger' : 'bg-info'">
+            {{ row.grievanceCategory }}
           </span>
         </td>
-        <td class="text-center">{{ row.complainant }}</td>
-        <td class="text-center">{{ row.hhNo }}</td>
-        <td class="text-center complaint-cell">{{ row.complaint }}</td>
-        <td class="text-center text-success fw-bold">{{ row.resolved }}</td>
-        <td class="text-center text-warning fw-bold">{{ row.inProgress }}</td>
-        <td class="text-center text-danger fw-bold">{{ row.unresolved }}</td>
+        <td class="text-center">{{ row.complainantName }}</td>
+        <td class="text-center">
+          <span class="badge" [ngClass]="row.isComplainantBeneficiary ? 'bg-success' : 'bg-secondary'">
+            {{ row.isComplainantBeneficiary ? 'Yes' : 'No' }}
+          </span>
+        </td>
+        <td class="text-center complaint-cell">{{ row.grievanceDescription }}</td>
+        <!-- <td class="text-center">{{ row.id }}</td> -->
       </tr>
     </ng-template>
 
-    @if (reportData.length > 0) {
-      <ng-template pTemplate="footer">
-        <tr class="fw-bold">
-          <td colspan="6" class="text-end">TOTAL</td>
-          <td class="text-center text-success">{{ totalResolved }}</td>
-          <td class="text-center text-warning">{{ totalInProgress }}</td>
-          <td class="text-center text-danger">{{ totalUnresolved }}</td>
-        </tr>
-      </ng-template>
-    }
-
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="9" class="text-center text-danger">
+        <td colspan="7" class="text-center text-danger">
           <b>No records found!</b>
         </td>
       </tr>

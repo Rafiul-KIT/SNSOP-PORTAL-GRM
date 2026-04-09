@@ -1,8 +1,9 @@
 @if (isLoading) {
   <app-loader></app-loader>
 } @else {
-  <p-breadcrumb [model]="breadcrumbItems" [home]="breadcrumbHome" class="w-100"></p-breadcrumb>
-
+  <div class="breadcrumb-wrapper">
+    <p-breadcrumb [model]="breadcrumbItems" [home]="breadcrumbHome" class="w-100"></p-breadcrumb>
+  </div>
   <div class="card p-3 mb-2">
     <form [formGroup]="filterForm" class="row g-3">
 
@@ -39,20 +40,20 @@
       </div>
 
       <!-- Status -->
-      <div class="col-md-3">
+      <!-- <div class="col-md-3">
         <p-floatlabel variant="on" class="w-100">
           <p-select [options]="statusOptions" optionLabel="label" optionValue="value" appendTo="body" formControlName="status" />
           <label>Status</label>
         </p-floatlabel>
-      </div>
+      </div> -->
 
       <!-- Category -->
-      <div class="col-md-3">
+      <!-- <div class="col-md-3">
         <p-floatlabel variant="on" class="w-100">
           <p-select [options]="categoryOptions" optionLabel="label" optionValue="value" appendTo="body" formControlName="category" />
           <label>Category</label>
         </p-floatlabel>
-      </div>
+      </div> -->
 
       <div class="col-12">
         <div class="d-grid d-sm-flex justify-content-end align-items-center gap-2">
@@ -66,7 +67,7 @@
   <p-table [value]="reportData" [loading]="isTableLoading" [tableStyle]="{ 'min-width': '100%', 'margin-bottom': '5px' }" size="small">
     <ng-template pTemplate="header">
       <tr>
-        <th colspan="9" class="text-end">
+        <th colspan="7" class="text-end">
           <p class="fw-bold mb-2">
             Showing <kbd>{{ reportData.length }}</kbd> of
             <kbd>{{ reportData.length }}</kbd> records
@@ -81,48 +82,36 @@
         <th class="text-center">Total Complaint</th>
         <th class="text-center">Total of Non-GBV (%)</th>
         <th class="text-center">Total of GBV (%)</th>
-        <th class="text-center">Trend of GBV</th>
-        <th class="text-center">Trend of Non-GBV</th>
       </tr>
     </ng-template>
 
     <ng-template pTemplate="body" let-row let-i="rowIndex">
       <tr>
         <td class="text-center">{{ i + 1 }}</td>
-        <td class="text-center">{{ row.geoLocation }}</td>
-        <td class="text-center fw-bold text-danger">{{ row.gbv }}</td>
-        <td class="text-center fw-bold text-info">{{ row.nonGbv }}</td>
-        <td class="text-center fw-bold">{{ row.totalComplaint }}</td>
-        <td class="text-center">{{ row.nonGbvPercentage }}%</td>
+        <td class="text-center">{{ getGeoLabel(row) }}</td>
+        <td class="text-center fw-bold text-danger">{{ row.gbvCount }}</td>
+        <td class="text-center fw-bold text-info">{{ row.ngbvCount }}</td>
+        <td class="text-center fw-bold">{{ row.totalCount }}</td>
+        <td class="text-center">{{ row.ngbvPercentage }}%</td>
         <td class="text-center">{{ row.gbvPercentage }}%</td>
-        <td class="text-center">
-          <span class="trend-badge" [ngClass]="getTrendClass(row.trendGbv)">
-            <i [class]="getTrendIcon(row.trendGbv)" class="me-1"></i>{{ row.trendGbv }}
-          </span>
-        </td>
-        <td class="text-center">
-          <span class="trend-badge" [ngClass]="getTrendClass(row.trendNonGbv)">
-            <i [class]="getTrendIcon(row.trendNonGbv)" class="me-1"></i>{{ row.trendNonGbv }}
-          </span>
-        </td>
       </tr>
     </ng-template>
 
-    @if (reportData.length > 0) {
+    <!-- @if (reportData.length > 0) {
       <ng-template pTemplate="footer">
         <tr class="fw-bold">
           <td colspan="2" class="text-end">TOTAL</td>
           <td class="text-center text-danger">{{ totalGbv }}</td>
           <td class="text-center text-info">{{ totalNonGbv }}</td>
           <td class="text-center">{{ totalComplaint }}</td>
-          <td colspan="4"></td>
+          <td colspan="2"></td>
         </tr>
       </ng-template>
-    }
+    } -->
 
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="9" class="text-center text-danger">
+        <td colspan="7" class="text-center text-danger">
           <b>No records found!</b>
         </td>
       </tr>

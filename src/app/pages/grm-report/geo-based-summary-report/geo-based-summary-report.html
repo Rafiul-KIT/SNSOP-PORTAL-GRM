@@ -1,8 +1,9 @@
 @if (isLoading) {
   <app-loader></app-loader>
 } @else {
-  <p-breadcrumb [model]="breadcrumbItems" [home]="breadcrumbHome" class="w-100"></p-breadcrumb>
-
+  <div class="breadcrumb-wrapper">
+    <p-breadcrumb [model]="breadcrumbItems" [home]="breadcrumbHome" class="w-100"></p-breadcrumb>
+  </div>
   <div class="card p-3 mb-2">
     <form [formGroup]="filterForm" class="row g-3">
 
@@ -39,12 +40,12 @@
       </div>
 
       <!-- Status -->
-      <div class="col-md-3">
+      <!-- <div class="col-md-3">
         <p-floatlabel variant="on" class="w-100">
           <p-select [options]="statusOptions" optionLabel="label" optionValue="value" appendTo="body" formControlName="status" />
           <label>Status</label>
         </p-floatlabel>
-      </div>
+      </div> -->
 
       <!-- Category -->
       <div class="col-md-3">
@@ -87,20 +88,20 @@
     <ng-template pTemplate="body" let-row let-i="rowIndex">
       <tr>
         <td class="text-center">{{ i + 1 }}</td>
-        <td class="text-center">{{ row.geoLocation }}</td>
+        <td class="text-center">{{ getGeoLabel(row) }}</td>
         <td class="text-center">
-          <span class="badge" [ngClass]="row.category === 'GBV' ? 'bg-danger' : 'bg-info'">
-            {{ row.category }}
+          <span class="badge" [ngClass]="row.grievanceCategory === 'GBV' ? 'bg-danger' : 'bg-info'">
+            {{ row.grievanceCategory }}
           </span>
         </td>
-        <td class="text-center fw-bold">{{ row.grievanceLodged }}</td>
-        <td class="text-center text-success fw-bold">{{ row.resolved }}</td>
-        <td class="text-center text-warning fw-bold">{{ row.inProgress }}</td>
-        <td class="text-center text-danger fw-bold">{{ row.unresolved }}</td>
+        <td class="text-center fw-bold">{{ row.totalCount }}</td>
+        <td class="text-center text-success fw-bold">{{ row.totalResolved }}</td>
+        <td class="text-center text-warning fw-bold">{{ row.totalInProgress }}</td>
+        <td class="text-center text-danger fw-bold">{{ row.totalUnresolved }}</td>
       </tr>
     </ng-template>
 
-    @if (reportData.length > 0) {
+    <!-- @if (reportData.length > 0) {
       <ng-template pTemplate="footer">
         <tr class="fw-bold">
           <td colspan="3" class="text-end">TOTAL</td>
@@ -110,7 +111,7 @@
           <td class="text-center text-danger">{{ totalUnresolved }}</td>
         </tr>
       </ng-template>
-    }
+    } -->
 
     <ng-template pTemplate="emptymessage">
       <tr>

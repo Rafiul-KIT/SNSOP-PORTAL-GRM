@@ -22,14 +22,15 @@ import { ApiService } from '../../../services/api.service';
 import { Loader } from '../../../components/loader/loader';
 
 interface AnalyticalRow {
-  geoLocation: string;
-  gbv: number;
-  nonGbv: number;
-  totalComplaint: number;
-  nonGbvPercentage: number;
+  stateId: number;
+  countyId: number;
+  payamId: number;
+  bomaId: number;
+  gbvCount: number;
+  ngbvCount: number;
+  totalCount: number;
   gbvPercentage: number;
-  trendGbv: string;
-  trendNonGbv: string;
+  ngbvPercentage: number;
 }
 
 @Component({
@@ -53,6 +54,7 @@ interface AnalyticalRow {
 export class AnalyticalReport implements OnInit {
   isLoading = true;
   isTableLoading = false;
+  hasInitialLoadCompleted = false;
   filterForm!: FormGroup;
 
   // Geo lookups
@@ -99,8 +101,7 @@ export class AnalyticalReport implements OnInit {
   async ngOnInit() {
     this.initForm();
     await this.loadInitialLookups();
-    this.isLoading = false;
-    this.cdr.markForCheck();
+    this.onSearch();
   }
 
   initForm() {
@@ -163,41 +164,48 @@ export class AnalyticalReport implements OnInit {
     this.cdr.markForCheck();
   }
 
-  onSearch() {
-    this.isTableLoading = true;
+  async onSearch() {
+    if (this.hasInitialLoadCompleted) {
+      this.isTableLoading = true;
+    } else {
+      this.isLoading = true;
+    }
     this.cdr.markForCheck();
 
-    // TODO: Replace with actual API call
-    // const raw = this.filterForm.getRawValue();
-    // this.api.POST('api/report/analytical', body).then(...)
+    try {
+      const raw = this.filterForm.getRawValue();
+      const params: Record<string, any> = {};
+      if (raw.state?.id) params['stateId'] = raw.state.id;
+      if (raw.county?.id) params['countyId'] = raw.county.id;
+      if (raw.payam?.id) params['payamId'] = raw.payam.id;
+      if (raw.boma?.id) params['bomaId'] = raw.boma.id;
 
-    this.reportData = [
-      { geoLocation: 'Central Equatoria - Juba - Kator - Boma 1', gbv: 30, nonGbv: 20, totalComplaint: 50, nonGbvPercentage: 40, gbvPercentage: 60, trendGbv: 'Increase 5%', trendNonGbv: 'Decrease 2%' },
-      { geoLocation: 'Central Equatoria - Juba - Kator - Boma 2', gbv: 25, nonGbv: 15, totalComplaint: 40, nonGbvPercentage: 37.5, gbvPercentage: 62.5, trendGbv: 'Decrease 3%', trendNonGbv: 'Increase 2%' },
-    ];
-    this.calculateTotals();
-    this.isTableLoading = false;
-    this.cdr.markForCheck();
+      const res = await this.api.GET<AnalyticalRow[]>('api/grievance/analytical-report', params);
+      this.reportData = res.data ?? [];
+      this.calculateTotals();
+      this.hasInitialLoadCompleted = true;
+    } catch (err) {
+      console.error('Analytical report fetch error:', err);
+      this.reportData = [];
+    } finally {
+      this.isLoading = false;
+      this.isTableLoading = false;
+      this.cdr.detectChanges();
+    }
   }
 
   calculateTotals() {
-    this.totalGbv = this.reportData.reduce((sum, r) => sum + r.gbv, 0);
-    this.totalNonGbv = this.reportData.reduce((sum, r) => sum + r.nonGbv, 0);
-    this.totalComplaint = this.reportData.reduce((sum, r) => sum + r.totalComplaint, 0);
+    this.totalGbv = this.reportData.reduce((sum, r) => sum + r.gbvCount, 0);
+    this.totalNonGbv = this.reportData.reduce((sum, r) => sum + r.ngbvCount, 0);
+    this.totalComplaint = this.reportData.reduce((sum, r) => sum + r.totalCount, 0);
   }
 
-  getTrendClass(trend: string): string {
-    const lower = trend.toLowerCase();
-    if (lower.startsWith('increase')) return 'trend-increase';
-    if (lower.startsWith('decrease')) return 'trend-decrease';
-    return '';
-  }
-
-  getTrendIcon(trend: string): string {
-    const lower = trend.toLowerCase();
-    if (lower.startsWith('increase')) return 'pi pi-arrow-up';
-    if (lower.startsWith('decrease')) return 'pi pi-arrow-down';
-    return 'pi pi-minus';
+  getGeoLabel(row: AnalyticalRow): string {
+    const state = this.states.find(s => +s.id === row.stateId)?.name ?? '';
+    const county = this.counties.find(c => +c.id === row.countyId)?.name ?? '';
+    const payam = this.payams.find(p => +p.id === row.payamId)?.name ?? '';
+    const boma = this.bomas.find(b => +b.id === row.bomaId)?.name ?? '';
+    return [state, county, payam, boma].filter(Boolean).join(' - ');
   }
 
   resetForm() {

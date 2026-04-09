@@ -23,13 +23,15 @@ import { ApiService } from '../../../services/api.service';
 import { Loader } from '../../../components/loader/loader';
 
 interface GeoSummaryRow {
-  slNo: number;
-  geoLocation: string;
-  category: string;
-  grievanceLodged: number;
-  resolved: number;
-  inProgress: number;
-  unresolved: number;
+  grievanceCategory: string;
+  stateId: number;
+  countyId: number;
+  payamId: number;
+  bomaId: number;
+  totalCount: number;
+  totalResolved: number;
+  totalInProgress: number;
+  totalUnresolved: number;
 }
 
 @Component({
@@ -54,6 +56,7 @@ interface GeoSummaryRow {
 export class GeoBasedSummaryReport implements OnInit {
   isLoading = true;
   isTableLoading = false;
+  hasInitialLoadCompleted = false;
   filterForm!: FormGroup;
 
   // Geo lookups
@@ -101,8 +104,7 @@ export class GeoBasedSummaryReport implements OnInit {
   async ngOnInit() {
     this.initForm();
     await this.loadInitialLookups();
-    this.isLoading = false;
-    this.cdr.markForCheck();
+    this.onSearch();
   }
 
   initForm() {
@@ -166,29 +168,50 @@ export class GeoBasedSummaryReport implements OnInit {
     this.cdr.markForCheck();
   }
 
-  onSearch() {
-    this.isTableLoading = true;
+  async onSearch() {
+    if (this.hasInitialLoadCompleted) {
+      this.isTableLoading = true;
+    } else {
+      this.isLoading = true;
+    }
     this.cdr.markForCheck();
 
-    // TODO: Replace with actual API call
-    // const raw = this.filterForm.getRawValue();
-    // this.api.POST('api/report/geo-based-summary', body).then(...)
+    try {
+      const raw = this.filterForm.getRawValue();
+      const params: Record<string, any> = {};
+      if (raw.category) params['grievanceType'] = raw.category;
+      if (raw.state?.id) params['stateId'] = raw.state.id;
+      if (raw.county?.id) params['countyId'] = raw.county.id;
+      if (raw.payam?.id) params['payamId'] = raw.payam.id;
+      if (raw.boma?.id) params['bomaId'] = raw.boma.id;
 
-    // Placeholder data for UI preview
-    this.reportData = [
-      { slNo: 1, geoLocation: 'Central Equatoria - Juba - Kator - Boma 1', category: 'GBV', grievanceLodged: 10, resolved: 5, inProgress: 2, unresolved: 3 },
-      { slNo: 2, geoLocation: 'Central Equatoria - Juba - Kator - Boma 2', category: 'Non-GBV', grievanceLodged: 15, resolved: 8, inProgress: 4, unresolved: 3 },
-    ];
-    this.calculateTotals();
-    this.isTableLoading = false;
-    this.cdr.markForCheck();
+      const res = await this.api.GET<GeoSummaryRow[]>('api/grievance/summary-report', params);
+      this.reportData = res.data ?? [];
+      this.calculateTotals();
+      this.hasInitialLoadCompleted = true;
+    } catch (err) {
+      console.error('Geo summary report fetch error:', err);
+      this.reportData = [];
+    } finally {
+      this.isLoading = false;
+      this.isTableLoading = false;
+      this.cdr.detectChanges();
+    }
   }
 
   calculateTotals() {
-    this.totalGrievanceLodged = this.reportData.reduce((sum, r) => sum + r.grievanceLodged, 0);
-    this.totalResolved = this.reportData.reduce((sum, r) => sum + r.resolved, 0);
-    this.totalInProgress = this.reportData.reduce((sum, r) => sum + r.inProgress, 0);
-    this.totalUnresolved = this.reportData.reduce((sum, r) => sum + r.unresolved, 0);
+    this.totalGrievanceLodged = this.reportData.reduce((sum, r) => sum + r.totalCount, 0);
+    this.totalResolved = this.reportData.reduce((sum, r) => sum + r.totalResolved, 0);
+    this.totalInProgress = this.reportData.reduce((sum, r) => sum + r.totalInProgress, 0);
+    this.totalUnresolved = this.reportData.reduce((sum, r) => sum + r.totalUnresolved, 0);
+  }
+
+  getGeoLabel(row: GeoSummaryRow): string {
+    const state = this.states.find(s => +s.id === row.stateId)?.name ?? '';
+    const county = this.counties.find(c => +c.id === row.countyId)?.name ?? '';
+    const payam = this.payams.find(p => +p.id === row.payamId)?.name ?? '';
+    const boma = this.bomas.find(b => +b.id === row.bomaId)?.name ?? '';
+    return [state, county, payam, boma].filter(Boolean).join(' - ');
   }
 
   resetForm() {

@@ -172,11 +172,11 @@ export class Header {
             icon: 'fas fa-map-marked-alt',
             routerLink: 'grm-report/geo-based-detail',
           },
-          {
-            label: 'Referrer-Based Summary Report',
-            icon: 'fas fa-user-friends',
-            routerLink: 'grm-report/referrer-based-summary',
-          },
+          // {
+          //   label: 'Referrer-Based Summary Report',
+          //   icon: 'fas fa-user-friends',
+          //   routerLink: 'grm-report/referrer-based-summary',
+          // },
           {
             label: 'Analytical Report',
             icon: 'fas fa-chart-bar',
