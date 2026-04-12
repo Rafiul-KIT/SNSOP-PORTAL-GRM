@@ -1,71 +1,131 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
+import { Loader } from '../../../components/loader/loader';
+import { ItSupportService, ITRequest } from '../../../services/it-support.service';
 
 @Component({
   selector: 'app-help-desk-dashboard',
   standalone: true,
-  imports: [CommonModule, BreadcrumbModule, TableModule, ButtonModule, TagModule],
+  imports: [CommonModule, BreadcrumbModule, TableModule, ButtonModule, TagModule, Loader],
   templateUrl: './help-desk-dashboard.html',
   styleUrls: ['./help-desk-dashboard.scss']
 })
-export class HelpDeskDashboard {
+export class HelpDeskDashboard implements OnInit {
   breadcrumbHome = { icon: 'fas fa-home', routerLink: '/' };
   breadcrumbItems = [{ label: 'Help Desk' }, { label: 'Dashboard' }];
 
+  isLoading = false;
   stats = {
-    totalRequests: 128,
-    newRequests: 16,
-    inProgress: 41,
-    resolved: 58,
-    slaBreached: 13
+    totalRequests: 0,
+    newRequests: 0,
+    inProgress: 0,
+    resolved: 0,
+    slaBreached: 0
   };
 
-  recentTickets = [
-    { trackingNo: 'SNSOP-SUP-2026-000121', issue: 'Payment report mismatch issue', status: 'In Progress', priority: 'High', assignedTo: 'Developer Team', sla: '72 hrs' },
-    { trackingNo: 'SNSOP-SUP-2026-000122', issue: 'User role assignment problem', status: 'New Request', priority: 'Medium', assignedTo: 'Not Assigned', sla: '72 hrs' },
-    { trackingNo: 'SNSOP-SUP-2026-000123', issue: 'Change request for payroll export layout', status: 'Unresolved', priority: 'High', assignedTo: 'System Analyst', sla: '144 hrs' }
-  ];
-
+  recentTickets: ITRequest[] = [];
   quickInsights = {
-    avgResolution: '39 hrs',
-    reopened: 7,
-    userRating: '4.4 / 5',
-    activeAgents: 12
+    avgResolution: '--',
+    reopened: 0,
+    userRating: '--',
+    activeAgents: 0
   };
 
-  notifications = [
-    'Ticket 000121 assigned to Developer Team',
-    'Ticket 000118 marked resolved',
-    'New request submitted by County MIS Officer'
-  ];
+  notifications: string[] = [];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private itSupportService: ItSupportService,
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone
+  ) {}
 
-  getStatusSeverity(status: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
-    switch (status) {
-      case 'In Progress': return 'warn';
-      case 'New Request': return 'info';
-      case 'Resolved': return 'success';
-      case 'Unresolved': return 'danger';
+  private detectChanges(): void {
+    this.cdr.detectChanges();
+  }
+
+  ngOnInit(): void {
+    this.loadDashboardData();
+  }
+
+  async loadDashboardData(): Promise<void> {
+    this.isLoading = true;
+    this.detectChanges();
+
+    this.zone.runOutsideAngular(async () => {
+      try {
+        const result = await this.itSupportService.getRequests({ size: 20 });
+        const requests = result.items;
+
+        this.zone.run(() => {
+          this.recentTickets = requests.slice(0, 5);
+
+          this.stats.totalRequests = result.total;
+          this.stats.newRequests = requests.filter(r =>
+            r.status?.toLowerCase() === 'pending' || r.status?.toLowerCase() === 'open' || r.status?.toLowerCase() === 'new'
+          ).length;
+          this.stats.inProgress = requests.filter(r =>
+            r.status?.toLowerCase() === 'in_progress'
+          ).length;
+          this.stats.resolved = requests.filter(r =>
+            r.status?.toLowerCase() === 'resolved' || r.status?.toLowerCase() === 'closed'
+          ).length;
+          this.stats.slaBreached = 0;
+
+          this.quickInsights.reopened = requests.filter(r =>
+            r.status?.toLowerCase() === 'reopened'
+          ).length;
+
+          this.notifications = this.recentTickets.slice(0, 3).map(r =>
+            `Ticket ${r.trackingNumber} - ${r.title}`
+          );
+
+          this.isLoading = false;
+          this.detectChanges();
+        });
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        this.zone.run(() => {
+          this.isLoading = false;
+          this.detectChanges();
+        });
+      }
+    });
+  }
+
+  getStatusSeverity(status: string | undefined): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
+    switch (status?.toLowerCase()) {
+      case 'in_progress': return 'warn';
+      case 'new':
+      case 'open':
+      case 'pending': return 'info';
+      case 'resolved': return 'success';
+      case 'closed': return 'success';
+      case 'unresolved': return 'danger';
       default: return 'secondary';
     }
   }
 
-  getPrioritySeverity(priority: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
-    switch (priority) {
-      case 'High': return 'danger';
-      case 'Medium': return 'warn';
-      case 'Low': return 'info';
+  getPrioritySeverity(priority: string | undefined): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
+    switch (priority?.toLowerCase()) {
+      case 'high': return 'danger';
+      case 'medium': return 'warn';
+      case 'low': return 'info';
       default: return 'secondary';
     }
   }
 
-  navigateTo(path: string) {
+  formatStatus(status: string | undefined): string {
+    if (!status) return '--';
+    return status.replace(/_/g, ' ');
+  }
+
+  navigateTo(path: string): void {
     this.router.navigate([path]);
   }
 }

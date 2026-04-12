@@ -1,14 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { TagModule } from 'primeng/tag';
+import { InputGroupModule } from 'primeng/inputgroup';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { ItSupportService, ITRequest } from '../../../services/it-support.service';
 
 @Component({
   selector: 'app-help-desk-status-tracker',
   standalone: true,
-  imports: [CommonModule, FormsModule, BreadcrumbModule, ButtonModule, InputTextModule],
+  imports: [CommonModule, FormsModule, BreadcrumbModule, ButtonModule, InputTextModule, TagModule, InputGroupModule, ProgressSpinnerModule],
   templateUrl: './help-desk-status-tracker.html',
   styleUrls: ['./help-desk-status-tracker.scss']
 })
@@ -17,35 +21,89 @@ export class HelpDeskStatusTracker {
   breadcrumbItems = [{ label: 'Help Desk' }, { label: 'Status Tracker' }];
 
   searchTrackingNo = '';
-  ticketResult: any = null;
+  ticketResult: ITRequest | null = null;
+  isLoading = false;
+  notFound = false;
 
-  // Demo data
-  private demoTickets: Record<string, any> = {
-    'SNSOP-SUP-2026-000121': {
-      trackingNo: 'SNSOP-SUP-2026-000121',
-      status: 'In Progress',
-      assignedRole: 'Developer Team',
-      expectedResolution: 'Within 72 hours',
-      requester: 'District MIS Officer',
-      timeline: [
-        { title: 'Request Submitted', detail: '28 Mar 2026, 10:15 AM by District MIS Officer' },
-        { title: 'Assigned to Developer Team', detail: '28 Mar 2026, 10:45 AM by Helpdesk Admin' },
-        { title: 'Investigation in Progress', detail: 'Root cause analysis ongoing with payroll reporting SQL query review.' },
-        { title: 'User Notified', detail: 'Status update sent via email and SMS.' }
-      ]
-    }
-  };
+  constructor(
+    private itSupportService: ItSupportService,
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone
+  ) {}
 
-  checkStatus() {
-    const key = this.searchTrackingNo.trim();
-    this.ticketResult = this.demoTickets[key] || null;
-    if (!key) {
+  private detectChanges(): void {
+    this.cdr.detectChanges();
+  }
+
+  async checkStatus(): Promise<void> {
+    const trackingNo = this.searchTrackingNo.trim();
+    
+    if (!trackingNo) {
       this.ticketResult = null;
+      this.notFound = false;
+      this.detectChanges();
+      return;
+    }
+
+    this.isLoading = true;
+    this.notFound = false;
+    this.ticketResult = null;
+    this.detectChanges();
+
+    this.zone.runOutsideAngular(async () => {
+      try {
+        const result = await this.itSupportService.getRequestByTrackingNumber(trackingNo);
+
+        this.zone.run(() => {
+          this.ticketResult = result;
+          this.notFound = !result;
+          this.isLoading = false;
+          this.detectChanges();
+        });
+      } catch (error) {
+        console.error('Error fetching ticket:', error);
+        this.zone.run(() => {
+          this.ticketResult = null;
+          this.notFound = true;
+          this.isLoading = false;
+          this.detectChanges();
+        });
+      }
+    });
+  }
+
+  trackRequest(): void {
+    this.searchTrackingNo = 'SNSOP-SUP-2026-000121';
+    this.checkStatus();
+  }
+
+  getStatusSeverity(status: string | undefined): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
+    switch (status?.toLowerCase()) {
+      case 'in_progress': return 'warn';
+      case 'resolved': return 'success';
+      case 'closed': return 'success';
+      case 'pending': return 'info';
+      case 'open': return 'info';
+      case 'reopened': return 'contrast';
+      default: return 'secondary';
     }
   }
 
-  trackRequest() {
-    this.searchTrackingNo = 'SNSOP-SUP-2026-000121';
-    this.checkStatus();
+  formatDate(dateStr: string | undefined): string {
+    if (!dateStr) return '--';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  getTimelineHistory(): { title: string; detail: string; date: string }[] {
+    if (!this.ticketResult?.history?.length) {
+      return [];
+    }
+
+    return this.ticketResult.history.map(h => ({
+      title: h.action || 'Status Update',
+      detail: h.comment || h.changes || '',
+      date: this.formatDate(h.performedAt)
+    }));
   }
 }

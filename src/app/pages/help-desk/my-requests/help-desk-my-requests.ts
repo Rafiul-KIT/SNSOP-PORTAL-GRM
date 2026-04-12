@@ -1,77 +1,138 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
+import { SelectModule } from 'primeng/select';
+import { InputTextModule } from 'primeng/inputtext';
+import { FormsModule } from '@angular/forms';
+import { Loader } from '../../../components/loader/loader';
+import { ItSupportService, ITRequest } from '../../../services/it-support.service';
 
 @Component({
   selector: 'app-help-desk-my-requests',
   standalone: true,
-  imports: [CommonModule, BreadcrumbModule, ButtonModule, TagModule],
+  imports: [CommonModule, BreadcrumbModule, ButtonModule, TagModule, SelectModule, InputTextModule, FormsModule, Loader],
   templateUrl: './help-desk-my-requests.html',
   styleUrls: ['./help-desk-my-requests.scss']
 })
-export class HelpDeskMyRequests {
+export class HelpDeskMyRequests implements OnInit {
   breadcrumbHome = { icon: 'fas fa-home', routerLink: '/' };
   breadcrumbItems = [{ label: 'Help Desk' }, { label: 'My Requests' }];
 
+  isLoading = false;
+  requests: ITRequest[] = [];
+  filteredRequests: ITRequest[] = [];
+  
   summary = {
-    total: 12,
-    resolved: 7,
-    pending: 3,
-    reopened: 2
+    total: 0,
+    resolved: 0,
+    pending: 0,
+    reopened: 0
   };
 
-  requests = [
-    {
-      trackingNo: 'SNSOP-SUP-2026-000121',
-      title: 'Payment report mismatch issue',
-      description: 'Mismatch found between MIS final report and paysheet data during reconciliation review.',
-      status: 'In Progress',
-      priority: 'High',
-      category: 'Report Related',
-      assignedTo: 'Developer Team',
-      submittedDate: '28 Mar 2026'
-    },
-    {
-      trackingNo: 'SNSOP-SUP-2026-000118',
-      title: 'Unable to update beneficiary record',
-      description: 'User received permission error when updating beneficiary information from MIS panel.',
-      status: 'Resolved',
-      priority: 'Medium',
-      category: 'User Management',
-      assignedTo: null,
-      submittedDate: null,
-      rating: '4/5'
-    },
-    {
-      trackingNo: 'SNSOP-SUP-2026-000115',
-      title: 'Need clarification on wage sheet discrepancy',
-      description: 'Initial explanation shared, but further clarification requested by field team.',
-      status: 'Unresolved',
-      priority: 'Medium',
-      category: 'Clarification',
-      assignedTo: null,
-      submittedDate: null,
-      resubmitAvailable: true
-    }
+  statusOptions = [
+    { label: 'All', value: '' },
+    { label: 'Pending', value: 'PENDING' },
+    { label: 'In Progress', value: 'IN_PROGRESS' },
+    { label: 'Resolved', value: 'RESOLVED' },
+    { label: 'Closed', value: 'CLOSED' }
   ];
+
+  priorityOptions = [
+    { label: 'All Priorities', value: '' },
+    { label: 'High', value: 'HIGH' },
+    { label: 'Medium', value: 'MEDIUM' },
+    { label: 'Low', value: 'LOW' }
+  ];
+
+  selectedStatus = '';
+  selectedPriority = '';
 
   feedback = {
     rating: 5,
     comment: 'Quick response and clear guidance from the helpdesk officer.'
   };
 
+  constructor(
+    private itSupportService: ItSupportService,
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone
+  ) {}
+
+  private detectChanges(): void {
+    this.cdr.detectChanges();
+  }
+
+  ngOnInit(): void {
+    this.loadRequests();
+  }
+
+  async loadRequests(): Promise<void> {
+    this.isLoading = true;
+    this.detectChanges();
+
+    const params: any = { size: 50 };
+    if (this.selectedStatus) params.status = this.selectedStatus;
+    if (this.selectedPriority) params.priority = this.selectedPriority;
+
+    this.zone.runOutsideAngular(async () => {
+      try {
+        const result = await this.itSupportService.getRequests(params);
+
+        this.zone.run(() => {
+          this.requests = result.items;
+          this.filteredRequests = result.items;
+          this.calculateSummary();
+          this.isLoading = false;
+          this.detectChanges();
+        });
+      } catch (error) {
+        console.error('Error loading requests:', error);
+        this.zone.run(() => {
+          this.isLoading = false;
+          this.detectChanges();
+        });
+      }
+    });
+  }
+
+  filterRequests(): void {
+    this.loadRequests();
+  }
+
+  calculateSummary(): void {
+    this.summary.total = this.requests.length;
+    this.summary.resolved = this.requests.filter(r =>
+      r.status?.toLowerCase() === 'resolved' || r.status?.toLowerCase() === 'closed'
+    ).length;
+    this.summary.pending = this.requests.filter(r =>
+      r.status?.toLowerCase() === 'pending' || r.status?.toLowerCase() === 'open'
+    ).length;
+    this.summary.reopened = this.requests.filter(r =>
+      r.status?.toLowerCase() === 'reopened'
+    ).length;
+  }
+
   getStatusSeverity(status: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
-    switch (status) {
-      case 'In Progress': return 'warn';
-      case 'Resolved': return 'success';
-      case 'Unresolved': return 'danger';
+    switch (status?.toLowerCase()) {
+      case 'in_progress': return 'warn';
+      case 'resolved': return 'success';
+      case 'closed': return 'success';
+      case 'pending': return 'info';
+      case 'open': return 'info';
+      case 'reopened': return 'contrast';
       default: return 'secondary';
     }
   }
 
   getStars(count: number): number[] {
     return Array(count).fill(0);
+  }
+
+  formatDate(dateStr: string | undefined): string {
+    if (!dateStr) return '--';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 }
