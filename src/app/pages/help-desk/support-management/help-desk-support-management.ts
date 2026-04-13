@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
@@ -9,8 +10,20 @@ import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import Swal from 'sweetalert2';
 import { Loader } from '../../../components/loader/loader';
-import { ItSupportService, ITRequest } from '../../../services/it-support.service';
+import {
+  ItSupportService,
+  ITRequest,
+} from '../../../services/it-support.service';
 import { ApiService } from '../../../services/api.service';
+
+type Severity = 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast';
+
+type WorkflowAction = {
+  label: string;
+  value: string;
+  needsComment: boolean;
+  actionType: 'status' | 'submit_info';
+};
 
 @Component({
   selector: 'app-help-desk-support-management',
@@ -21,7 +34,6 @@ import { ApiService } from '../../../services/api.service';
     BreadcrumbModule,
     ButtonModule,
     TableModule,
-    
     TagModule,
     SelectModule,
     InputTextModule,
@@ -61,12 +73,12 @@ export class HelpDeskSupportManagement implements OnInit {
   ];
 
   requests: ITRequest[] = [];
-  selectedRequest: ITRequest | null = null;
 
   constructor(
     private itSupportService: ItSupportService,
     private cdr: ChangeDetectorRef,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -100,7 +112,7 @@ export class HelpDeskSupportManagement implements OnInit {
     this.loadRequests();
   }
 
-  getStatusSeverity(status: string | undefined): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+  getStatusSeverity(status: string | undefined): Severity {
     switch (status?.toUpperCase()) {
       case 'NEW':
         return 'info';
@@ -120,7 +132,7 @@ export class HelpDeskSupportManagement implements OnInit {
     }
   }
 
-  getPrioritySeverity(priority: string | undefined): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+  getPrioritySeverity(priority: string | undefined): Severity {
     switch (priority?.toUpperCase()) {
       case 'CRITICAL':
       case 'HIGH':
@@ -143,6 +155,13 @@ export class HelpDeskSupportManagement implements OnInit {
     return this.apiService.loginState()?.user || {};
   }
 
+  private getCurrentUserId(): number | null {
+    const user = this.getCurrentUser();
+    const raw = user?.userId ?? user?.id ?? user?.uid ?? user?.sub ?? null;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+
   private isMisFirmUser(): boolean {
     const user = this.getCurrentUser();
     const roleId = Number(user?.roleId);
@@ -155,6 +174,13 @@ export class HelpDeskSupportManagement implements OnInit {
     );
   }
 
+  private isRequestCreator(request?: ITRequest | null): boolean {
+    if (!request) return false;
+    const currentUserId = this.getCurrentUserId();
+    if (!currentUserId) return false;
+    return Number(request.createdBy) === currentUserId;
+  }
+
   private canTransition(fromStatus?: string, toStatus?: string): boolean {
     const from = String(fromStatus || '').toUpperCase();
     const to = String(toStatus || '').toUpperCase();
@@ -162,16 +188,15 @@ export class HelpDeskSupportManagement implements OnInit {
 
     if (!from || !to) return false;
 
-    // MIS firm transitions
     if (isMisFirm) {
       return (
         (from === 'NEW' && to === 'PROCESSING') ||
         (from === 'PROCESSING' && ['REQUIRED_MORE_INFO', 'ADDRESSED', 'CLOSED'].includes(to)) ||
-        (from === 'REOPENED' && to === 'PROCESSING')
+        (from === 'REOPENED' && to === 'PROCESSING') ||
+        (from === 'CLOSED' && to === 'REOPENED')
       );
     }
 
-    // Requester transitions (not expected in support-management screen, but guarded here)
     return (
       (from === 'ADDRESSED' && to === 'RESOLVED') ||
       (from === 'RESOLVED' && to === 'CLOSED') ||
@@ -179,9 +204,7 @@ export class HelpDeskSupportManagement implements OnInit {
     );
   }
 
-  getAvailableActions(
-    request: ITRequest
-  ): Array<{ label: string; value: string; needsComment: boolean; actionType: 'status' | 'submit_info' }> {
+  getAvailableActions(request: ITRequest): WorkflowAction[] {
     const isMisFirm = this.isMisFirmUser();
     const status = request.status?.toUpperCase() || '';
 
@@ -197,12 +220,15 @@ export class HelpDeskSupportManagement implements OnInit {
           ];
         case 'REOPENED':
           return [{ label: 'Move to Processing', value: 'PROCESSING', needsComment: false, actionType: 'status' }];
+        case 'CLOSED':
+          return [{ label: 'Reopen', value: 'REOPENED', needsComment: true, actionType: 'status' }];
         default:
           return [];
       }
     }
 
-    // Requester actions based on workflow guide.
+    if (!this.isRequestCreator(request)) return [];
+
     switch (status) {
       case 'REQUIRED_MORE_INFO':
         return [{ label: 'Submit Required Info', value: 'PROCESSING', needsComment: false, actionType: 'submit_info' }];
@@ -215,25 +241,6 @@ export class HelpDeskSupportManagement implements OnInit {
       default:
         return [];
     }
-  }
-
-  async onView(request: ITRequest): Promise<void> {
-    await Swal.fire({
-      title: `Request ${request.trackingNumber}`,
-      html: `
-        <div style="text-align:left">
-          <p><b>Title:</b> ${request.title || '--'}</p>
-          <p><b>Status:</b> ${this.formatStatus(request.status)}</p>
-          <p><b>Priority:</b> ${request.priority || '--'}</p>
-          <p><b>Category:</b> ${request.categoryName || '--'}</p>
-          <p><b>Module:</b> ${request.moduleName || '--'}</p>
-          <p><b>Comment:</b> ${request.comment || '--'}</p>
-        </div>
-      `,
-      confirmButtonText: 'Close',
-      confirmButtonColor: '#3085d6',
-      width: '42rem',
-    });
   }
 
   getWorkflowContextText(): string {
@@ -249,6 +256,10 @@ export class HelpDeskSupportManagement implements OnInit {
     return 'Change Status';
   }
 
+  async onView(request: ITRequest): Promise<void> {
+    await this.router.navigate(['/help-desk/support-management', request.id]);
+  }
+
   async onAction(request: ITRequest): Promise<void> {
     const actions = this.getAvailableActions(request);
 
@@ -258,7 +269,7 @@ export class HelpDeskSupportManagement implements OnInit {
         title: 'No Transition Available',
         text: this.isMisFirmUser()
           ? 'This request has no MIS workflow transition from its current status.'
-          : 'Status update is only available for MIS Firm workflow users on this screen.',
+          : 'No requester transition available from current status.',
         confirmButtonColor: '#3085d6',
       });
       return;
@@ -302,14 +313,14 @@ export class HelpDeskSupportManagement implements OnInit {
       comment = String(result.value || '').trim();
     }
 
-    // Special flow: REQUIRED_MORE_INFO -> PROCESSING must use submit-info endpoint.
     if (selectedAction.actionType === 'submit_info') {
       const result = await Swal.fire({
         title: 'Submit Required Information',
         html: `
           <p style="margin-bottom:8px;">At least one field is required.</p>
-          <textarea id="submit-info-comment" class="swal2-textarea" placeholder="Comment (required in this quick flow)"></textarea>
+          <textarea id="submit-info-comment" class="swal2-textarea" placeholder="Comment"></textarea>
           <textarea id="submit-info-description" class="swal2-textarea" placeholder="Optional description update"></textarea>
+          <input id="submit-info-files" type="file" class="swal2-file" multiple />
         `,
         showCancelButton: true,
         confirmButtonText: 'Submit Info',
@@ -317,11 +328,12 @@ export class HelpDeskSupportManagement implements OnInit {
         preConfirm: () => {
           const commentValue = String((document.getElementById('submit-info-comment') as HTMLTextAreaElement)?.value || '').trim();
           const descriptionValue = String((document.getElementById('submit-info-description') as HTMLTextAreaElement)?.value || '').trim();
-          if (!commentValue && !descriptionValue) {
-            Swal.showValidationMessage('Please provide at least comment or description.');
+          const files = Array.from((document.getElementById('submit-info-files') as HTMLInputElement)?.files || []);
+          if (!commentValue && !descriptionValue && !files.length) {
+            Swal.showValidationMessage('Please provide at least comment, description, or attachment.');
             return null;
           }
-          return { commentValue, descriptionValue };
+          return { commentValue, descriptionValue, files };
         },
       });
 
@@ -330,10 +342,15 @@ export class HelpDeskSupportManagement implements OnInit {
       this.isLoading = true;
       this.cdr.detectChanges();
       try {
-        const submitResponse = await this.itSupportService.submitInfo(request.id, {
-          comment: result.value.commentValue || undefined,
-          description: result.value.descriptionValue || undefined,
-        });
+        const submitResponse = await this.itSupportService.submitInfo(
+          request.id,
+          {
+            comment: result.value.commentValue || undefined,
+            description: result.value.descriptionValue || undefined,
+          },
+          result.value.files || []
+        );
+
         if (submitResponse.success) {
           await Swal.fire({
             icon: 'success',

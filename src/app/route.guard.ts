@@ -76,7 +76,22 @@ export const routeGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: 
     //  - /beneficiary/details/:id
     //  - /beneficiary/edit/:applicationId
     //  - Any other parameterized route you want to allow
-    const dynamicRoutePrefixes = ['/beneficiary/details/', '/beneficiary/details-view/', '/beneficiary/edit/', '/beneficiary/migrate/', '/adjudication/', '/report/', '/restore/', '/pending-beneficiary/', '/beneficiary-approval/', '/beneficiary-audit/', '/beneficiary/momo-update/'];
+    const dynamicRoutePrefixes = [
+      '/beneficiary/details/',
+      '/beneficiary/details-view/',
+      '/beneficiary/edit/',
+      '/beneficiary/migrate/',
+      '/adjudication/',
+      '/report/',
+      '/restore/',
+      '/pending-beneficiary/',
+      '/beneficiary-approval/',
+      '/beneficiary-audit/',
+      '/beneficiary/momo-update/',
+      '/help-desk/',
+      '/help-desk/support-management',
+      '/help-desk/support-management/:id',
+    ];
 
     // Check if the route starts with any of the dynamic prefixes
     for (const prefix of dynamicRoutePrefixes) {
