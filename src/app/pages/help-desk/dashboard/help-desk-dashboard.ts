@@ -66,24 +66,18 @@ export class HelpDeskDashboard implements OnInit {
           this.recentTickets = requests.slice(0, 5);
 
           this.stats.totalRequests = result.total;
-          this.stats.newRequests = requests.filter(r =>
-            r.status?.toLowerCase() === 'pending' || r.status?.toLowerCase() === 'open' || r.status?.toLowerCase() === 'new'
+          this.stats.newRequests = requests.filter((r) => r.status?.toLowerCase() === 'new').length;
+          this.stats.inProgress = requests.filter(
+            (r) => r.status?.toLowerCase() === 'processing' || r.status?.toLowerCase() === 'required_more_info'
           ).length;
-          this.stats.inProgress = requests.filter(r =>
-            r.status?.toLowerCase() === 'in_progress'
-          ).length;
-          this.stats.resolved = requests.filter(r =>
-            r.status?.toLowerCase() === 'resolved' || r.status?.toLowerCase() === 'closed'
+          this.stats.resolved = requests.filter(
+            (r) => r.status?.toLowerCase() === 'resolved' || r.status?.toLowerCase() === 'closed'
           ).length;
           this.stats.slaBreached = 0;
 
-          this.quickInsights.reopened = requests.filter(r =>
-            r.status?.toLowerCase() === 'reopened'
-          ).length;
+          this.quickInsights.reopened = requests.filter((r) => r.status?.toLowerCase() === 'reopened').length;
 
-          this.notifications = this.recentTickets.slice(0, 3).map(r =>
-            `Ticket ${r.trackingNumber} - ${r.title}`
-          );
+          this.notifications = this.recentTickets.slice(0, 3).map((r) => `Ticket ${r.trackingNumber} - ${r.title}`);
 
           this.isLoading = false;
           this.detectChanges();
@@ -98,25 +92,35 @@ export class HelpDeskDashboard implements OnInit {
     });
   }
 
-  getStatusSeverity(status: string | undefined): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
+  getStatusSeverity(status: string | undefined): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     switch (status?.toLowerCase()) {
-      case 'in_progress': return 'warn';
       case 'new':
-      case 'open':
-      case 'pending': return 'info';
-      case 'resolved': return 'success';
-      case 'closed': return 'success';
-      case 'unresolved': return 'danger';
-      default: return 'secondary';
+        return 'info';
+      case 'processing':
+        return 'warn';
+      case 'required_more_info':
+        return 'danger';
+      case 'resolved':
+      case 'closed':
+        return 'success';
+      case 'reopened':
+        return 'contrast';
+      default:
+        return 'secondary';
     }
   }
 
-  getPrioritySeverity(priority: string | undefined): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
+  getPrioritySeverity(priority: string | undefined): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     switch (priority?.toLowerCase()) {
-      case 'high': return 'danger';
-      case 'medium': return 'warn';
-      case 'low': return 'info';
-      default: return 'secondary';
+      case 'critical':
+      case 'high':
+        return 'danger';
+      case 'medium':
+        return 'warn';
+      case 'low':
+        return 'info';
+      default:
+        return 'secondary';
     }
   }
 

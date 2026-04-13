@@ -23,7 +23,7 @@ export class HelpDeskMyRequests implements OnInit {
   isLoading = false;
   requests: ITRequest[] = [];
   filteredRequests: ITRequest[] = [];
-  
+
   summary = {
     total: 0,
     resolved: 0,
@@ -33,14 +33,18 @@ export class HelpDeskMyRequests implements OnInit {
 
   statusOptions = [
     { label: 'All', value: '' },
-    { label: 'Pending', value: 'PENDING' },
-    { label: 'In Progress', value: 'IN_PROGRESS' },
+    { label: 'New', value: 'NEW' },
+    { label: 'Processing', value: 'PROCESSING' },
+    { label: 'Required More Info', value: 'REQUIRED_MORE_INFO' },
+    { label: 'Addressed', value: 'ADDRESSED' },
     { label: 'Resolved', value: 'RESOLVED' },
-    { label: 'Closed', value: 'CLOSED' }
+    { label: 'Closed', value: 'CLOSED' },
+    { label: 'Reopened', value: 'REOPENED' }
   ];
 
   priorityOptions = [
     { label: 'All Priorities', value: '' },
+    { label: 'Critical', value: 'CRITICAL' },
     { label: 'High', value: 'HIGH' },
     { label: 'Medium', value: 'MEDIUM' },
     { label: 'Low', value: 'LOW' }
@@ -103,26 +107,32 @@ export class HelpDeskMyRequests implements OnInit {
 
   calculateSummary(): void {
     this.summary.total = this.requests.length;
-    this.summary.resolved = this.requests.filter(r =>
-      r.status?.toLowerCase() === 'resolved' || r.status?.toLowerCase() === 'closed'
+    this.summary.resolved = this.requests.filter(
+      (r) => r.status?.toLowerCase() === 'resolved' || r.status?.toLowerCase() === 'closed'
     ).length;
-    this.summary.pending = this.requests.filter(r =>
-      r.status?.toLowerCase() === 'pending' || r.status?.toLowerCase() === 'open'
+    this.summary.pending = this.requests.filter(
+      (r) => r.status?.toLowerCase() === 'new' || r.status?.toLowerCase() === 'processing' || r.status?.toLowerCase() === 'required_more_info'
     ).length;
-    this.summary.reopened = this.requests.filter(r =>
-      r.status?.toLowerCase() === 'reopened'
-    ).length;
+    this.summary.reopened = this.requests.filter((r) => r.status?.toLowerCase() === 'reopened').length;
   }
 
-  getStatusSeverity(status: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
+  getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     switch (status?.toLowerCase()) {
-      case 'in_progress': return 'warn';
-      case 'resolved': return 'success';
-      case 'closed': return 'success';
-      case 'pending': return 'info';
-      case 'open': return 'info';
-      case 'reopened': return 'contrast';
-      default: return 'secondary';
+      case 'new':
+        return 'info';
+      case 'processing':
+        return 'warn';
+      case 'required_more_info':
+        return 'danger';
+      case 'resolved':
+      case 'closed':
+        return 'success';
+      case 'reopened':
+        return 'contrast';
+      case 'addressed':
+        return 'secondary';
+      default:
+        return 'secondary';
     }
   }
 

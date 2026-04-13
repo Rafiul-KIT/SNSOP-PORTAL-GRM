@@ -24,6 +24,13 @@ export class HelpDeskStatusTracker {
   ticketResult: ITRequest | null = null;
   isLoading = false;
   notFound = false;
+  private readonly actionUiMap: Record<string, { label: string; icon: string; tone: string }> = {
+    CREATED: { label: 'Request Created', icon: 'fas fa-plus-circle', tone: 'created' },
+    UPDATED: { label: 'Request Updated', icon: 'fas fa-pen', tone: 'updated' },
+    STATUS_CHANGED: { label: 'Status Changed', icon: 'fas fa-arrows-rotate', tone: 'status' },
+    ATTACHMENT_ADDED: { label: 'Attachment Added', icon: 'fas fa-paperclip', tone: 'attachment' },
+  };
+  private readonly ignoredFields = ['id', 'requestId', 'createdBy', 'updatedBy'];
 
   constructor(
     private itSupportService: ItSupportService,
@@ -37,7 +44,7 @@ export class HelpDeskStatusTracker {
 
   async checkStatus(): Promise<void> {
     const trackingNo = this.searchTrackingNo.trim();
-    
+
     if (!trackingNo) {
       this.ticketResult = null;
       this.notFound = false;
@@ -77,15 +84,23 @@ export class HelpDeskStatusTracker {
     this.checkStatus();
   }
 
-  getStatusSeverity(status: string | undefined): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" {
+  getStatusSeverity(status: string | undefined): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     switch (status?.toLowerCase()) {
-      case 'in_progress': return 'warn';
-      case 'resolved': return 'success';
-      case 'closed': return 'success';
-      case 'pending': return 'info';
-      case 'open': return 'info';
-      case 'reopened': return 'contrast';
-      default: return 'secondary';
+      case 'new':
+        return 'info';
+      case 'processing':
+        return 'warn';
+      case 'required_more_info':
+        return 'danger';
+      case 'resolved':
+      case 'closed':
+        return 'success';
+      case 'reopened':
+        return 'contrast';
+      case 'addressed':
+        return 'secondary';
+      default:
+        return 'secondary';
     }
   }
 
@@ -95,15 +110,84 @@ export class HelpDeskStatusTracker {
     return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
 
-  getTimelineHistory(): { title: string; detail: string; date: string }[] {
+  private prettifyFieldName(field?: string): string {
+    if (!field) return 'Field';
+    return field
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/_/g, ' ')
+      .replace(/^./, (ch) => ch.toUpperCase());
+  }
+
+  private parseTimelineChanges(changes?: string): Array<{ field: string; oldValue: string; newValue: string }> {
+    const rows: Array<{ field: string; oldValue: string; newValue: string }> = [];
+
+    if (!changes) return rows;
+
+    try {
+      const parsed = JSON.parse(changes);
+      if (!Array.isArray(parsed)) return rows;
+
+      parsed
+        .filter((change) => change?.field && !this.ignoredFields.includes(String(change.field)))
+        .forEach((change) => {
+          rows.push({
+            field: this.prettifyFieldName(String(change.field)),
+            oldValue: String(change.oldValue ?? '-'),
+            newValue: String(change.newValue ?? '-'),
+          });
+        });
+    } catch {
+      return [];
+    }
+
+    return rows;
+  }
+
+  private normalizeComment(comment?: string): string {
+    return String(comment || '').trim();
+  }
+
+  private isCommentAlreadyInChanges(
+    rows: Array<{ field: string; oldValue: string; newValue: string }>,
+    comment: string
+  ): boolean {
+    if (!comment) return false;
+    return rows.some((r) => r.field.toLowerCase() === 'comment' && r.newValue.trim() === comment);
+  }
+
+  getTimelineHistory(): {
+    action: string;
+    title: string;
+    icon: string;
+    tone: string;
+    changeRows: Array<{ field: string; oldValue: string; newValue: string }>;
+    note?: string;
+    date: string;
+  }[] {
     if (!this.ticketResult?.history?.length) {
       return [];
     }
 
-    return this.ticketResult.history.map(h => ({
-      title: h.action || 'Status Update',
-      detail: h.comment || h.changes || '',
-      date: this.formatDate(h.performedAt)
-    }));
+    return this.ticketResult.history.map((h) => {
+      const action = (h.action || 'UPDATED').toUpperCase();
+      const actionUi = this.actionUiMap[action] || {
+        label: action.replace(/_/g, ' '),
+        icon: 'fas fa-circle-info',
+        tone: 'default',
+      };
+      const changeRows = this.parseTimelineChanges(h.changes);
+      const comment = this.normalizeComment(h.comment);
+      const note = this.isCommentAlreadyInChanges(changeRows, comment) ? '' : comment;
+
+      return {
+        action,
+        title: actionUi.label,
+        icon: actionUi.icon,
+        tone: actionUi.tone,
+        changeRows,
+        note: note || undefined,
+        date: this.formatDate(h.performedAt),
+      };
+    });
   }
 }

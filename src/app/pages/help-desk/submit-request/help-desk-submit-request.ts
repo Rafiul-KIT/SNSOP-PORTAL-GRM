@@ -38,6 +38,7 @@ export class HelpDeskSubmitRequest implements OnInit {
   modules: { label: string; value: number }[] = [];
 
   priorities = [
+    { label: 'Critical', value: 'CRITICAL' },
     { label: 'High', value: 'HIGH' },
     { label: 'Medium', value: 'MEDIUM' },
     { label: 'Low', value: 'LOW' }
@@ -178,3 +179,4 @@ export class HelpDeskSubmitRequest implements OnInit {
     });
   }
 }
+
