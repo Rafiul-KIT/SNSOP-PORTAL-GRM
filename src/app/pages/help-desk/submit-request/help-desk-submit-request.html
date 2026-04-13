@@ -10,7 +10,7 @@
     <div class="page-header">
       <div>
         <h2 class="page-title">Submit Support Request</h2>
-        <p class="page-subtitle">Create a new helpdesk ticket for technical support, clarification, or issue reporting.</p>
+        <!-- <p class="page-subtitle">Create a new helpdesk ticket for technical support, clarification, or issue reporting.</p> -->
       </div>
       <!-- <div class="header-actions">
         <p-button label="Export Report" icon="fas fa-download" [outlined]="true" severity="primary" size="small"></p-button>
@@ -28,36 +28,53 @@
           <form [formGroup]="requestForm" (ngSubmit)="onSubmit()">
             <div class="row g-3">
               <div class="col-12 col-md-6">
-                <label class="form-label">Issue Title</label>
+                <label class="form-label">Issue Title <span class="required-asterisk">*</span></label>
                 <input type="text" pInputText class="w-100" formControlName="issueTitle" placeholder="Enter issue title" />
+                @if (requestForm.get('issueTitle')?.invalid && (requestForm.get('issueTitle')?.dirty || requestForm.get('issueTitle')?.touched)) {
+                  <small class="error-text">Issue title is required.</small>
+                }
               </div>
               <div class="col-12 col-md-6">
-                <label class="form-label">Category</label>
+                <label class="form-label">Category <span class="required-asterisk">*</span></label>
                 <p-select [options]="categories" formControlName="category" optionLabel="label" optionValue="value" placeholder="Select category" class="w-100" />
+                @if (requestForm.get('category')?.invalid && (requestForm.get('category')?.dirty || requestForm.get('category')?.touched)) {
+                  <small class="error-text">Category is required.</small>
+                }
               </div>
               <div class="col-12 col-md-6">
-                <label class="form-label">Priority</label>
+                <label class="form-label">Priority <span class="required-asterisk">*</span></label>
                 <p-select [options]="priorities" formControlName="priority" optionLabel="label" optionValue="value" placeholder="Select priority" class="w-100" />
-              </div>
-              <div class="col-12 col-md-6">
-                <label class="form-label">Issue Type</label>
-                <p-select [options]="issueTypes" formControlName="issueType" optionLabel="label" optionValue="value" placeholder="Select issue type" class="w-100" />
+                @if (requestForm.get('priority')?.invalid && (requestForm.get('priority')?.dirty || requestForm.get('priority')?.touched)) {
+                  <small class="error-text">Priority is required.</small>
+                }
               </div>
               <div class="col-12">
-                <label class="form-label">Description</label>
+                <label class="form-label">Description <span class="required-asterisk">*</span></label>
                 <textarea pTextarea formControlName="description" rows="5" class="w-100" placeholder="Describe the issue in detail..."></textarea>
+                @if (requestForm.get('description')?.invalid && (requestForm.get('description')?.dirty || requestForm.get('description')?.touched)) {
+                  <small class="error-text">Description is required.</small>
+                }
               </div>
               <div class="col-12 col-md-6">
-                <label class="form-label">Module</label>
+                <label class="form-label">Module <span class="required-asterisk">*</span></label>
                 <p-select [options]="modules" formControlName="module" optionLabel="label" optionValue="value" placeholder="Select module" class="w-100" />
+                @if (requestForm.get('module')?.invalid && (requestForm.get('module')?.dirty || requestForm.get('module')?.touched)) {
+                  <small class="error-text">Module is required.</small>
+                }
               </div>
               <div class="col-12 col-md-6">
-                <label class="form-label">Preferred Notification</label>
+                <label class="form-label">Preferred Notification <span class="required-asterisk">*</span></label>
                 <p-select [options]="notificationPrefs" formControlName="notification" optionLabel="label" optionValue="value" placeholder="Select notification" class="w-100" />
+                @if (requestForm.get('notification')?.invalid && (requestForm.get('notification')?.dirty || requestForm.get('notification')?.touched)) {
+                  <small class="error-text">Preferred notification is required.</small>
+                }
               </div>
               <div class="col-12">
-                <label class="form-label">Attachment</label>
-                <input type="file" class="form-control" (change)="onFileSelect($event)" multiple />
+                <label class="form-label">Attachments <span class="required-asterisk">*</span></label>
+                <input type="file" class="form-control" (change)="onFileSelect($event)" multiple [ngClass]="{'is-invalid': requestForm.get('attachments')?.invalid && (requestForm.get('attachments')?.dirty || requestForm.get('attachments')?.touched)}" />
+                @if (requestForm.get('attachments')?.invalid && (requestForm.get('attachments')?.dirty || requestForm.get('attachments')?.touched)) {
+                  <small class="error-text">At least one attachment is required.</small>
+                }
                 @if (selectedFiles.length > 0) {
                   <div class="selected-files mt-2">
                     @for (file of selectedFiles; track file.name + '-' + file.size + '-' + file.lastModified; let i = $index) {
@@ -92,7 +109,7 @@
               <div class="col-12">
                 <div class="d-flex justify-content-center gap-2 mt-2">
                   <!-- <p-button label="Save Draft" [outlined]="true" severity="secondary" size="small" (onClick)="saveDraft()" [disabled]="isSubmitting"></p-button> -->
-                  <p-button label="Submit Request" icon="fas fa-paper-plane" severity="danger" size="small" type="submit" [loading]="isSubmitting" [disabled]="isSubmitting"></p-button>
+                  <p-button label="Submit Request" icon="fas fa-paper-plane" severity="success" size="small" type="submit" [loading]="isSubmitting" [disabled]="isSubmitting"></p-button>
                 </div>
               </div>
             </div>
@@ -108,7 +125,6 @@
             <li>Provide a clear issue title and short summary.</li>
             <li>Select the correct category and priority.</li>
             <li>Attach screenshot, log, or report sample when needed.</li>
-            <li>Small issues target 72 hours; large issues target 144 hours.</li>
           </ul>
         </div>
 

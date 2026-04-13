@@ -44,15 +44,15 @@ export class HelpDeskSubmitRequest implements OnInit {
     { label: 'Low', value: 'LOW' }
   ];
 
-  issueTypes = [
-    { label: 'Small - 72 Hours', value: 'SMALL' },
-    { label: 'Large - 144 Hours', value: 'LARGE' }
-  ];
+  // issueTypes = [
+  //   { label: 'Small - 72 Hours', value: 'SMALL' },
+  //   { label: 'Large - 144 Hours', value: 'LARGE' }
+  // ];
 
   notificationPrefs = [
     { label: 'Email', value: 'EMAIL' },
-    { label: 'SMS', value: 'SMS' },
-    { label: 'Both', value: 'BOTH' }
+    // { label: 'SMS', value: 'SMS' },
+    // { label: 'Both', value: 'BOTH' }
   ];
 
   constructor(
@@ -65,10 +65,11 @@ export class HelpDeskSubmitRequest implements OnInit {
       issueTitle: ['', Validators.required],
       category: [null, Validators.required],
       priority: [null, Validators.required],
-      issueType: [null, Validators.required],
+      // issueType: [null, Validators.required],
       description: ['', Validators.required],
       module: [null, Validators.required],
-      notification: [null]
+      notification: [null, Validators.required],
+      attachments: [null, Validators.required]
     });
   }
 
@@ -123,6 +124,10 @@ export class HelpDeskSubmitRequest implements OnInit {
     const uniqueIncoming = incoming.filter((f) => !existingKeys.has(`${f.name}-${f.size}-${f.lastModified}`));
     this.selectedFiles = [...this.selectedFiles, ...uniqueIncoming];
 
+    // Update form control for validation
+    this.requestForm.get('attachments')?.setValue(this.selectedFiles.length > 0 ? this.selectedFiles : null);
+    this.requestForm.get('attachments')?.markAsTouched();
+
     // Clear file input so selecting the same file again still triggers change event.
     input.value = '';
     this.detectChanges();
@@ -131,6 +136,11 @@ export class HelpDeskSubmitRequest implements OnInit {
   removeSelectedFile(index: number): void {
     this.selectedFiles.splice(index, 1);
     this.selectedFiles = [...this.selectedFiles];
+    
+    // Update form control for validation
+    this.requestForm.get('attachments')?.setValue(this.selectedFiles.length > 0 ? this.selectedFiles : null);
+    this.requestForm.get('attachments')?.markAsTouched();
+    
     this.detectChanges();
   }
 

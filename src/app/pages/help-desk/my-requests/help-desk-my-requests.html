@@ -34,27 +34,42 @@
               <i class="fas fa-inbox fa-2x mb-2"></i>
               <p>No requests found.</p>
             </div>
-          }
+          } @else {
+            <p-table [value]="filteredRequests" [rows]="10" [paginator]="true" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>Tracking ID</th>
+                  <th>Title</th>
+                  <th>Status</th>
+                  <th>Priority</th>
+                  <th>Submitted</th>
+                  <th class="text-center action-col">Action</th>
+                  </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-req>
+                  <tr>
+                  <td>
+                     <!-- class="tracking-link" (click)="onView(req)" -->
+                    <a>{{ req.trackingNumber }}</a>
+                  </td>
+                  <td>
+                    <span class="request-title-table" (click)="onView(req)">{{ req.title }}</span>
+                  </td>
+                  <td>
+                    <p-tag [value]="req.status.replace('_', ' ')" [severity]="getStatusSeverity(req.status)" />
+                  </td>
+                  <td>
+                    <span class="priority-text" [ngClass]="req.priority?.toLowerCase()">{{ req.priority }}</span>
+                  </td>
+                  <td>{{ formatDate(req.createdAt) }}</td>
+                  <td class="text-center action-col">
+                    <p-button icon="pi pi-eye" [outlined]="true" severity="secondary" size="small" (onClick)="onView(req)" title="View Details"></p-button>
+                  </td>
+                  </tr>
 
-          @for (req of filteredRequests; track req.id) {
-            <div class="request-card mb-3">
-              <div class="d-flex justify-content-between align-items-start">
-                <div>
-                  <a class="tracking-link">{{ req.trackingNumber }}</a>
-                  <h6 class="request-title">{{ req.title }}</h6>
-                </div>
-                <p-tag [value]="req.status.replace('_', ' ')" [severity]="getStatusSeverity(req.status)" />
-              </div>
-              <p class="request-desc">{{ req.description }}</p>
-              <div class="request-meta">
-                <span>Priority: {{ req.priority }}</span>
-                <span>Category: {{ req.categoryName || '--' }}</span>
-                <span>Module: {{ req.moduleName || '--' }}</span>
-                @if (req.createdAt) {
-                  <span>Submitted: {{ formatDate(req.createdAt) }}</span>
-                }
-              </div>
-            </div>
+                
+              </ng-template>
+            </p-table>
           }
         </div>
       </div>
@@ -91,7 +106,7 @@
           </div>
         </div>
 
-        <div class="card p-3">
+        <!-- <div class="card p-3">
           <h5 class="card-section-title mb-3">Recent Feedback</h5>
           <div class="feedback-stars">
             @for (star of getStars(feedback.rating); track $index) {
@@ -99,7 +114,7 @@
             }
           </div>
           <p class="feedback-comment">{{ feedback.comment }}</p>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>

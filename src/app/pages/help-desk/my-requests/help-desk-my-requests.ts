@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
@@ -9,10 +10,12 @@ import { FormsModule } from '@angular/forms';
 import { Loader } from '../../../components/loader/loader';
 import { ItSupportService, ITRequest } from '../../../services/it-support.service';
 
+import { TableModule } from 'primeng/table';
+
 @Component({
   selector: 'app-help-desk-my-requests',
   standalone: true,
-  imports: [CommonModule, BreadcrumbModule, ButtonModule, TagModule, SelectModule, InputTextModule, FormsModule, Loader],
+  imports: [CommonModule, BreadcrumbModule, ButtonModule, TagModule, SelectModule, InputTextModule, FormsModule, Loader, TableModule],
   templateUrl: './help-desk-my-requests.html',
   styleUrls: ['./help-desk-my-requests.scss']
 })
@@ -61,7 +64,8 @@ export class HelpDeskMyRequests implements OnInit {
   constructor(
     private itSupportService: ItSupportService,
     private cdr: ChangeDetectorRef,
-    private zone: NgZone
+    private zone: NgZone,
+    private router: Router
   ) {}
 
   private detectChanges(): void {
@@ -114,6 +118,10 @@ export class HelpDeskMyRequests implements OnInit {
       (r) => r.status?.toLowerCase() === 'new' || r.status?.toLowerCase() === 'processing' || r.status?.toLowerCase() === 'required_more_info'
     ).length;
     this.summary.reopened = this.requests.filter((r) => r.status?.toLowerCase() === 'reopened').length;
+  }
+
+  onView(request: ITRequest): void {
+    this.router.navigate(['/help-desk/support-management', request.id]);
   }
 
   getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {

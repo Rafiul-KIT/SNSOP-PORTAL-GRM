@@ -49,6 +49,30 @@
   font-weight: 500;
   color: #495057;
   margin-bottom: 0.3rem;
+
+  .required-asterisk {
+    color: #dc3545;
+    margin-left: 2px;
+  }
+}
+
+.error-text {
+  color: #dc3545;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+// PrimeNG validation styling
+:host ::ng-deep {
+  .p-inputtext.ng-invalid.ng-dirty,
+  .p-inputtext.ng-invalid.ng-touched,
+  .p-select.ng-invalid.ng-dirty,
+  .p-select.ng-invalid.ng-touched,
+  .p-textarea.ng-invalid.ng-dirty,
+  .p-textarea.ng-invalid.ng-touched {
+    border-color: #dc3545 !important;
+  }
 }
 
 .guide-list {

@@ -1,6 +1,7 @@
 import { Component, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -35,7 +36,8 @@ export class HelpDeskStatusTracker {
   constructor(
     private itSupportService: ItSupportService,
     private cdr: ChangeDetectorRef,
-    private zone: NgZone
+    private zone: NgZone,
+    private router: Router
   ) {}
 
   private detectChanges(): void {
@@ -77,6 +79,12 @@ export class HelpDeskStatusTracker {
         });
       }
     });
+  }
+
+  onView(): void {
+    if (this.ticketResult) {
+      this.router.navigate(['/help-desk/support-management', this.ticketResult.id]);
+    }
   }
 
   trackRequest(): void {
