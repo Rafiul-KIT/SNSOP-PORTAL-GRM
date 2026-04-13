@@ -19,7 +19,7 @@
     <div class="card p-3">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="card-section-title mb-0">Support Request Queue</h5>
-        <span class="text-muted small d-none d-sm-inline">MIS workflow actions</span>
+        <!-- <span class="text-muted small d-none d-sm-inline">{{ getWorkflowContextText() }}</span> -->
       </div>
 
       <div class="row g-2 mb-3 align-items-end">
@@ -74,7 +74,7 @@
                 <th class="fw-bold">Priority</th>
                 <th class="fw-bold">Category</th>
                 <th class="fw-bold">Module</th>
-                <th class="fw-bold">Action</th>
+                <th class="fw-bold">Actions</th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-ticket>
@@ -90,13 +90,23 @@
                 <td>{{ ticket.categoryName || '--' }}</td>
                 <td>{{ ticket.moduleName || '--' }}</td>
                 <td>
-                  <p-button
-                    [label]="getActionLabel(ticket)"
-                    [severity]="getActionSeverity(ticket)"
-                    size="small"
-                    [outlined]="!getAvailableActions(ticket).length"
-                    (onClick)="onAction(ticket)"
-                  ></p-button>
+                  <div class="d-flex flex-wrap gap-1">
+                    <p-button
+                      label="View"
+                      severity="secondary"
+                      size="small"
+                      [outlined]="true"
+                      (onClick)="onView(ticket)"
+                    ></p-button>
+                    <p-button
+                      [label]="getStatusActionLabel(ticket)"
+                      severity="info"
+                      size="small"
+                      [disabled]="!getAvailableActions(ticket).length"
+                      [outlined]="!getAvailableActions(ticket).length"
+                      (onClick)="onAction(ticket)"
+                    ></p-button>
+                  </div>
                 </td>
               </tr>
             </ng-template>

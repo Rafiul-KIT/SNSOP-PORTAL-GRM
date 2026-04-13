@@ -61,6 +61,7 @@ export class HelpDeskSupportManagement implements OnInit {
   ];
 
   requests: ITRequest[] = [];
+  selectedRequest: ITRequest | null = null;
 
   constructor(
     private itSupportService: ItSupportService,
@@ -178,38 +179,74 @@ export class HelpDeskSupportManagement implements OnInit {
     );
   }
 
-  getAvailableActions(request: ITRequest): Array<{ label: string; value: string; needsComment: boolean }> {
-    if (!this.isMisFirmUser()) {
-      return [];
+  getAvailableActions(
+    request: ITRequest
+  ): Array<{ label: string; value: string; needsComment: boolean; actionType: 'status' | 'submit_info' }> {
+    const isMisFirm = this.isMisFirmUser();
+    const status = request.status?.toUpperCase() || '';
+
+    if (isMisFirm) {
+      switch (status) {
+        case 'NEW':
+          return [{ label: 'Move to Processing', value: 'PROCESSING', needsComment: false, actionType: 'status' }];
+        case 'PROCESSING':
+          return [
+            { label: 'Ask For More Info', value: 'REQUIRED_MORE_INFO', needsComment: true, actionType: 'status' },
+            { label: 'Mark Addressed', value: 'ADDRESSED', needsComment: false, actionType: 'status' },
+            { label: 'Close', value: 'CLOSED', needsComment: true, actionType: 'status' },
+          ];
+        case 'REOPENED':
+          return [{ label: 'Move to Processing', value: 'PROCESSING', needsComment: false, actionType: 'status' }];
+        default:
+          return [];
+      }
     }
 
-    switch (request.status?.toUpperCase()) {
-      case 'NEW':
-        return [{ label: 'Move to Processing', value: 'PROCESSING', needsComment: false }];
-      case 'PROCESSING':
-        return [
-          { label: 'Ask For More Info', value: 'REQUIRED_MORE_INFO', needsComment: true },
-          { label: 'Mark Addressed', value: 'ADDRESSED', needsComment: false },
-          { label: 'Close', value: 'CLOSED', needsComment: true },
-        ];
-      case 'REOPENED':
-        return [{ label: 'Move to Processing', value: 'PROCESSING', needsComment: false }];
+    // Requester actions based on workflow guide.
+    switch (status) {
+      case 'REQUIRED_MORE_INFO':
+        return [{ label: 'Submit Required Info', value: 'PROCESSING', needsComment: false, actionType: 'submit_info' }];
+      case 'ADDRESSED':
+        return [{ label: 'Mark Resolved', value: 'RESOLVED', needsComment: false, actionType: 'status' }];
+      case 'RESOLVED':
+        return [{ label: 'Close', value: 'CLOSED', needsComment: true, actionType: 'status' }];
+      case 'CLOSED':
+        return [{ label: 'Reopen', value: 'REOPENED', needsComment: true, actionType: 'status' }];
       default:
         return [];
     }
   }
 
-  getActionLabel(request: ITRequest): string {
-    const actions = this.getAvailableActions(request);
-    if (!actions.length) return 'View';
-    if (actions.length === 1) return actions[0].label;
-    return 'Change Status';
+  async onView(request: ITRequest): Promise<void> {
+    await Swal.fire({
+      title: `Request ${request.trackingNumber}`,
+      html: `
+        <div style="text-align:left">
+          <p><b>Title:</b> ${request.title || '--'}</p>
+          <p><b>Status:</b> ${this.formatStatus(request.status)}</p>
+          <p><b>Priority:</b> ${request.priority || '--'}</p>
+          <p><b>Category:</b> ${request.categoryName || '--'}</p>
+          <p><b>Module:</b> ${request.moduleName || '--'}</p>
+          <p><b>Comment:</b> ${request.comment || '--'}</p>
+        </div>
+      `,
+      confirmButtonText: 'Close',
+      confirmButtonColor: '#3085d6',
+      width: '42rem',
+    });
   }
 
-  getActionSeverity(request: ITRequest): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
-    if (!this.getAvailableActions(request).length) return 'secondary';
-    if (request.status?.toUpperCase() === 'PROCESSING') return 'warn';
-    return 'info';
+  getWorkflowContextText(): string {
+    return this.isMisFirmUser()
+      ? 'MIS mode: NEW -> PROCESSING, PROCESSING -> REQUIRED_MORE_INFO/ADDRESSED/CLOSED, REOPENED -> PROCESSING'
+      : 'Requester mode: REQUIRED_MORE_INFO -> submit info, ADDRESSED -> RESOLVED, RESOLVED -> CLOSED, CLOSED -> REOPENED';
+  }
+
+  getStatusActionLabel(request: ITRequest): string {
+    const actions = this.getAvailableActions(request);
+    if (!actions.length) return 'No Action';
+    if (actions.length === 1) return actions[0].label;
+    return 'Change Status';
   }
 
   async onAction(request: ITRequest): Promise<void> {
@@ -263,6 +300,68 @@ export class HelpDeskSupportManagement implements OnInit {
 
       if (!result.isConfirmed) return;
       comment = String(result.value || '').trim();
+    }
+
+    // Special flow: REQUIRED_MORE_INFO -> PROCESSING must use submit-info endpoint.
+    if (selectedAction.actionType === 'submit_info') {
+      const result = await Swal.fire({
+        title: 'Submit Required Information',
+        html: `
+          <p style="margin-bottom:8px;">At least one field is required.</p>
+          <textarea id="submit-info-comment" class="swal2-textarea" placeholder="Comment (required in this quick flow)"></textarea>
+          <textarea id="submit-info-description" class="swal2-textarea" placeholder="Optional description update"></textarea>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Submit Info',
+        confirmButtonColor: '#3085d6',
+        preConfirm: () => {
+          const commentValue = String((document.getElementById('submit-info-comment') as HTMLTextAreaElement)?.value || '').trim();
+          const descriptionValue = String((document.getElementById('submit-info-description') as HTMLTextAreaElement)?.value || '').trim();
+          if (!commentValue && !descriptionValue) {
+            Swal.showValidationMessage('Please provide at least comment or description.');
+            return null;
+          }
+          return { commentValue, descriptionValue };
+        },
+      });
+
+      if (!result.isConfirmed || !result.value) return;
+
+      this.isLoading = true;
+      this.cdr.detectChanges();
+      try {
+        const submitResponse = await this.itSupportService.submitInfo(request.id, {
+          comment: result.value.commentValue || undefined,
+          description: result.value.descriptionValue || undefined,
+        });
+        if (submitResponse.success) {
+          await Swal.fire({
+            icon: 'success',
+            title: 'Information Submitted',
+            text: submitResponse.message || 'Required information submitted and status moved to PROCESSING.',
+            confirmButtonColor: '#3085d6',
+          });
+        } else {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Submit Failed',
+            text: submitResponse.message || 'Unable to submit required information.',
+            confirmButtonColor: '#d33',
+          });
+        }
+      } catch {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'An unexpected error occurred while submitting required information.',
+          confirmButtonColor: '#d33',
+        });
+      } finally {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        this.loadRequests();
+      }
+      return;
     }
 
     this.isLoading = true;
