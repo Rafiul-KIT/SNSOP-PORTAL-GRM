@@ -84,6 +84,75 @@
     border-radius: 6px;
     text-align: center;
   }
+
+  .tracking-number-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+  }
+
+  .copy-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid #28a745;
+    background: #fff;
+    color: #28a745;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .copy-btn:hover {
+    background: #28a745;
+    color: #fff;
+  }
+}
+
+.selected-files {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.selected-file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #f1f3f5;
+}
+
+.selected-file-row:last-child {
+  border-bottom: 0;
+}
+
+.file-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.file-name {
+  font-size: 0.88rem;
+  color: #2c3e50;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 360px;
+}
+
+.file-size {
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+.file-actions {
+  display: flex;
+  gap: 0.4rem;
 }
 
 @media (max-width: 767px) {
@@ -110,5 +179,14 @@
 
   .card {
     padding: 0.75rem !important;
+  }
+
+  .selected-file-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .file-name {
+    max-width: 100%;
   }
 }

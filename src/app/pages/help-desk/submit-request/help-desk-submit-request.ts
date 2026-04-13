@@ -115,7 +115,69 @@ export class HelpDeskSubmitRequest implements OnInit {
 
   onFileSelect(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.selectedFiles = input.files ? Array.from(input.files) : [];
+    const incoming = input.files ? Array.from(input.files) : [];
+    if (!incoming.length) return;
+
+    // Keep already selected files and append new selections (avoid exact duplicates).
+    const existingKeys = new Set(this.selectedFiles.map((f) => `${f.name}-${f.size}-${f.lastModified}`));
+    const uniqueIncoming = incoming.filter((f) => !existingKeys.has(`${f.name}-${f.size}-${f.lastModified}`));
+    this.selectedFiles = [...this.selectedFiles, ...uniqueIncoming];
+
+    // Clear file input so selecting the same file again still triggers change event.
+    input.value = '';
+    this.detectChanges();
+  }
+
+  removeSelectedFile(index: number): void {
+    this.selectedFiles.splice(index, 1);
+    this.selectedFiles = [...this.selectedFiles];
+    this.detectChanges();
+  }
+
+  viewSelectedFile(file: File): void {
+    const url = URL.createObjectURL(file);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  async copyTrackingNumber(): Promise<void> {
+    if (!this.trackingNumber) return;
+
+    try {
+      await navigator.clipboard.writeText(this.trackingNumber);
+      Swal.fire({
+        icon: 'success',
+        title: 'Copied',
+        text: 'Tracking number copied to clipboard.',
+        timer: 1200,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      // Fallback for restricted clipboard environments.
+      const textarea = document.createElement('textarea');
+      textarea.value = this.trackingNumber;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Copied',
+        text: 'Tracking number copied to clipboard.',
+        timer: 1200,
+        showConfirmButton: false
+      });
+    }
   }
 
   async onSubmit(): Promise<void> {
@@ -140,8 +202,12 @@ export class HelpDeskSubmitRequest implements OnInit {
           this.detectChanges();
           Swal.fire({
             icon: 'success',
-            title: 'Request Submitted',
-            html: `Your support request has been submitted successfully.<br><strong>Tracking Number: ${this.trackingNumber}</strong>`,
+            title: 'Submission Successful',
+            html: `
+              <p style="margin-bottom:8px;">Your tracking number is:</p>
+              <strong>${this.trackingNumber}</strong>
+              <p style="margin-top:10px;">Please save this number to track your request status.</p>
+            `,
             confirmButtonColor: '#3085d6'
           });
           this.requestForm.reset();
