@@ -22,6 +22,10 @@ import { HelpDeskSupportManagement } from './pages/help-desk/support-management/
 import { HelpDeskStatusTracker } from './pages/help-desk/status-tracker/help-desk-status-tracker';
 import { HelpDeskReports } from './pages/help-desk/reports/help-desk-reports';
 import { HelpDeskUserManual } from './pages/help-desk/user-manual/help-desk-user-manual';
+import { GeoBasedSummaryReport } from './pages/grm-report/geo-based-summary-report/geo-based-summary-report';
+import { GeoBasedDetailReport } from './pages/grm-report/geo-based-detail-report/geo-based-detail-report';
+import { ReferrerBasedSummaryReport } from './pages/grm-report/referrer-based-summary-report/referrer-based-summary-report';
+import { AnalyticalReport } from './pages/grm-report/analytical-report/analytical-report';
 
 export const routes: Routes = [
   {
@@ -98,6 +102,27 @@ export const routes: Routes = [
   {
     component: NonGbvManagement,
     path: 'non-gbv-management',
+  },
+  {
+    path: 'grm-report',
+    children: [
+      {
+        path: 'geo-based-summary',
+        component: GeoBasedSummaryReport,
+      },
+      {
+        path: 'geo-based-detail',
+        component: GeoBasedDetailReport,
+      },
+      {
+        path: 'referrer-based-summary',
+        component: ReferrerBasedSummaryReport,
+      },
+      {
+        path: 'analytical',
+        component: AnalyticalReport,
+      },
+    ],
   },
   {
     component: GrievancesStatusReport,

@@ -111,11 +111,14 @@ interface GbvProcessHistoryItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GbvProcessDetails implements OnInit {
+  today: Date = new Date();
   gbvGrievanceId: number | null = null;
   grievanceDetails: GbvGrievanceDetails | null = null;
   processForm!: FormGroup;
   isLoading = true;
   isSubmitting = false;
+  grievanceStatusLabel = '';
+  grievanceStatusBadgeClass = '';
   displayProcessDialog = false;
 
   isGrievanceAttachmentDownloading = false;
@@ -173,6 +176,12 @@ export class GbvProcessDetails implements OnInit {
     const idParam = this.route.snapshot.paramMap.get('id');
     const parsedId = Number(idParam);
     this.gbvGrievanceId = Number.isInteger(parsedId) && parsedId > 0 ? parsedId : null;
+    const statusParam = this.route.snapshot.queryParamMap.get('status');
+    if (statusParam) {
+      this.grievanceStatusLabel = this.getStatusLabel(statusParam);
+      this.grievanceStatusBadgeClass = this.getStatusBadgeClass(statusParam);
+      this.currentProcessStatus = this.getStatusLabel(statusParam);
+    }
     this.initBreadcrumb();
 
     if (!this.gbvGrievanceId) {
@@ -281,6 +290,7 @@ export class GbvProcessDetails implements OnInit {
       const history = res?.data?.content ?? [];
       this.processHistory = [...history].sort((a, b) => b.id - a.id);
       this.currentProcessStatus = this.processHistory[0]?.status ?? null;
+      this.populateFormFromLatestHistory();
     } catch (error) {
       console.error('Error fetching process history:', error);
       this.processHistory = [];
@@ -288,6 +298,30 @@ export class GbvProcessDetails implements OnInit {
     } finally {
       this.isLoadingHistory = false;
       this.cdr.markForCheck();
+    }
+  }
+
+  private populateFormFromLatestHistory(): void {
+    if (!this.processHistory.length || !this.processForm) return;
+    const latest = this.processHistory[0];
+    this.processForm.patchValue({
+      id: latest.id,
+      gbvGrievanceId: latest.gbvGrievanceId,
+      followupActionFeedback: latest.followupActionFeedback || '',
+      reportedToMgmtHr: latest.reportedToMgmtHr ?? false,
+      reportedDetails: latest.reportedDetails || '',
+      survivorSatisfied: latest.survivorSatisfied ?? false,
+      survivorDetails: latest.survivorDetails || '',
+      afterMgmtActionClosedAt: latest.afterMgmtActionClosedAt ? new Date(latest.afterMgmtActionClosedAt) : null,
+      status: this.normalizeStatusForApi(latest.status) || null,
+    });
+    this.reportedToMgmtHr = !!latest.reportedToMgmtHr;
+    this.survivorSatisfied = !!latest.survivorSatisfied;
+    if (this.reportedToMgmtHr) {
+      this.processForm.get('reportedDetails')?.enable();
+    }
+    if (this.survivorSatisfied) {
+      this.processForm.get('survivorDetails')?.enable();
     }
   }
 
@@ -319,8 +353,13 @@ export class GbvProcessDetails implements OnInit {
   }
 
   get isProcessFormDisabled(): boolean {
-    const status = String(this.currentProcessStatus || '').toLowerCase();
-    return status === 'resolved';
+    return this.isResolvedStatus(this.currentProcessStatus || this.grievanceStatusLabel);
+  }
+
+  private isResolvedStatus(status: string | number | null | undefined): boolean {
+    if (status === null || status === undefined || status === '') return false;
+    const normalized = String(status).trim().toLowerCase();
+    return normalized === '5' || normalized === 'resolved';
   }
 
   viewProcessHistoryDetail(history: GbvProcessHistoryItem) {
@@ -334,9 +373,9 @@ export class GbvProcessDetails implements OnInit {
       gbvGrievanceId: [this.gbvGrievanceId, Validators.required],
       followupActionFeedback: ['', Validators.required],
       reportedToMgmtHr: [false],
-      reportedDetails: [''],
+      reportedDetails: [{ value: '', disabled: true }],
       survivorSatisfied: [false],
-      survivorDetails: [''],
+      survivorDetails: [{ value: '', disabled: true }],
       afterMgmtActionClosedAt: [null],
       status: [null, Validators.required],
     });
@@ -345,16 +384,24 @@ export class GbvProcessDetails implements OnInit {
   subscribeToFormChanges(): void {
     this.processForm.get('reportedToMgmtHr')?.valueChanges.subscribe((val: boolean) => {
       this.reportedToMgmtHr = !!val;
-      if (!val) {
-        this.processForm.get('reportedDetails')?.setValue('');
+      const ctrl = this.processForm.get('reportedDetails');
+      if (val) {
+        ctrl?.enable();
+      } else {
+        ctrl?.setValue('');
+        ctrl?.disable();
       }
       this.cdr.markForCheck();
     });
 
     this.processForm.get('survivorSatisfied')?.valueChanges.subscribe((val: boolean) => {
       this.survivorSatisfied = !!val;
-      if (!val) {
-        this.processForm.get('survivorDetails')?.setValue('');
+      const ctrl = this.processForm.get('survivorDetails');
+      if (val) {
+        ctrl?.enable();
+      } else {
+        ctrl?.setValue('');
+        ctrl?.disable();
       }
       this.cdr.markForCheck();
     });
@@ -426,7 +473,7 @@ export class GbvProcessDetails implements OnInit {
       .POST('api/gbv-grievance/process', formData, 'global', {
         headers: { 'Content-Type': undefined },
       })
-      .then((res: any) => {
+      .then(async (res: any) => {
         const result = res?.data;
         if (
           result?.code === 200 ||
@@ -439,10 +486,7 @@ export class GbvProcessDetails implements OnInit {
             icon: 'success',
             confirmButtonColor: '#0d6efd',
           });
-          this.displayProcessDialog = false;
-          this.onReset();
-          this.fetchProcessHistory(this.gbvGrievanceId!);
-          this.fetchGrievanceDetails(this.gbvGrievanceId!);
+           this.router.navigate(['/gbv-management/process']);
         } else {
           Swal.fire({
             title: 'Process Failed',
@@ -470,20 +514,36 @@ export class GbvProcessDetails implements OnInit {
       });
   }
 
+  openProcessDialog(): void {
+    if (this.isProcessFormDisabled) {
+      return;
+    }
+    this.populateFormFromLatestHistory();
+    this.displayProcessDialog = true;
+  }
+
+  get isEditMode(): boolean {
+    return this.processHistory.length > 0;
+  }
+
   onReset(): void {
-    this.processForm.reset({
-      id: null,
-      gbvGrievanceId: this.gbvGrievanceId,
-      followupActionFeedback: '',
-      reportedToMgmtHr: false,
-      reportedDetails: '',
-      survivorSatisfied: false,
-      survivorDetails: '',
-      afterMgmtActionClosedAt: null,
-      status: null,
-    });
-    this.reportedToMgmtHr = false;
-    this.survivorSatisfied = false;
+    if (this.isEditMode) {
+      this.populateFormFromLatestHistory();
+    } else {
+      this.processForm.reset({
+        id: null,
+        gbvGrievanceId: this.gbvGrievanceId,
+        followupActionFeedback: '',
+        reportedToMgmtHr: false,
+        reportedDetails: '',
+        survivorSatisfied: false,
+        survivorDetails: '',
+        afterMgmtActionClosedAt: null,
+        status: null,
+      });
+      this.reportedToMgmtHr = false;
+      this.survivorSatisfied = false;
+    }
     this.cdr.markForCheck();
   }
 
@@ -532,7 +592,7 @@ export class GbvProcessDetails implements OnInit {
         String(selection.id) === String(value) || String(selection.value) === String(value)
     );
 
-    return item ? item.label : String(value);
+    return item ? item.value : String(value);
   }
 
   getBeneficiaryStatus(isBeneficiary: boolean): string {
@@ -543,6 +603,13 @@ export class GbvProcessDetails implements OnInit {
     if (value === true) return 'Yes';
     if (value === false) return 'No';
     return '--';
+  }
+
+  getStatusLabel(status: string | number): string {
+    const s = String(status).toLowerCase();
+    if (s === '5' || s === 'resolved') return 'Resolved';
+    if (s === '15' || s === 'referred' || s === 'reffered') return 'Referred';
+    return 'Unresolved';
   }
 
   getStatusBadgeClass(statusValue: string | null | undefined): string {
@@ -574,175 +641,195 @@ export class GbvProcessDetails implements OnInit {
       : new Intl.DateTimeFormat('en-GB').format(date);
   }
 
+  private getMimeType(filename: string): string {
+    const ext = filename.split('.').pop()?.toLowerCase() || '';
+    const mimeTypes: Record<string, string> = {
+      'pdf': 'application/pdf',
+      'png': 'image/png',
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'doc': 'application/msword',
+      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    };
+    return mimeTypes[ext] || 'application/octet-stream';
+  }
+
+  getFilenameFromUrl(url: string): string {
+    if (!url) return 'Attachment';
+    const urlWithoutQuery = url.split('?')[0];
+    const parts = urlWithoutQuery.split('/');
+    return decodeURIComponent(parts[parts.length - 1]) || 'Attachment';
+  }
+
   async downloadGrievanceAttachment(): Promise<void> {
     const attachmentUrl = this.grievanceDetails?.grievanceAttachmentUrl;
-    if (attachmentUrl && (attachmentUrl.startsWith('https://') )) {
-      window.open(attachmentUrl, '_blank');
-    } else {
-      if (!attachmentUrl) {
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'No Attachment',
-          detail: 'No valid attachment found for this grievance.',
-        });
-        return;
-      }
-      const bucketName = 'grievance-files';
-      const urlWithoutQuery = attachmentUrl.split('?')[0];
-      const filePath = decodeURIComponent(
-        urlWithoutQuery.substring(urlWithoutQuery.indexOf(bucketName) + bucketName.length + 1)
+    if (!attachmentUrl) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Attachment',
+        detail: 'No valid attachment found for this grievance.',
+      });
+      return;
+    }
+
+    const bucketName = 'grievance-files';
+    const urlWithoutQuery = attachmentUrl.split('?')[0];
+    const filePath = decodeURIComponent(
+      urlWithoutQuery.substring(urlWithoutQuery.indexOf(bucketName) + bucketName.length + 1)
+    );
+
+    if (!filePath) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Attachment',
+        detail: 'Could not resolve attachment path.',
+      });
+      return;
+    }
+
+    const filename = this.grievanceDetails?.grievanceAttachmentFilename || this.getFilenameFromUrl(attachmentUrl);
+    const key = filePath;
+    this.downloadProgress.set(key, 0);
+    this.isGrievanceAttachmentDownloading = true;
+    this.displayGrievanceDownloadDialog = true;
+    this.grievanceDownloadMessage = 'Downloading grievance attachment...';
+    this.cdr.detectChanges();
+
+    try {
+      const response: any = await this.apiService.GET(
+        '/api/grievance/attachment/get',
+        { filePath },
+        'global',
+        {
+          responseType: 'blob',
+          onDownloadProgress: (progressEvent: any) => {
+            if (progressEvent.total) {
+              const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              this.downloadProgress.set(key, percent);
+              this.currentGrievanceDownloadProgress = percent;
+            } else {
+              this.downloadProgress.set(key, -1);
+              this.currentGrievanceDownloadProgress = -1;
+            }
+            this.cdr.detectChanges();
+          },
+        }
       );
 
-      if (!filePath) {
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'No Attachment',
-          detail: 'Could not resolve attachment path.',
-        });
-        return;
-      }
-
-      const key = filePath;
-      this.downloadProgress.set(key, 0);
-      this.isGrievanceAttachmentDownloading = true;
-      this.displayGrievanceDownloadDialog = true;
-      this.grievanceDownloadMessage = 'Downloading grievance attachment...';
+      this.downloadProgress.set(key, 100);
+      this.currentGrievanceDownloadProgress = 100;
       this.cdr.detectChanges();
 
-      try {
-        const response: any = await this.apiService.GET(
-          '/api/grievance/attachment/get',
-          { filePath },
-          'global',
-          {
-            responseType: 'blob',
-            onDownloadProgress: (progressEvent: any) => {
-              if (progressEvent.total) {
-                const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                this.downloadProgress.set(key, percent);
-                this.currentGrievanceDownloadProgress = percent;
-              } else {
-                this.downloadProgress.set(key, -1);
-                this.currentGrievanceDownloadProgress = -1;
-              }
-              this.cdr.detectChanges();
-            },
-          }
-        );
-
-        this.downloadProgress.set(key, 100);
-        this.currentGrievanceDownloadProgress = 100;
-        this.cdr.detectChanges();
-
-        const blob = new Blob([response.data], { type: response.headers.get('Content-Type') });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = this.grievanceDetails?.grievanceAttachmentFilename || 'download';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      } catch (error) {
-        console.error('Failed to download attachment:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Download Failed',
-          detail: 'Could not download the attachment. Please try again.',
-        });
-      } finally {
-        this.downloadProgress.delete(key);
-        this.isGrievanceAttachmentDownloading = false;
-        this.currentGrievanceDownloadProgress = 0;
-        this.displayGrievanceDownloadDialog = false;
-        this.cdr.detectChanges();
-      }
+      const contentType = response.headers?.get?.('Content-Type') || this.getMimeType(filename);
+      const blob = new Blob([response.data], { type: contentType });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+    } catch (error) {
+      console.error('Failed to download attachment:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Download Failed',
+        detail: 'Could not download the attachment. Please try again.',
+      });
+    } finally {
+      this.downloadProgress.delete(key);
+      this.isGrievanceAttachmentDownloading = false;
+      this.currentGrievanceDownloadProgress = 0;
+      this.displayGrievanceDownloadDialog = false;
+      this.cdr.detectChanges();
     }
   }
 
   async downloadConsentFormAttachment(): Promise<void> {
     const attachmentUrl = this.grievanceDetails?.consentFormAttachmentUrl;
-    if (attachmentUrl && (attachmentUrl.startsWith('https://') )) {
-      window.open(attachmentUrl, '_blank');
-    } else {
-      if (!attachmentUrl) {
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'No Attachment',
-          detail: 'No valid attachment found for this grievance.',
-        });
-        return;
-      }
-      const bucketName = 'grievance-files';
-      const urlWithoutQuery = attachmentUrl.split('?')[0];
-      const filePath = decodeURIComponent(
-        urlWithoutQuery.substring(urlWithoutQuery.indexOf(bucketName) + bucketName.length + 1)
+    if (!attachmentUrl) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Attachment',
+        detail: 'No valid attachment found for this grievance.',
+      });
+      return;
+    }
+
+    const bucketName = 'grievance-files';
+    const urlWithoutQuery = attachmentUrl.split('?')[0];
+    const filePath = decodeURIComponent(
+      urlWithoutQuery.substring(urlWithoutQuery.indexOf(bucketName) + bucketName.length + 1)
+    );
+
+    if (!filePath) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Attachment',
+        detail: 'Could not resolve attachment path.',
+      });
+      return;
+    }
+
+    const filename = this.grievanceDetails?.consentFormAttachmentFilename || this.getFilenameFromUrl(attachmentUrl);
+    const key = filePath;
+    this.downloadProgress.set(key, 0);
+    this.isConsentFormAttachmentDownloading = true;
+    this.displayConsentDownloadDialog = true;
+    this.consentDownloadMessage = 'Downloading consent form...';
+    this.cdr.detectChanges();
+
+    try {
+      const response: any = await this.apiService.GET(
+        '/api/grievance/attachment/get',
+        { filePath },
+        'global',
+        {
+          responseType: 'blob',
+          onDownloadProgress: (progressEvent: any) => {
+            if (progressEvent.total) {
+              const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              this.downloadProgress.set(key, percent);
+              this.currentConsentDownloadProgress = percent;
+            } else {
+              this.downloadProgress.set(key, -1);
+              this.currentConsentDownloadProgress = -1;
+            }
+            this.cdr.detectChanges();
+          },
+        }
       );
 
-      if (!filePath) {
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'No Attachment',
-          detail: 'Could not resolve attachment path.',
-        });
-        return;
-      }
-
-      const key = filePath;
-      this.downloadProgress.set(key, 0);
-      this.isConsentFormAttachmentDownloading = true;
-      this.displayConsentDownloadDialog = true;
-      this.consentDownloadMessage = 'Downloading consent form...';
+      this.downloadProgress.set(key, 100);
+      this.currentConsentDownloadProgress = 100;
       this.cdr.detectChanges();
 
-      try {
-        const response: any = await this.apiService.GET(
-          '/api/grievance/attachment/get',
-          { filePath },
-          'global',
-          {
-            responseType: 'blob',
-            onDownloadProgress: (progressEvent: any) => {
-              if (progressEvent.total) {
-                const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                this.downloadProgress.set(key, percent);
-                this.currentConsentDownloadProgress = percent;
-              } else {
-                this.downloadProgress.set(key, -1);
-                this.currentConsentDownloadProgress = -1;
-              }
-              this.cdr.detectChanges();
-            },
-          }
-        );
-
-        this.downloadProgress.set(key, 100);
-        this.currentConsentDownloadProgress = 100;
-        this.cdr.detectChanges();
-
-        const blob = new Blob([response.data], { type: response.headers.get('Content-Type') });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = this.grievanceDetails?.consentFormAttachmentFilename || 'download';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      } catch (error) {
-        console.error('Failed to download attachment:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Download Failed',
-          detail: 'Could not download the attachment. Please try again.',
-        });
-      } finally {
-        this.downloadProgress.delete(key);
-        this.isConsentFormAttachmentDownloading = false;
-        this.currentConsentDownloadProgress = 0;
-        this.displayConsentDownloadDialog = false;
-        this.cdr.detectChanges();
-      }
+      const contentType = response.headers?.get?.('Content-Type') || this.getMimeType(filename);
+      const blob = new Blob([response.data], { type: contentType });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+    } catch (error) {
+      console.error('Failed to download attachment:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Download Failed',
+        detail: 'Could not download the attachment. Please try again.',
+      });
+    } finally {
+      this.downloadProgress.delete(key);
+      this.isConsentFormAttachmentDownloading = false;
+      this.currentConsentDownloadProgress = 0;
+      this.displayConsentDownloadDialog = false;
+      this.cdr.detectChanges();
     }
   }
 }

@@ -36,6 +36,7 @@ interface NonGbvGrievance {
   grievanceType: string;
   incidentOccurredAt: string;
   incidentOccurredAtDisplay?: string;
+  createdAt: string;
   complainantName: string;
   reportingChannel: string;
   isComplainantBeneficiary: string;
@@ -43,6 +44,8 @@ interface NonGbvGrievance {
   status: string | number;
   statusLabel?: string;
   statusBadgeClass?: string;
+  isOverdue?: boolean;
+  daysElapsed?: number;
 }
 
 @Component({
@@ -99,7 +102,6 @@ export class NonGbvList implements OnInit {
   statusOptions = [
     { label: 'Unresolved', value: 1 },
     { label: 'Resolved', value: 5 },
-    { label: 'Referred', value: 15 },
   ];
 
   constructor(
@@ -348,14 +350,25 @@ export class NonGbvList implements OnInit {
   }
 
   private enrichGrievances(list: NonGbvGrievance[]): NonGbvGrievance[] {
+    const now = new Date();
     return list.map((item) => {
       const statusLabel = this.getStatusLabel(item.status);
+      const isResolved = String(item.status).toLowerCase() === '5' || String(item.status).toLowerCase() === 'resolved';
+      let daysElapsed = 0;
+      let isOverdue = false;
+      if (item.createdAt && !isResolved) {
+        const createdDate = new Date(item.createdAt);
+        daysElapsed = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+        isOverdue = daysElapsed > 15;
+      }
       return {
         ...item,
         incidentOccurredAtDisplay: this.formatDisplayDate(item.incidentOccurredAt),
         beneficiaryStatus: item.isComplainantBeneficiary === 'YES' ? 'Beneficiary' : 'Non-Beneficiary',
         statusLabel,
         statusBadgeClass: this.getStatusBadgeClass(item.status),
+        isOverdue,
+        daysElapsed,
       };
     });
   }

@@ -207,12 +207,14 @@ small.text-danger {
   }
 
   .p-inputtext:disabled,
+  .p-textarea:disabled,
   .p-select.p-disabled,
   .p-inputnumber.p-disabled .p-inputtext {
     background: #e7ecf3 !important;
     border-color: #c4cfdd !important;
     color: var(--soft-text) !important;
     opacity: 1 !important;
+    cursor: not-allowed !important;
   }
 
   .yes-no-radio-group {

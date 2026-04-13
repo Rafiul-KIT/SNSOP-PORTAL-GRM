@@ -1,0 +1,120 @@
+@if (isLoading) {
+  <app-loader></app-loader>
+} @else {
+  <div class="breadcrumb-wrapper">
+    <p-breadcrumb [model]="breadcrumbItems" [home]="breadcrumbHome" class="w-100"></p-breadcrumb>
+  </div>
+  <div class="card p-3 mb-2">
+    <form [formGroup]="filterForm" class="row g-3">
+
+      <!-- State -->
+      <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="states" [filter]="true" optionLabel="name" appendTo="body" formControlName="state" (onChange)="onStateChange($event.value)" />
+          <label>State Name</label>
+        </p-floatlabel>
+      </div>
+
+      <!-- County -->
+      <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="counties" [filter]="true" optionLabel="name" appendTo="body" formControlName="county" (onChange)="onCountyChange($event.value)" />
+          <label>County Name</label>
+        </p-floatlabel>
+      </div>
+
+      <!-- Payam -->
+      <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="payams" [filter]="true" optionLabel="name" appendTo="body" formControlName="payam" (onChange)="onPayamChange($event.value)" />
+          <label>Payam Name</label>
+        </p-floatlabel>
+      </div>
+
+      <!-- Boma -->
+      <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="bomas" [filter]="true" optionLabel="name" appendTo="body" formControlName="boma" />
+          <label>Boma Name</label>
+        </p-floatlabel>
+      </div>
+
+      <!-- Status -->
+      <!-- <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="statusOptions" optionLabel="label" optionValue="value" appendTo="body" formControlName="status" />
+          <label>Status</label>
+        </p-floatlabel>
+      </div> -->
+
+      <!-- Category -->
+      <!-- <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="categoryOptions" optionLabel="label" optionValue="value" appendTo="body" formControlName="category" />
+          <label>Category</label>
+        </p-floatlabel>
+      </div> -->
+
+      <div class="col-12">
+        <div class="d-grid d-sm-flex justify-content-end align-items-center gap-2">
+          <p-button label="Reset" icon="pi pi-refresh" severity="danger" size="small" [outlined]="true" (onClick)="resetForm()" />
+          <p-button label="Search" icon="pi pi-search" severity="primary" size="small" (onClick)="onSearch()" />
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <p-table [value]="reportData" [loading]="isTableLoading" [tableStyle]="{ 'min-width': '100%', 'margin-bottom': '5px' }" size="small">
+    <ng-template pTemplate="header">
+      <tr>
+        <th colspan="7" class="text-end">
+          <p class="fw-bold mb-2">
+            Showing <kbd>{{ reportData.length }}</kbd> of
+            <kbd>{{ reportData.length }}</kbd> records
+          </p>
+        </th>
+      </tr>
+      <tr>
+        <th class="text-center">Serial</th>
+        <th class="text-center">Geo Location</th>
+        <th class="text-center">GBV</th>
+        <th class="text-center">Non-GBV</th>
+        <th class="text-center">Total Complaint</th>
+        <th class="text-center">Total of Non-GBV (%)</th>
+        <th class="text-center">Total of GBV (%)</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-row let-i="rowIndex">
+      <tr>
+        <td class="text-center">{{ i + 1 }}</td>
+        <td class="text-center">{{ getGeoLabel(row) }}</td>
+        <td class="text-center fw-bold text-danger">{{ row.gbvCount }}</td>
+        <td class="text-center fw-bold text-info">{{ row.ngbvCount }}</td>
+        <td class="text-center fw-bold">{{ row.totalCount }}</td>
+        <td class="text-center">{{ row.ngbvPercentage }}%</td>
+        <td class="text-center">{{ row.gbvPercentage }}%</td>
+      </tr>
+    </ng-template>
+
+    <!-- @if (reportData.length > 0) {
+      <ng-template pTemplate="footer">
+        <tr class="fw-bold">
+          <td colspan="2" class="text-end">TOTAL</td>
+          <td class="text-center text-danger">{{ totalGbv }}</td>
+          <td class="text-center text-info">{{ totalNonGbv }}</td>
+          <td class="text-center">{{ totalComplaint }}</td>
+          <td colspan="2"></td>
+        </tr>
+      </ng-template>
+    } -->
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7" class="text-center text-danger">
+          <b>No records found!</b>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+}

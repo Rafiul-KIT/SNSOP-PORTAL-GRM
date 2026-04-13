@@ -52,6 +52,7 @@ interface NonGbvProcessHistoryDetail {
   actionTakenBy: string;
   feedbackToComplainant: string;
   feedbackToComplainantAttachmentUrl: string;
+  actionTakenbyAttachmentUrl: string;
   accusedName: string;
   accusedDetails: string;
   accusedOtherDetails: string;
@@ -76,6 +77,7 @@ interface NonGbvProcessHistoryDetail {
   investigationReportAttachmentUrl: string;
   actionAfterInvestigation: string;
   afterAppealClosedOn: string;
+  detailsAttachmentsUrls: string[];
   status: string;
 }
 
@@ -148,12 +150,14 @@ interface AccusedType {
 })
 
 export class NonGbvProcessDetails implements OnInit {
+  today: Date = new Date();
   ngbvGrievanceId: number | null = null;
   grievanceDetails: NonGbvGrievanceDetails | null = null;
   processForm!: FormGroup;
   isLoading = true;
   isSubmitting = false;
   displayProcessDialog = false;
+  isLoadingProcessData = false;
   isFurtherActionAllowed = true;
   isGrievanceResolved = false;
   grievanceStatusLabel = '';
@@ -180,10 +184,7 @@ export class NonGbvProcessDetails implements OnInit {
   accusedCounties: LookupItem[] = [];
   accusedPayams: LookupItem[] = [];
   accusedBomas: LookupItem[] = [];
-  accusedTypes: AccusedType[] = [
-    { label: 'Individual', value: 1 },
-    { label: 'Group', value: 2 },
-  ];
+  accusedTypes: AccusedType[] = [];
   statusOptions: { label: string; value: string }[] = [
     { label: 'Resolved', value: 'Resolved' },
     { label: 'Unresolved', value: 'Unresolved' },
@@ -203,6 +204,14 @@ export class NonGbvProcessDetails implements OnInit {
   // File attachments
   feedbackAttachmentFile: File | null = null;
   investigationReportAttachmentFile: File | null = null;
+  actionTakenAttachmentFile: File | null = null;
+  detailsAttachmentFiles: File[] = [];
+
+  // Existing attachment URLs (loaded from API in edit mode)
+  existingActionTakenAttachmentUrl: string | null = null;
+  existingFeedbackAttachmentUrl: string | null = null;
+  existingInvestigationAttachmentUrl: string | null = null;
+  existingDetailsAttachmentUrls: string[] = [];
 
   isAttachmentDownloading = false;
   downloadProgress: Map<string, number> = new Map();
@@ -329,11 +338,13 @@ export class NonGbvProcessDetails implements OnInit {
         categoriesRes,
         reportingChannelsRes,
         gendersList,
+        accusedTypesRes,
       ] = await Promise.all([
         this.lookupService.getOrFetchStateList(),
         this.apiService.GET('api/grievance/type'),
         this.apiService.GET('api/grievance/reporting-channel'),
         this.lookupService.getGenderListbyId(),
+        this.apiService.GET('api/grievance/accused-type'),
       ]);
 
       this.states = statesRes;
@@ -345,6 +356,9 @@ export class NonGbvProcessDetails implements OnInit {
         .filter((item: any) => item.ngbvChannel === true)
         .map((item: any) => ({ label: item.detail, value: item.id }));
       this.genders = gendersList.map((item) => ({ label: item.name, value: parseInt(item.id) }));
+      this.accusedTypes = accusedTypesRes?.data?.content
+        ?.filter((item: any) => item.status === true)
+        .map((item: any) => ({ label: item.details, value: item.id })) ?? [];
     } catch (error) {
       console.error('Error loading lookups:', error);
       this.messageService.add({
@@ -419,6 +433,7 @@ export class NonGbvProcessDetails implements OnInit {
       actionTakenInResponse: ['', Validators.required],
       actionTakenBy: ['', Validators.required],
       resolvedOn: [null, Validators.required],
+      actionTakenbyAttachmentUrl: [''],
 
       // Feedback — required per API spec (marked with *)
       feedbackToComplainant: ['', Validators.required],
@@ -458,7 +473,8 @@ export class NonGbvProcessDetails implements OnInit {
       investigationFindings: [{ value: '', disabled: true }],
       investigationReportAttachmentUrl: [''],
       investigationReportAttachmentFile: [null],
-      actionAfterInvestigation: [''],
+      actionAfterInvestigation: [{ value: '', disabled: true }],
+      mainFindings: [''],
 
       // Final Status — required per API
       status: [null, Validators.required],
@@ -510,12 +526,14 @@ export class NonGbvProcessDetails implements OnInit {
       const investigatorDesignationControl = this.processForm.get('investigatorDesignation');
       const investigationCompletedOnControl = this.processForm.get('investigationCompletedOn');
       const investigationFindingsControl = this.processForm.get('investigationFindings');
+      const actionAfterInvestigationControl = this.processForm.get('actionAfterInvestigation');
 
       if (val) {
         investigatorNameControl?.enable();
         investigatorDesignationControl?.enable();
         investigationCompletedOnControl?.enable();
         investigationFindingsControl?.enable();
+        actionAfterInvestigationControl?.enable();
         investigatorNameControl?.setValidators(Validators.required);
         investigatorDesignationControl?.setValidators(Validators.required);
         investigationCompletedOnControl?.setValidators(Validators.required);
@@ -525,6 +543,7 @@ export class NonGbvProcessDetails implements OnInit {
         investigatorDesignationControl?.disable();
         investigationCompletedOnControl?.disable();
         investigationFindingsControl?.disable();
+        actionAfterInvestigationControl?.disable();
         investigatorNameControl?.clearValidators();
         investigatorDesignationControl?.clearValidators();
         investigationCompletedOnControl?.clearValidators();
@@ -533,11 +552,13 @@ export class NonGbvProcessDetails implements OnInit {
         investigatorDesignationControl?.setValue('');
         investigationCompletedOnControl?.setValue(null);
         investigationFindingsControl?.setValue('');
+        actionAfterInvestigationControl?.setValue('');
       }
       investigatorNameControl?.updateValueAndValidity();
       investigatorDesignationControl?.updateValueAndValidity();
       investigationCompletedOnControl?.updateValueAndValidity();
       investigationFindingsControl?.updateValueAndValidity();
+      actionAfterInvestigationControl?.updateValueAndValidity();
       this.cdr.detectChanges();
     });
 
@@ -567,17 +588,32 @@ export class NonGbvProcessDetails implements OnInit {
       afterAppealClosedOnControl?.updateValueAndValidity();
       this.cdr.detectChanges();
     });
+
+    // Reset afterAppealClosedOn when appealedOn changes to a later date
+    this.processForm.get('appealedOn')?.valueChanges?.subscribe((appealedDate: Date | null) => {
+      const afterAppealClosedOnControl = this.processForm.get('afterAppealClosedOn');
+      const closedDate = afterAppealClosedOnControl?.value;
+      if (appealedDate && closedDate && new Date(closedDate) < new Date(appealedDate)) {
+        afterAppealClosedOnControl?.setValue(null);
+      }
+    });
   }
 
   async openProcessDialog() {
     this.displayProcessDialog = true;
-
-    if (this.isEditMode && this.editProcessId) {
-      await this.loadProcessDataForEdit(this.editProcessId);
-    } else {
-      await this.autoPopulateLocation();
-    }
+    this.isLoadingProcessData = true;
     this.cdr.markForCheck();
+
+    try {
+      if (this.isEditMode && this.editProcessId) {
+        await this.loadProcessDataForEdit(this.editProcessId);
+      } else {
+        await this.autoPopulateLocation();
+      }
+    } finally {
+      this.isLoadingProcessData = false;
+      this.cdr.markForCheck();
+    }
   }
 
   private async autoPopulateLocation() {
@@ -641,8 +677,15 @@ export class NonGbvProcessDetails implements OnInit {
         investigationCompletedOn: data.investigationCompletedOn ? new Date(data.investigationCompletedOn) : null,
         investigationFindings: data.investigationFindings || '',
         actionAfterInvestigation: data.actionAfterInvestigation || '',
+        mainFindings: data.mainFindings || '',
         status: data.status || null,
       });
+
+      // Load existing attachment URLs
+      this.existingActionTakenAttachmentUrl = data.actionTakenbyAttachmentUrl || null;
+      this.existingFeedbackAttachmentUrl = data.feedbackToComplainantAttachmentUrl || null;
+      this.existingInvestigationAttachmentUrl = data.investigationReportAttachmentUrl || null;
+      this.existingDetailsAttachmentUrls = data.detailsAttachmentsUrls || [];
 
       // Load accused location
       const stateId = data.accusedStateId;
@@ -756,20 +799,147 @@ export class NonGbvProcessDetails implements OnInit {
     this.investigationReportAttachmentFile = file;
   }
 
-  onViewAttachment(type: 'feedback' | 'investigation'): void {
-    const file = type === 'feedback' ? this.feedbackAttachmentFile : this.investigationReportAttachmentFile;
+  onActionTakenFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    window.open(url, '_blank');
+    this.actionTakenAttachmentFile = file;
+  }
+
+  onDetailsAttachmentsChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    this.detailsAttachmentFiles = [...this.detailsAttachmentFiles, ...Array.from(input.files)];
+    input.value = '';
+  }
+
+  onViewAttachment(type: 'feedback' | 'investigation' | 'actionTaken'): void {
+    const file = type === 'feedback' ? this.feedbackAttachmentFile
+      : type === 'investigation' ? this.investigationReportAttachmentFile
+      : this.actionTakenAttachmentFile;
+    if (!file) return;
+    this.openFileInNewTab(file);
+  }
+
+  onRemoveAttachment(type: 'feedback' | 'investigation' | 'actionTaken'): void {
+    if (type === 'feedback') {
+      this.feedbackAttachmentFile = null;
+    } else if (type === 'investigation') {
+      this.investigationReportAttachmentFile = null;
+    } else {
+      this.actionTakenAttachmentFile = null;
+    }
+  }
+
+  onViewDetailsAttachment(index: number): void {
+    const file = this.detailsAttachmentFiles[index];
+    if (!file) return;
+    this.openFileInNewTab(file);
+  }
+
+  onRemoveDetailsAttachment(index: number): void {
+    this.detailsAttachmentFiles.splice(index, 1);
+  }
+
+  getFilenameFromUrl(url: string): string {
+    if (!url) return 'Attachment';
+    const urlWithoutQuery = url.split('?')[0];
+    const parts = urlWithoutQuery.split('/');
+    return decodeURIComponent(parts[parts.length - 1]) || 'Attachment';
+  }
+
+  private getMimeType(filename: string): string {
+    const ext = filename.split('.').pop()?.toLowerCase() || '';
+    const mimeTypes: Record<string, string> = {
+      'pdf': 'application/pdf',
+      'png': 'image/png',
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'doc': 'application/msword',
+      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    };
+    return mimeTypes[ext] || 'application/octet-stream';
+  }
+
+  private openFileInNewTab(file: File): void {
+    const blob = new Blob([file], { type: file.type || this.getMimeType(file.name) });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
 
-  onRemoveAttachment(type: 'feedback' | 'investigation'): void {
-    if (type === 'feedback') {
-      this.feedbackAttachmentFile = null;
-    } else {
-      this.investigationReportAttachmentFile = null;
+  viewExistingAttachment(url: string): void {
+    if (!url) return;
+    this.downloadAndOpenExistingAttachment(url);
+  }
+
+  async downloadAndOpenExistingAttachment(attachmentUrl: string): Promise<void> {
+    const bucketName = 'grievance-files';
+    const urlWithoutQuery = attachmentUrl.split('?')[0];
+    const filePath = decodeURIComponent(
+      urlWithoutQuery.substring(urlWithoutQuery.indexOf(bucketName) + bucketName.length + 1)
+    );
+    if (!filePath) return;
+
+    const filename = this.getFilenameFromUrl(attachmentUrl);
+
+    this.displayDownloadDialog = true;
+    this.downloadDialogMessage = 'Downloading attachment...';
+    this.currentDownloadProgress = 0;
+    this.cdr.detectChanges();
+
+    try {
+      const response: any = await this.apiService.GET(
+        '/api/grievance/attachment/get',
+        { filePath },
+        'global',
+        {
+          responseType: 'blob',
+          onDownloadProgress: (progressEvent: any) => {
+            if (progressEvent.total) {
+              this.currentDownloadProgress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            }
+            this.cdr.detectChanges();
+          },
+        }
+      );
+
+      const contentType = response.headers?.get?.('Content-Type') || this.getMimeType(filename);
+      const blob = new Blob([response.data], { type: contentType });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+    } catch (error) {
+      console.error('Failed to download attachment:', error);
+      Swal.fire({ icon: 'error', title: 'Download Failed', text: 'Could not download the attachment.' });
+    } finally {
+      this.displayDownloadDialog = false;
+      this.currentDownloadProgress = 0;
+      this.downloadDialogMessage = '';
+      this.cdr.detectChanges();
     }
+  }
+
+  onRemoveExistingAttachment(type: 'actionTaken' | 'feedback' | 'investigation'): void {
+    if (type === 'actionTaken') this.existingActionTakenAttachmentUrl = null;
+    else if (type === 'feedback') this.existingFeedbackAttachmentUrl = null;
+    else this.existingInvestigationAttachmentUrl = null;
+  }
+
+  onRemoveExistingDetailsAttachment(index: number): void {
+    this.existingDetailsAttachmentUrls.splice(index, 1);
   }
 
   onAccusedNameInput(event: Event): void {
@@ -806,12 +976,16 @@ export class NonGbvProcessDetails implements OnInit {
     formData.append('actionTakenBy', rawValues.actionTakenBy);
     formData.append('feedbackToComplainant', rawValues.feedbackToComplainant || '');
 
+    formData.append('feedbackToComplainantAttachmentUrl', this.feedbackAttachmentFile ? '' : (this.existingFeedbackAttachmentUrl || rawValues.feedbackToComplainantAttachmentUrl || ''));
+    formData.append('feedbackToComplainantAttachmentFilePath', '');
     if (this.feedbackAttachmentFile) {
-      formData.append(
-        'feedbackToComplainantAttachmentFile',
-        this.feedbackAttachmentFile,
-        this.feedbackAttachmentFile.name
-      );
+      formData.append('feedbackToComplainantAttachmentFile', this.feedbackAttachmentFile, this.feedbackAttachmentFile.name);
+    }
+
+    formData.append('actionTakenbyAttachmentUrl', this.actionTakenAttachmentFile ? '' : (this.existingActionTakenAttachmentUrl || rawValues.actionTakenbyAttachmentUrl || ''));
+    formData.append('actionTakenbyAttachmentFilePath', '');
+    if (this.actionTakenAttachmentFile) {
+      formData.append('actionTakenbyAttachment', this.actionTakenAttachmentFile, this.actionTakenAttachmentFile.name);
     }
 
     formData.append('accusedName', rawValues.accusedName || '');
@@ -850,6 +1024,8 @@ export class NonGbvProcessDetails implements OnInit {
 
     formData.append('investigationFindings', rawValues.investigationFindings || '');
 
+    formData.append('investigationReportAttachmentUrl', this.investigationReportAttachmentFile ? '' : (this.existingInvestigationAttachmentUrl || rawValues.investigationReportAttachmentUrl || ''));
+    formData.append('investigationReportAttachmentFilePath', '');
     if (this.investigationReportAttachmentFile) {
       formData.append(
         'investigationReportAttachment',
@@ -863,6 +1039,12 @@ export class NonGbvProcessDetails implements OnInit {
     // FIX #3: Use formatDateForApi for all date fields
     formData.append('afterAppealClosedOn', this.formatDateForApi(rawValues.afterAppealClosedOn));
 
+    formData.append('mainFindings', rawValues.mainFindings || '');
+
+    this.detailsAttachmentFiles.forEach((file) => {
+      formData.append('detailsAttachments', file, file.name);
+    });
+
     formData.append('status', rawValues.status);
 
     this.apiService
@@ -871,7 +1053,6 @@ export class NonGbvProcessDetails implements OnInit {
       })
       .then((res: any) => {
         const result = res?.data;
-          console.log("ssdfsdf",result);
         // Check for both result.code (standard success) or result.statusCode (if API returns that)
         if ((result && result.code === 200) || (result && result.statusCode === 200) || (result && result.success === true)) {
           Swal.fire({
@@ -882,8 +1063,6 @@ export class NonGbvProcessDetails implements OnInit {
           });
           this.router.navigate(['/non-gbv-management/process']);
         } else {
-          console.log("ssdfsdf",result);
-       
           Swal.fire({
             title: 'Process Failed',
             text: result?.message || 'Failed to process grievance.',
@@ -924,6 +1103,12 @@ export class NonGbvProcessDetails implements OnInit {
     });
     this.feedbackAttachmentFile = null;
     this.investigationReportAttachmentFile = null;
+    this.actionTakenAttachmentFile = null;
+    this.detailsAttachmentFiles = [];
+    this.existingActionTakenAttachmentUrl = null;
+    this.existingFeedbackAttachmentUrl = null;
+    this.existingInvestigationAttachmentUrl = null;
+    this.existingDetailsAttachmentUrls = [];
     this.accusedCounties = [];
     this.accusedPayams = [];
     this.accusedBomas = [];
@@ -989,7 +1174,7 @@ export class NonGbvProcessDetails implements OnInit {
         String(selection.id) === String(value) || String(selection.value) === String(value)
     );
 
-    return item ? item.label : String(value);
+    return item ? item.value : String(value);
   }
 
   formatDisplayDate(value: string | null | undefined): string {

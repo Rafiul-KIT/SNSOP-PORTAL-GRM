@@ -1,0 +1,116 @@
+@if (isLoading) {
+  <app-loader></app-loader>
+} @else {
+  <div class="breadcrumb-wrapper">
+    <p-breadcrumb [model]="breadcrumbItems" [home]="breadcrumbHome" class="w-100"></p-breadcrumb>
+  </div>
+  <div class="card p-3 mb-2">
+    <form [formGroup]="filterForm" class="row g-3">
+
+      <!-- State -->
+      <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="states" [filter]="true" optionLabel="name" appendTo="body" formControlName="state" (onChange)="onStateChange($event.value)" />
+          <label>State Name</label>
+        </p-floatlabel>
+      </div>
+
+      <!-- County -->
+      <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="counties" [filter]="true" optionLabel="name" appendTo="body" formControlName="county" (onChange)="onCountyChange($event.value)" />
+          <label>County Name</label>
+        </p-floatlabel>
+      </div>
+
+      <!-- Payam -->
+      <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="payams" [filter]="true" optionLabel="name" appendTo="body" formControlName="payam" (onChange)="onPayamChange($event.value)" />
+          <label>Payam Name</label>
+        </p-floatlabel>
+      </div>
+
+      <!-- Boma -->
+      <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="bomas" [filter]="true" optionLabel="name" appendTo="body" formControlName="boma" />
+          <label>Boma Name</label>
+        </p-floatlabel>
+      </div>
+
+      <!-- Status -->
+      <!-- <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="statusOptions" optionLabel="label" optionValue="value" appendTo="body" formControlName="status" />
+          <label>Status</label>
+        </p-floatlabel>
+      </div> -->
+
+      <!-- Category -->
+      <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="categoryOptions" optionLabel="label" optionValue="value" appendTo="body" formControlName="category" />
+          <label>Category</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="col-12">
+        <div class="d-grid d-sm-flex justify-content-end align-items-center gap-2">
+          <p-button label="Reset" icon="pi pi-refresh" severity="danger" size="small" [outlined]="true" (onClick)="resetForm()" />
+          <p-button label="Search" icon="pi pi-search" severity="primary" size="small" (onClick)="onSearch()" />
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <p-table [value]="reportData" [loading]="isTableLoading" [tableStyle]="{ 'min-width': '100%', 'margin-bottom': '5px' }" size="small">
+    <ng-template pTemplate="header">
+      <tr>
+        <th colspan="7" class="text-end">
+          <p class="fw-bold mb-2">
+            Showing <kbd>{{ reportData.length }}</kbd> of
+            <kbd>{{ reportData.length }}</kbd> records
+          </p>
+        </th>
+      </tr>
+      <tr>
+        <th class="text-center">Serial</th>
+        <th class="text-center">Geo Location</th>
+        <th class="text-center">Category</th>
+        <th class="text-center">Complainant</th>
+        <th class="text-center">Beneficiary</th>
+        <th class="text-center">Grievance Description</th>
+        <!-- <th class="text-center">ID</th> -->
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-row let-i="rowIndex">
+      <tr>
+        <td class="text-center">{{ i + 1 }}</td>
+        <td class="text-center">{{ getGeoLabel(row) }}</td>
+        <td class="text-center">
+          <span class="badge" [ngClass]="row.grievanceCategory === 'GBV' ? 'bg-danger' : 'bg-info'">
+            {{ row.grievanceCategory }}
+          </span>
+        </td>
+        <td class="text-center">{{ row.complainantName }}</td>
+        <td class="text-center">
+          <span class="badge" [ngClass]="row.isComplainantBeneficiary ? 'bg-success' : 'bg-secondary'">
+            {{ row.isComplainantBeneficiary ? 'Yes' : 'No' }}
+          </span>
+        </td>
+        <td class="text-center complaint-cell">{{ row.grievanceDescription }}</td>
+        <!-- <td class="text-center">{{ row.id }}</td> -->
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7" class="text-center text-danger">
+          <b>No records found!</b>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+}

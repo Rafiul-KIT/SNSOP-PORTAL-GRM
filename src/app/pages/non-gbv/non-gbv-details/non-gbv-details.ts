@@ -259,6 +259,11 @@ export class NonGbvDetails implements OnInit {
     return isBeneficiary ? 'Yes' : 'No';
   }
 
+  getSelectionCriteriaName(value: number): string {
+    const criteriaMap: Record<number, string> = { 0: 'LIPW', 1: 'DIS' };
+    return criteriaMap[value] ?? '--';
+  }
+
   getStatusLabel(status: string | number): string {
     const s = String(status).toLowerCase();
     if (s === '5' || s === 'resolved') return 'Resolved';
