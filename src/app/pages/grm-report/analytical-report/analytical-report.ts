@@ -13,6 +13,9 @@ import {
 import { RouterModule } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
+import { PaginatorModule } from 'primeng/paginator';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { DialogModule } from 'primeng/dialog';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { SelectModule } from 'primeng/select';
@@ -23,15 +26,30 @@ import { Loader } from '../../../components/loader/loader';
 
 interface AnalyticalRow {
   stateId: number;
+  stateName: string;
   countyId: number;
+  countyName: string;
   payamId: number;
+  payamName: string;
   bomaId: number;
+  bomaName: string;
   gbvCount: number;
   ngbvCount: number;
   totalCount: number;
   gbvPercentage: number;
   ngbvPercentage: number;
 }
+
+interface PaginatedApiResponse<T> {
+  code: number;
+  message: string;
+  content: T[];
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+}
+
+type ReportFormat = 'PDF' | 'EXCEL';
 
 @Component({
   selector: 'app-analytical-report',
@@ -42,6 +60,9 @@ interface AnalyticalRow {
     ReactiveFormsModule,
     TableModule,
     ButtonModule,
+    PaginatorModule,
+    ProgressBarModule,
+    DialogModule,
     BreadcrumbModule,
     FloatLabelModule,
     SelectModule,
@@ -54,8 +75,14 @@ interface AnalyticalRow {
 export class AnalyticalReport implements OnInit {
   isLoading = true;
   isTableLoading = false;
+  isDownloading = false;
+  downloadingFormat: ReportFormat | null = null;
+  downloadProgress = 0;
   hasInitialLoadCompleted = false;
   filterForm!: FormGroup;
+  page = 0;
+  size = 10;
+  totalElements = 0;
 
   // Geo lookups
   states: LookupItem[] = [];
@@ -83,7 +110,7 @@ export class AnalyticalReport implements OnInit {
 
   categoryOptions = [
     { label: 'GBV', value: 'GBV' },
-    { label: 'Non-GBV', value: 'Non-GBV' },
+    { label: 'Non-GBV', value: 'NGBV' },
   ];
 
   // Totals
@@ -101,7 +128,7 @@ export class AnalyticalReport implements OnInit {
   async ngOnInit() {
     this.initForm();
     await this.loadInitialLookups();
-    this.onSearch();
+    this.onSearch(true);
   }
 
   initForm() {
@@ -164,7 +191,11 @@ export class AnalyticalReport implements OnInit {
     this.cdr.markForCheck();
   }
 
-  async onSearch() {
+  async onSearch(resetPage: boolean = false) {
+    if (resetPage) {
+      this.page = 0;
+    }
+
     if (this.hasInitialLoadCompleted) {
       this.isTableLoading = true;
     } else {
@@ -173,24 +204,60 @@ export class AnalyticalReport implements OnInit {
     this.cdr.markForCheck();
 
     try {
-      const raw = this.filterForm.getRawValue();
-      const params: Record<string, any> = {};
-      if (raw.state?.id) params['stateId'] = raw.state.id;
-      if (raw.county?.id) params['countyId'] = raw.county.id;
-      if (raw.payam?.id) params['payamId'] = raw.payam.id;
-      if (raw.boma?.id) params['bomaId'] = raw.boma.id;
-
-      const res = await this.api.GET<AnalyticalRow[]>('api/grievance/analytical-report', params);
-      this.reportData = res.data ?? [];
+      const res = await this.api.GET<PaginatedApiResponse<AnalyticalRow>>(
+        'api/grievance/analytical-report',
+        this.buildFilters(true)
+      );
+      this.reportData = res.data?.content ?? [];
+      this.page = res.data?.pageNumber ?? this.page;
+      this.size = res.data?.pageSize ?? this.size;
+      this.totalElements = res.data?.totalElements ?? this.reportData.length;
       this.calculateTotals();
       this.hasInitialLoadCompleted = true;
     } catch (err) {
       console.error('Analytical report fetch error:', err);
       this.reportData = [];
+      this.totalElements = 0;
     } finally {
       this.isLoading = false;
       this.isTableLoading = false;
       this.cdr.detectChanges();
+    }
+  }
+
+  async downloadReport(reportFormat: ReportFormat = 'PDF') {
+    this.isDownloading = true;
+    this.downloadingFormat = reportFormat;
+    this.downloadProgress = 0;
+    this.cdr.markForCheck();
+
+    try {
+      const res = await this.api.POST<Blob>(
+        'api/grievance/analytical-report/download',
+        { ...this.buildFilters(false), reportFormat },
+        'global',
+        {
+          responseType: 'blob',
+          onDownloadProgress: (event) => {
+            if (event.total) {
+              this.downloadProgress = Math.round((event.loaded * 100) / event.total);
+            } else if (event.loaded > 0) {
+              this.downloadProgress = Math.min(95, this.downloadProgress + 5);
+            }
+            this.cdr.markForCheck();
+          },
+        }
+      );
+      const ext = reportFormat === 'PDF' ? 'pdf' : 'xlsx';
+      const filename = this.extractFilename(res.headers?.['content-disposition']) ?? `analytical-report.${ext}`;
+      this.downloadProgress = 100;
+      this.saveBlob(res.data, filename);
+    } catch (err) {
+      console.error('Analytical report download error:', err);
+    } finally {
+      this.isDownloading = false;
+      this.downloadingFormat = null;
+      this.cdr.markForCheck();
     }
   }
 
@@ -201,10 +268,10 @@ export class AnalyticalReport implements OnInit {
   }
 
   getGeoLabel(row: AnalyticalRow): string {
-    const state = this.states.find(s => +s.id === row.stateId)?.name ?? '';
-    const county = this.counties.find(c => +c.id === row.countyId)?.name ?? '';
-    const payam = this.payams.find(p => +p.id === row.payamId)?.name ?? '';
-    const boma = this.bomas.find(b => +b.id === row.bomaId)?.name ?? '';
+    const state = row.stateName || this.states.find(s => +s.id === row.stateId)?.name || '';
+    const county = row.countyName || this.counties.find(c => +c.id === row.countyId)?.name || '';
+    const payam = row.payamName || this.payams.find(p => +p.id === row.payamId)?.name || '';
+    const boma = row.bomaName || this.bomas.find(b => +b.id === row.bomaId)?.name || '';
     return [state, county, payam, boma].filter(Boolean).join(' - ');
   }
 
@@ -216,10 +283,47 @@ export class AnalyticalReport implements OnInit {
     this.counties = [];
     this.payams = [];
     this.bomas = [];
-    this.reportData = [];
-    this.totalGbv = 0;
-    this.totalNonGbv = 0;
-    this.totalComplaint = 0;
-    this.cdr.markForCheck();
+    this.page = 0;
+    this.onSearch(true);
+  }
+
+  onPageChange(event: any) {
+    this.page = event.page;
+    this.size = event.rows;
+    this.onSearch(false);
+  }
+
+  private buildFilters(withPagination: boolean): Record<string, any> {
+    const raw = this.filterForm.getRawValue();
+    const filters: Record<string, any> = {};
+
+    if (raw.state?.id) filters['stateId'] = raw.state.id;
+    if (raw.county?.id) filters['countyId'] = raw.county.id;
+    if (raw.payam?.id) filters['payamId'] = raw.payam.id;
+    if (raw.boma?.id) filters['bomaId'] = raw.boma.id;
+
+    if (withPagination) {
+      filters['page'] = this.page;
+      filters['size'] = this.size;
+    }
+    return filters;
+  }
+
+  private extractFilename(contentDisposition?: string): string | null {
+    if (!contentDisposition) return null;
+    const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+    if (utf8Match?.[1]) return decodeURIComponent(utf8Match[1]);
+    const plainMatch = contentDisposition.match(/filename="?([^"]+)"?/i);
+    return plainMatch?.[1] ?? null;
+  }
+
+  private saveBlob(data: Blob, filename: string) {
+    const blob = data instanceof Blob ? data : new Blob([data]);
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.click();
+    window.URL.revokeObjectURL(url);
   }
 }

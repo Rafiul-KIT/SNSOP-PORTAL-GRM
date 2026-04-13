@@ -57,12 +57,28 @@
 
       <div class="col-12">
         <div class="d-grid d-sm-flex justify-content-end align-items-center gap-2">
+          <p-button label="Export Excel" icon="pi pi-file-excel" severity="success" size="small" [outlined]="true" [loading]="downloadingFormat === 'EXCEL'" [disabled]="isDownloading" (onClick)="downloadReport('EXCEL')" />
+          <p-button label="Download PDF" icon="pi pi-download" severity="secondary" size="small" [outlined]="true" [loading]="downloadingFormat === 'PDF'" [disabled]="isDownloading" (onClick)="downloadReport('PDF')" />
           <p-button label="Reset" icon="pi pi-refresh" severity="danger" size="small" [outlined]="true" (onClick)="resetForm()" />
-          <p-button label="Search" icon="pi pi-search" severity="primary" size="small" (onClick)="onSearch()" />
+          <p-button label="Search" icon="pi pi-search" severity="primary" size="small" (onClick)="onSearch(true)" />
         </div>
       </div>
     </form>
   </div>
+
+  <p-dialog
+    header="Downloading Report"
+    [(visible)]="isDownloading"
+    [modal]="true"
+    [closable]="false"
+    [draggable]="false"
+    [resizable]="false"
+    [closeOnEscape]="false"
+    [style]="{ width: '28rem' }"
+  >
+    <p-progressbar [value]="downloadProgress"></p-progressbar>
+    <small class="text-muted d-block mt-2">Downloading {{ downloadingFormat }} file... {{ downloadProgress }}%</small>
+  </p-dialog>
 
   <p-table [value]="reportData" [loading]="isTableLoading" [tableStyle]="{ 'min-width': '100%', 'margin-bottom': '5px' }" size="small">
     <ng-template pTemplate="header">
@@ -70,7 +86,7 @@
         <th colspan="7" class="text-end">
           <p class="fw-bold mb-2">
             Showing <kbd>{{ reportData.length }}</kbd> of
-            <kbd>{{ reportData.length }}</kbd> records
+            <kbd>{{ totalElements }}</kbd> records
           </p>
         </th>
       </tr>
@@ -87,7 +103,7 @@
 
     <ng-template pTemplate="body" let-row let-i="rowIndex">
       <tr>
-        <td class="text-center">{{ i + 1 }}</td>
+        <td class="text-center">{{ (page * size) + i + 1 }}</td>
         <td class="text-center">{{ getGeoLabel(row) }}</td>
         <td class="text-center fw-bold text-danger">{{ row.gbvCount }}</td>
         <td class="text-center fw-bold text-info">{{ row.ngbvCount }}</td>
@@ -117,4 +133,14 @@
       </tr>
     </ng-template>
   </p-table>
+
+  <p-paginator
+    class="paginator-sticky"
+    [rows]="size"
+    [totalRecords]="totalElements"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [first]="page * size"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    (onPageChange)="onPageChange($event)"
+  />
 }

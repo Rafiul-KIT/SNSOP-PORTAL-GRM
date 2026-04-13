@@ -13,6 +13,7 @@ import {
 import { RouterModule } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
+import { PaginatorModule } from 'primeng/paginator';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { SelectModule } from 'primeng/select';
@@ -40,6 +41,7 @@ interface ReferrerSummaryRow {
     ReactiveFormsModule,
     TableModule,
     ButtonModule,
+    PaginatorModule,
     BreadcrumbModule,
     FloatLabelModule,
     SelectModule,
@@ -62,6 +64,10 @@ export class ReferrerBasedSummaryReport implements OnInit {
 
   // Report data
   reportData: ReferrerSummaryRow[] = [];
+  pagedReportData: ReferrerSummaryRow[] = [];
+  page = 0;
+  size = 10;
+  totalElements = 0;
 
   // Breadcrumb
   breadcrumbItems: MenuItem[] = [
@@ -163,7 +169,11 @@ export class ReferrerBasedSummaryReport implements OnInit {
     this.cdr.markForCheck();
   }
 
-  onSearch() {
+  onSearch(resetPage: boolean = true) {
+    if (resetPage) {
+      this.page = 0;
+    }
+
     this.isTableLoading = true;
     this.cdr.markForCheck();
 
@@ -175,9 +185,17 @@ export class ReferrerBasedSummaryReport implements OnInit {
       { geoLocation: 'Central Equatoria - Juba - Kator - Boma 1', category: 'GBV', userName: 'Admin User', totalComplaintAssigned: 20, resolved: 12, inProgress: 5, unresolved: 3 },
       { geoLocation: 'Central Equatoria - Juba - Kator - Boma 2', category: 'Non-GBV', userName: 'Supervisor', totalComplaintAssigned: 25, resolved: 15, inProgress: 6, unresolved: 4 },
     ];
+    this.totalElements = this.reportData.length;
+    this.applyPagination();
     this.calculateTotals();
     this.isTableLoading = false;
     this.cdr.markForCheck();
+  }
+
+  onPageChange(event: any) {
+    this.page = event.page;
+    this.size = event.rows;
+    this.applyPagination();
   }
 
   calculateTotals() {
@@ -196,10 +214,19 @@ export class ReferrerBasedSummaryReport implements OnInit {
     this.payams = [];
     this.bomas = [];
     this.reportData = [];
+    this.pagedReportData = [];
+    this.totalElements = 0;
+    this.page = 0;
     this.totalComplaintAssigned = 0;
     this.totalResolved = 0;
     this.totalInProgress = 0;
     this.totalUnresolved = 0;
     this.cdr.markForCheck();
+  }
+
+  private applyPagination() {
+    const start = this.page * this.size;
+    const end = start + this.size;
+    this.pagedReportData = this.reportData.slice(start, end);
   }
 }

@@ -63,13 +63,13 @@
     </form>
   </div>
 
-  <p-table [value]="reportData" [loading]="isTableLoading" [tableStyle]="{ 'min-width': '100%', 'margin-bottom': '5px' }" size="small">
+  <p-table [value]="pagedReportData" [loading]="isTableLoading" [tableStyle]="{ 'min-width': '100%', 'margin-bottom': '5px' }" size="small">
     <ng-template pTemplate="header">
       <tr>
         <th colspan="8" class="text-end">
           <p class="fw-bold mb-2">
-            Showing <kbd>{{ reportData.length }}</kbd> of
-            <kbd>{{ reportData.length }}</kbd> records
+            Showing <kbd>{{ pagedReportData.length }}</kbd> of
+            <kbd>{{ totalElements }}</kbd> records
           </p>
         </th>
       </tr>
@@ -87,7 +87,7 @@
 
     <ng-template pTemplate="body" let-row let-i="rowIndex">
       <tr>
-        <td class="text-center">{{ i + 1 }}</td>
+        <td class="text-center">{{ (page * size) + i + 1 }}</td>
         <td class="text-center">{{ row.geoLocation }}</td>
         <td class="text-center">
           <span class="badge" [ngClass]="row.category === 'GBV' ? 'bg-danger' : 'bg-info'">
@@ -122,4 +122,14 @@
       </tr>
     </ng-template>
   </p-table>
+
+  <p-paginator
+    class="paginator-sticky"
+    [rows]="size"
+    [totalRecords]="totalElements"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [first]="page * size"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    (onPageChange)="onPageChange($event)"
+  />
 }
