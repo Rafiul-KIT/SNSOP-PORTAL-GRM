@@ -162,6 +162,11 @@ export class Header {
           },
         ],
       },
+         {
+        label: 'Grievances Status Report',
+        icon: 'fas fa-bullhorn',
+        routerLink: 'grievances-status-report',
+      },
      
       {
         label: 'GRM Report',
@@ -189,11 +194,7 @@ export class Header {
           },
         ],
       },
-      // {
-      //   label: 'Grievances Status Report',
-      //   icon: 'fas fa-bullhorn',
-      //   routerLink: 'grievances-status-report',
-      // },
+   
       // {
       //   label: 'Excel Importing',
       //   icon: 'fas fa-download',
