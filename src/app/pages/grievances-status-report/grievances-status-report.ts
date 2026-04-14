@@ -5,6 +5,8 @@ import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { MenuItem } from 'primeng/api';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
+import { DialogModule } from 'primeng/dialog';
+import { ProgressBarModule } from 'primeng/progressbar';
 import * as XLSX from 'xlsx';
 import { ApiService } from '../../services/api.service';
 import { Loader } from "../../components/loader/loader";
@@ -33,7 +35,7 @@ interface GrievanceReportResponse {
 @Component({
   selector: 'app-grievances-status-report',
   standalone: true,
-  imports: [CommonModule, RouterModule, BreadcrumbModule, TableModule, TabsModule, Loader],
+  imports: [CommonModule, RouterModule, BreadcrumbModule, TableModule, TabsModule, DialogModule, ProgressBarModule, Loader],
   templateUrl: './grievances-status-report.html',
   styleUrls: ['./grievances-status-report.scss']
 })
@@ -48,6 +50,8 @@ export class GrievancesStatusReport implements OnInit {
   avgDaysToCloseByCounty: AvgDaysToCloseByCounty[] = [];
    loading = true;
   isLoading = false;
+  displayDownloadDialog = false;
+  downloadProgress = 0;
 
   constructor() { }
 
@@ -78,6 +82,26 @@ export class GrievancesStatusReport implements OnInit {
   }
 
   downloadReport(): void {
+    this.displayDownloadDialog = true;
+    this.downloadProgress = 0;
+    this.cdr.detectChanges();
+
+    const interval = setInterval(() => {
+      this.downloadProgress += 10;
+      this.cdr.detectChanges();
+
+      if (this.downloadProgress >= 100) {
+        clearInterval(interval);
+        this.generateAndDownloadCSV();
+        setTimeout(() => {
+          this.displayDownloadDialog = false;
+          this.cdr.detectChanges();
+        }, 500);
+      }
+    }, 100);
+  }
+
+  private generateAndDownloadCSV(): void {
     const formatData = (data: any[], headers: Record<string, string>) => {
       if (!data || data.length === 0) return '';
       const mappedData = data.map(item => {

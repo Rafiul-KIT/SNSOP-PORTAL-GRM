@@ -97,5 +97,16 @@
     </div>
   </div>
 </div>
+
+<p-dialog
+  header="Downloading Report"
+  [(visible)]="displayDownloadDialog"
+  [modal]="true"
+  [closable]="false"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '350px' }">
+  <p-progressBar [value]="downloadProgress" [showValue]="true"></p-progressBar>
+</p-dialog>
 }
 
