@@ -21,18 +21,8 @@
       <!-- Request Cards -->
       <div class="col-lg-8">
         <div class="card p-3">
-          <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="mb-3">
             <h5 class="card-section-title mb-0">My Requests</h5>
-            <div class="d-flex gap-2">
-              <div class="d-flex align-items-center gap-2">
-                <label class="small fw-semibold mb-1 d-block">Status</label>
-                <p-select [options]="statusOptions" [(ngModel)]="selectedStatus" (onChange)="filterRequests()" optionLabel="label" optionValue="value" placeholder="Status" styleClass="w-auto" />
-              </div>
-              <div class="d-flex align-items-center gap-2">
-                <label class="small fw-semibold mb-1 d-block">Priority</label>
-                <p-select [options]="priorityOptions" [(ngModel)]="selectedPriority" (onChange)="filterRequests()" optionLabel="label" optionValue="value" placeholder="Priority" styleClass="w-auto" />
-              </div>
-            </div>
           </div>
 
           @if (filteredRequests.length === 0) {
@@ -43,15 +33,28 @@
           } @else {
             <p-table [value]="filteredRequests" [rows]="10" [paginator]="true" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
               <ng-template pTemplate="header">
+                   <tr>
+                  <th></th>
+                  <th></th>
+                  <th>
+                    <p-select [options]="statusOptions" [(ngModel)]="selectedStatus" (onChange)="filterRequests()" optionLabel="label" optionValue="value" placeholder="Status" styleClass="w-100" />
+                  </th>
+                  <th>
+                    <p-select [options]="priorityOptions" [(ngModel)]="selectedPriority" (onChange)="filterRequests()" optionLabel="label" optionValue="value" placeholder="Priority" styleClass="w-100" />
+                  </th>
+                  <th></th>
+                  <th></th>
+                </tr>
                 <tr>
                   <th>Tracking ID</th>
                   <th>Title</th>
                   <th>Status</th>
                   <th>Priority</th>
                   <th>Submitted</th>
-                  <th class="text-center action-col">Action</th>
-                  </tr>
-                  </ng-template>
+                  <th class="action-col-cell">Action</th>
+                </tr>
+             
+              </ng-template>
                   <ng-template pTemplate="body" let-req>
                   <tr>
                   <td>
