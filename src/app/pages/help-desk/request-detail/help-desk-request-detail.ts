@@ -31,7 +31,7 @@ export class HelpDeskRequestDetail implements OnInit {
   private readonly MIS_FIRM_ROLE_IDS = [51];
 
   breadcrumbHome = { icon: 'fas fa-home', routerLink: '/dashboard' };
-  breadcrumbItems = [{ label: 'Help Desk', routerLink: '/help-desk/support-management' }, { label: 'Request Detail' }];
+  breadcrumbItems = [{ label: 'Help Desk', routerLink: '/help-desk/my-requests' }, { label: 'Request Detail' }];
 
   isLoading = true;
   isSavingDetail = false;
@@ -65,10 +65,16 @@ export class HelpDeskRequestDetail implements OnInit {
     private apiService: ApiService
   ) {}
 
+  private getBackRoute(): string {
+    const currentPath = String(this.route.routeConfig?.path || '');
+    return currentPath.startsWith('support-management') ? '/help-desk/support-management' : '/help-desk/my-requests';
+  }
+
   async ngOnInit(): Promise<void> {
+    this.breadcrumbItems = [{ label: 'Help Desk', routerLink: this.getBackRoute() }, { label: 'Request Detail' }];
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!Number.isFinite(id) || id <= 0) {
-      this.router.navigate(['/help-desk/support-management']);
+      this.router.navigate([this.getBackRoute()]);
       return;
     }
 
@@ -110,7 +116,7 @@ export class HelpDeskRequestDetail implements OnInit {
           text: 'Request detail not found.',
           confirmButtonColor: '#3085d6',
         });
-        this.router.navigate(['/help-desk/support-management']);
+        this.router.navigate([this.getBackRoute()]);
         return;
       }
 
@@ -126,7 +132,7 @@ export class HelpDeskRequestDetail implements OnInit {
         text: 'Unable to load support request details.',
         confirmButtonColor: '#d33',
       });
-      this.router.navigate(['/help-desk/support-management']);
+      this.router.navigate([this.getBackRoute()]);
     } finally {
       this.isLoading = false;
       this.cdr.detectChanges();

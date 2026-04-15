@@ -20,6 +20,7 @@ import { HelpDeskSubmitRequest } from './pages/help-desk/submit-request/help-des
 import { HelpDeskMyRequests } from './pages/help-desk/my-requests/help-desk-my-requests';
 import { HelpDeskSupportManagement } from './pages/help-desk/support-management/help-desk-support-management';
 import { HelpDeskRequestDetail } from './pages/help-desk/request-detail/help-desk-request-detail';
+import { HelpDeskRequestDetails } from './pages/help-desk/request-details/help-desk-request-details';
 import { HelpDeskStatusTracker } from './pages/help-desk/status-tracker/help-desk-status-tracker';
 import { HelpDeskReports } from './pages/help-desk/reports/help-desk-reports';
 import { HelpDeskUserManual } from './pages/help-desk/user-manual/help-desk-user-manual';
@@ -144,6 +145,8 @@ export const routes: Routes = [
       { path: 'dashboard', component: HelpDeskDashboard, canActivate: [routeGuard] },
       { path: 'submit-request', component: HelpDeskSubmitRequest, canActivate: [routeGuard] },
       { path: 'my-requests', component: HelpDeskMyRequests, canActivate: [routeGuard] },
+      { path: 'request-detail/:id', component: HelpDeskRequestDetail, canActivate: [routeGuard] },
+      { path: 'request-details/:id', component: HelpDeskRequestDetails, canActivate: [routeGuard] },
       { path: 'support-management/:id', component: HelpDeskRequestDetail, canActivate: [routeGuard] },
       { path: 'support-management', component: HelpDeskSupportManagement, canActivate: [routeGuard] },
       { path: 'status-tracker', component: HelpDeskStatusTracker, canActivate: [routeGuard] },

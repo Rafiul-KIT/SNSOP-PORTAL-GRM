@@ -257,7 +257,8 @@ export class HelpDeskSupportManagement implements OnInit {
   }
 
   async onView(request: ITRequest): Promise<void> {
-    await this.router.navigate(['/help-desk/support-management', request.id]);
+    await this.router.navigate(['/help-desk/request-details', request.id]);
+   
   }
 
   async onAction(request: ITRequest): Promise<void> {

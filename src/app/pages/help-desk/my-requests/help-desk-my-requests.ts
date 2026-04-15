@@ -121,7 +121,7 @@ export class HelpDeskMyRequests implements OnInit {
   }
 
   onView(request: ITRequest): void {
-    this.router.navigate(['/help-desk/support-management', request.id]);
+    this.router.navigate(['/help-desk/request-detail', request.id]);
   }
 
   getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
