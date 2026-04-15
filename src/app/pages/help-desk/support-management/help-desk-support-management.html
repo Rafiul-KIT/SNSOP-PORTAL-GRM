@@ -24,6 +24,7 @@
 
       <div class="row g-2 mb-3 align-items-end">
         <div class="col-12 col-md-4">
+          <label class="small fw-semibold mb-1 d-block">Search</label>
           <input
             type="text"
             pInputText
@@ -34,6 +35,7 @@
           />
         </div>
         <div class="col-6 col-md-3">
+          <label class="small fw-semibold mb-1 d-block">Status</label>
           <p-select
             [options]="statuses"
             [(ngModel)]="selectedStatus"
@@ -44,6 +46,7 @@
           />
         </div>
         <div class="col-6 col-md-3">
+          <label class="small fw-semibold mb-1 d-block">Priority</label>
           <p-select
             [options]="priorityOptions"
             [(ngModel)]="selectedPriority"

@@ -242,6 +242,45 @@ export class HelpDeskRequestDetails implements OnInit {
     }
   }
 
+  getTimelineTitle(action?: string): string {
+    switch (String(action || '').toUpperCase()) {
+      case 'CREATED':
+        return 'Request Created';
+      case 'ATTACHMENT_ADDED':
+        return 'Attachment Added';
+      case 'STATUS_CHANGED':
+        return 'Status Changed';
+      default:
+        return this.formatStatus(action);
+    }
+  }
+
+  getTimelineIcon(action?: string): string {
+    switch (String(action || '').toUpperCase()) {
+      case 'CREATED':
+        return 'fas fa-plus';
+      case 'ATTACHMENT_ADDED':
+        return 'fas fa-paperclip';
+      case 'STATUS_CHANGED':
+        return 'fas fa-arrows-rotate';
+      default:
+        return 'fas fa-circle';
+    }
+  }
+
+  getTimelineTone(action?: string): string {
+    switch (String(action || '').toUpperCase()) {
+      case 'CREATED':
+        return 'created';
+      case 'ATTACHMENT_ADDED':
+        return 'attachment';
+      case 'STATUS_CHANGED':
+        return 'status';
+      default:
+        return 'default';
+    }
+  }
+
   async onAction(request: ITRequest): Promise<void> {
     const actions = this.getAvailableActions(request);
     if (!actions.length) return;

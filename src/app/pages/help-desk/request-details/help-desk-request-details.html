@@ -54,40 +54,37 @@
           } @else {
             <div class="timeline">
               @for (h of detailHistory; track h.id) {
-                <div class="timeline-item">
-                  <div class="timeline-head">
-                    <div class="timeline-title-wrap">
-                      <span class="history-action-badge">{{ h.action }}</span>
-                    </div>
-                    <small class="text-muted">By {{ h.performedBy }} | {{ formatDate(h.performedAt) }}</small>
+                <div class="timeline-entry">
+                  <div class="timeline-marker {{ getTimelineTone(h.action) }}">
+                    <i class="{{ getTimelineIcon(h.action) }}"></i>
                   </div>
-                  @if (h.comment) {
-                    <div class="history-comment">
-                      <strong>Comment:</strong> {{ h.comment }}
+                  <div class="timeline-item">
+                    <div class="timeline-head">
+                      <h6 class="timeline-title mb-0">{{ getTimelineTitle(h.action) }}</h6>
+                      <span class="history-action-badge">{{ formatStatus(h.action) }}</span>
                     </div>
-                  }
-                  @if (parseHistoryChanges(h.changes).length) {
-                    <div class="table-responsive">
-                      <table class="table table-sm history-change-table mb-0">
-                        <thead>
-                          <tr>
-                            <th>Field</th>
-                            <th>Old Value</th>
-                            <th>New Value</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          @for (c of parseHistoryChanges(h.changes); track c.field + c.newValue + c.oldValue) {
-                            <tr>
-                              <td>{{ c.field }}</td>
-                              <td>{{ c.oldValue }}</td>
-                              <td>{{ c.newValue }}</td>
-                            </tr>
-                          }
-                        </tbody>
-                      </table>
-                    </div>
-                  }
+                    @if (parseHistoryChanges(h.changes).length) {
+                      <div class="timeline-change-list mt-3">
+                        @for (c of parseHistoryChanges(h.changes); track c.field + c.newValue + c.oldValue) {
+                          <div class="timeline-change-row">
+                            <div class="timeline-field">{{ c.field }}</div>
+                            <div class="timeline-flow">
+                              <span class="value-chip old">{{ c.oldValue }}</span>
+                              <i class="fas fa-arrow-right timeline-arrow"></i>
+                              <span class="value-chip new">{{ c.newValue }}</span>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                    @if (h.comment) {
+                      <div class="history-comment mt-2">
+                        <strong>Comment:</strong> {{ h.comment }}
+                      </div>
+                    }
+                    <small class="timeline-date">{{ formatDate(h.performedAt) }}</small>
+                    <div class="timeline-by">By {{ h.performedBy }}</div>
+                  </div>
                 </div>
               }
             </div>
