@@ -192,8 +192,9 @@ export class HelpDeskSupportManagement implements OnInit {
       return (
         (from === 'NEW' && to === 'PROCESSING') ||
         (from === 'PROCESSING' && ['REQUIRED_MORE_INFO', 'ADDRESSED', 'CLOSED'].includes(to)) ||
-        (from === 'REOPENED' && to === 'PROCESSING') ||
-        (from === 'CLOSED' && to === 'REOPENED')
+        (from === 'REOPENED' && to === 'PROCESSING')
+        // ||
+        // (from === 'CLOSED' && to === 'REOPENED')
       );
     }
 
@@ -220,8 +221,8 @@ export class HelpDeskSupportManagement implements OnInit {
           ];
         case 'REOPENED':
           return [{ label: 'Move to Processing', value: 'PROCESSING', needsComment: false, actionType: 'status' }];
-        case 'CLOSED':
-          return [{ label: 'Reopen', value: 'REOPENED', needsComment: true, actionType: 'status' }];
+          //   case 'CLOSED':
+          // return [{ label: 'Reopen', value: 'REOPENED', needsComment: true, actionType: 'status' }];
         default:
           return [];
       }
