@@ -68,8 +68,25 @@
                     <span class="priority-text" [ngClass]="req.priority?.toLowerCase()">{{ req.priority }}</span>
                   </td>
                   <td>{{ formatDate(req.createdAt) }}</td>
-                  <td class="text-center action-col">
-                    <p-button icon="pi pi-eye" [outlined]="true" severity="secondary" size="small" (onClick)="onView(req)" title="View Details"></p-button>
+                  <td class="action-col-cell">
+                    <div class="d-flex flex-wrap gap-1">
+                      <p-button
+                        label="View"
+                        icon="pi pi-eye"
+                        [outlined]="true"
+                        severity="secondary"
+                        size="small"
+                        (onClick)="onView(req)"
+                      ></p-button>
+                      <p-button
+                        [label]="getStatusActionLabel(req)"
+                        severity="info"
+                        size="small"
+                        [disabled]="!getAvailableActions(req).length"
+                        [outlined]="!getAvailableActions(req).length"
+                        (onClick)="onAction(req)"
+                      ></p-button>
+                    </div>
                   </td>
                   </tr>
 

@@ -319,20 +319,40 @@ export class HelpDeskSupportManagement implements OnInit {
       const result = await Swal.fire({
         title: 'Submit Required Information',
         html: `
-          <p style="margin-bottom:8px;">At least one field is required.</p>
-          <textarea id="submit-info-comment" class="swal2-textarea" placeholder="Comment"></textarea>
-          <textarea id="submit-info-description" class="swal2-textarea" placeholder="Optional description update"></textarea>
-          <input id="submit-info-files" type="file" class="swal2-file" multiple />
+          <div style="text-align: left; font-family: inherit;">
+            <p style="font-size: 0.9rem; color: #6c757d; margin-bottom: 1.25rem; border-bottom: 1px solid #e9ecef; padding-bottom: 0.5rem;">
+              <i class="fas fa-circle-info" style="color: #3b82f6; margin-right: 6px;"></i>
+              Please provide at least one of the following to update your request.
+            </p>
+            
+            <div style="margin-bottom: 1rem;">
+              <label for="submit-info-comment" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.4rem; color: #374151;">Workflow Comment</label>
+              <textarea id="submit-info-comment" class="swal2-textarea" style="width: 100%; height: 80px; margin: 0; padding: 0.75rem; font-size: 0.9rem; border-radius: 8px; border: 1px solid #d1d5db;" placeholder="Describe your updates or response..."></textarea>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              <label for="submit-info-description" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.4rem; color: #374151;">Updated Description (Optional)</label>
+              <textarea id="submit-info-description" class="swal2-textarea" style="width: 100%; height: 80px; margin: 0; padding: 0.75rem; font-size: 0.9rem; border-radius: 8px; border: 1px solid #d1d5db;" placeholder="If you need to update the original description..."></textarea>
+            </div>
+
+            <div style="margin-bottom: 0.5rem;">
+              <label for="submit-info-files" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.4rem; color: #374151;">Attachments (Optional)</label>
+              <input id="submit-info-files" type="file" class="swal2-file" style="width: 100%; margin: 0; font-size: 0.85rem; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem;" multiple />
+              <div style="font-size: 0.75rem; color: #9ca3af; mt-1">Select one or more files to upload.</div>
+            </div>
+          </div>
         `,
         showCancelButton: true,
         confirmButtonText: 'Submit Info',
         confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#6e7881',
+        width: '500px',
         preConfirm: () => {
           const commentValue = String((document.getElementById('submit-info-comment') as HTMLTextAreaElement)?.value || '').trim();
           const descriptionValue = String((document.getElementById('submit-info-description') as HTMLTextAreaElement)?.value || '').trim();
           const files = Array.from((document.getElementById('submit-info-files') as HTMLInputElement)?.files || []);
           if (!commentValue && !descriptionValue && !files.length) {
-            Swal.showValidationMessage('Please provide at least comment, description, or attachment.');
+            Swal.showValidationMessage('Please provide at least a comment, description, or attachment.');
             return null;
           }
           return { commentValue, descriptionValue, files };
