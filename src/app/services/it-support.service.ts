@@ -86,6 +86,33 @@ export interface ITSearchParams {
   size?: number;
 }
 
+export interface ITDashboardCount {
+  totalRequests: number;
+  resolvedRequests: number;
+}
+
+export interface ITDashboardModuleSummary {
+  moduleId: number;
+  moduleName: string;
+  totalRequests: number;
+  resolvedRequests: number;
+}
+
+export interface ITDashboardMonthReport {
+  month: string;
+  year: number;
+  monthNumber: number;
+  reportedCount: number;
+}
+
+export interface ITDashboardData {
+  totalRequests: number;
+  countsByStatus: Record<string, ITDashboardCount>;
+  requestsByModule: ITDashboardModuleSummary[];
+  reportedIssuesLastSixMonths: ITDashboardMonthReport[];
+  countsByPriority: Record<string, ITDashboardCount>;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -187,6 +214,16 @@ export class ItSupportService {
       return response?.success && Array.isArray(response.data) ? response.data : [];
     } catch {
       return [];
+    }
+  }
+
+  async getDashboard(): Promise<ITDashboardData | null> {
+    try {
+      const res = await this.api.GET<any>(`${this.baseEndpoint}/dashboard`);
+      const response = this.parseApiResponse<ITDashboardData>(res);
+      return response?.success ? response.data : null;
+    } catch {
+      return null;
     }
   }
 
