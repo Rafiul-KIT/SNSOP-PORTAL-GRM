@@ -29,6 +29,9 @@ import {
 import { ApiService } from '../../../services/api.service';
 import { Loader } from '../../../components/loader/loader';
 import Swal from 'sweetalert2';
+import {
+  GrievanceListStateService,
+} from '../../../services/grievance-list-state.service';
 
 interface GbvGrievance {
   id: number;
@@ -74,6 +77,7 @@ interface GbvGrievance {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GbvList implements OnInit {
+  private readonly stateKey = 'gbv-list';
   isLoading = true;
   isTableLoading = false;
   hasInitialLoadCompleted = false;
@@ -112,13 +116,15 @@ export class GbvList implements OnInit {
     private router: Router,
     private api: ApiService,
     private lookup: LookupService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private listState: GrievanceListStateService
   ) {}
 
   async ngOnInit() {
     this.initBreadcrumb();
     this.initForm();
     await this.loadInitialLookups();
+    await this.restoreListState();
     this.fetchPage(this.currentPage, this.pageSize);
   }
 
@@ -170,6 +176,7 @@ export class GbvList implements OnInit {
       this.counties = await this.lookup.getCountyListByStateId(state.id);
       this.searchForm.get('county')?.enable();
     }
+    this.saveListState();
     this.cdr.markForCheck();
   }
 
@@ -183,6 +190,7 @@ export class GbvList implements OnInit {
       this.payams = await this.lookup.getPayamListByCountyId(county.id);
       this.searchForm.get('payam')?.enable();
     }
+    this.saveListState();
     this.cdr.markForCheck();
   }
 
@@ -194,6 +202,7 @@ export class GbvList implements OnInit {
       this.bomas = await this.lookup.getBomaListByPayamId(payam.id);
       this.searchForm.get('boma')?.enable();
     }
+    this.saveListState();
     this.cdr.markForCheck();
   }
 
@@ -234,6 +243,7 @@ export class GbvList implements OnInit {
         this.totalRecords = data.totalElements || 0;
         this.currentPage = data.pageNumber || 0;
         this.hasInitialLoadCompleted = true;
+        this.saveListState();
 
         if (this.grievances.length === 0) {
           this.messageService.add({
@@ -261,11 +271,13 @@ export class GbvList implements OnInit {
   onPageChange(event: any) {
     this.currentPage = event.page;
     this.pageSize = event.rows;
+    this.saveListState();
     this.fetchPage(this.currentPage, this.pageSize);
   }
 
   searchGrievances() {
     this.currentPage = 0;
+    this.saveListState();
     this.fetchPage(this.currentPage, this.pageSize);
   }
 
@@ -283,6 +295,7 @@ export class GbvList implements OnInit {
     this.payams = [];
     this.bomas = [];
     this.currentPage = 0;
+    this.listState.clear(this.stateKey);
     this.fetchPage(this.currentPage, this.pageSize);
     this.cdr.markForCheck();
   }
@@ -384,9 +397,65 @@ export class GbvList implements OnInit {
   trackById = (_: number, grievance: GbvGrievance) => grievance.id;
 
   onView(item: GbvGrievance): void {
+    this.saveListState();
     this.router.navigate(['/gbv-management/details', item.id], {
       queryParams: { status: item.status },
     });
+  }
+
+  private saveListState(): void {
+    const f = this.searchForm.value;
+    this.listState.set(this.stateKey, {
+      currentPage: this.currentPage,
+      pageSize: this.pageSize,
+      id: f.id ?? null,
+      trackingNumber: f.trackingNumber ?? '',
+      stateId: f.state?.id ?? null,
+      countyId: f.county?.id ?? null,
+      payamId: f.payam?.id ?? null,
+      bomaId: f.boma?.id ?? null,
+      status: f.status ?? null,
+    });
+  }
+
+  private async restoreListState(): Promise<void> {
+    const saved = this.listState.get(this.stateKey);
+    if (!saved) return;
+
+    this.currentPage = saved.currentPage ?? 0;
+    this.pageSize = saved.pageSize ?? 10;
+    this.searchForm.patchValue({
+      id: saved.id,
+      trackingNumber: saved.trackingNumber || '',
+      status: saved.status,
+    });
+
+    if (!saved.stateId) return;
+    const state = this.states.find((s) => s.id === String(saved.stateId)) || null;
+    if (!state) return;
+
+    this.searchForm.patchValue({ state });
+    await this.onStateChange(state);
+
+    if (!saved.countyId) return;
+    const county = this.counties.find((c) => c.id === String(saved.countyId)) || null;
+    if (!county) return;
+
+    this.searchForm.patchValue({ county });
+    await this.onCountyChange(county);
+
+    if (!saved.payamId) return;
+    const payam = this.payams.find((p) => p.id === String(saved.payamId)) || null;
+    if (!payam) return;
+
+    this.searchForm.patchValue({ payam });
+    await this.onPayamChange(payam);
+
+    if (!saved.bomaId) return;
+    const boma = this.bomas.find((b) => b.id === String(saved.bomaId)) || null;
+    if (!boma) return;
+
+    this.searchForm.patchValue({ boma });
   }
 
   // onArchive(gbvGrievanceId: number): void {
