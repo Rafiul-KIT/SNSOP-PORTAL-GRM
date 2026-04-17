@@ -4,8 +4,6 @@ import { ButtonModule } from 'primeng/button';
 import { PopoverModule } from 'primeng/popover';
 import { MenubarModule } from 'primeng/menubar';
 import { environment } from '../../../environments/environment';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 
 @Component({
@@ -53,16 +51,23 @@ export class Header {
       link: environment.portals.surveyCTO,
       icon: 'fas fa-poll',
     },
+    {
+      label: 'Help Desk',
+      link: this.getMasterHelpDeskLink(),
+      icon: 'fas fa-headset',
+      newTab: true,
+    },
       { label: 'Monitoring & Evaluation',
       link: environment.portals.mNe,
       icon: 'fas fa-chart-bar'
     },
+
+    
   ];
 
   constructor(
     private router: Router,
     private apiService: ApiService,
-    private http: HttpClient,
     private cdRef: ChangeDetectorRef,
   ) {
     // Watch login state and load menus dynamically
@@ -220,13 +225,13 @@ export class Header {
 
   getHelpDeskMenuItems(): any[] {
     return [
-      { label: 'Help Desk Dashboard', routerLink: '/help-desk/dashboard', icon: 'fas fa-tachometer-alt' },
-      { label: 'Submit Support Request', routerLink: '/help-desk/submit-request', icon: 'fas fa-plus-circle' },
-      { label: 'My Requests', routerLink: '/help-desk/my-requests', icon: 'fas fa-clipboard-list' },
-      { label: 'Support Management', routerLink: '/help-desk/support-management', icon: 'fas fa-users-cog' },
-      { label: 'Status Tracker', routerLink: '/help-desk/status-tracker', icon: 'fas fa-search' },
-      { label: 'Reports', routerLink: '/help-desk/reports', icon: 'fas fa-chart-bar' },
-      { separator: true, label: 'User Manual', routerLink: '/help-desk/user-manual', icon: 'fas fa-book' }
+      { label: 'Help Desk Dashboard', link: this.getMasterHelpDeskMenuLink('/help-desk/dashboard'), icon: 'fas fa-tachometer-alt', newTab: true },
+      { label: 'Submit Support Request', link: this.getMasterHelpDeskMenuLink('/help-desk/submit-request'), icon: 'fas fa-plus-circle', newTab: true },
+      { label: 'My Requests', link: this.getMasterHelpDeskMenuLink('/help-desk/my-requests'), icon: 'fas fa-clipboard-list', newTab: true },
+      { label: 'Support Management', link: this.getMasterHelpDeskMenuLink('/help-desk/support-management'), icon: 'fas fa-users-cog', newTab: true },
+      { label: 'Status Tracker', link: this.getMasterHelpDeskMenuLink('/help-desk/status-tracker'), icon: 'fas fa-search', newTab: true },
+      { label: 'Reports', link: this.getMasterHelpDeskMenuLink('/help-desk/reports'), icon: 'fas fa-chart-bar', newTab: true },
+      { separator: true, label: 'User Manual', link: this.getMasterHelpDeskMenuLink('/help-desk/user-manual'), icon: 'fas fa-book', newTab: true }
     ];
   }
 
@@ -237,6 +242,57 @@ export class Header {
   hideHelpDeskDropdown = () => {
     this.showHelpDeskDropdown = false;
   };
+
+  onPortalClick(event: MouseEvent, portal: any): void {
+    if (!portal?.newTab || !portal?.link) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.openInNewTab(portal.link);
+  }
+
+  onHelpDeskMenuClick(event: MouseEvent, item: any): void {
+    if (!item?.newTab || !item?.link) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.showHelpDeskDropdown = false;
+    this.showUsermenu = false;
+    this.openInNewTab(item.link);
+  }
+
+  private getMasterHelpDeskLink(): string {
+    const explicitHelpDeskLink = (environment.portals as any)?.masterHelpDesk as string | undefined;
+    if (explicitHelpDeskLink) {
+      return explicitHelpDeskLink;
+    }
+
+    const masterPortal = (environment.portals.master ?? '').replace(/\/+$/, '');
+    const helpDeskPath = '/help-desk/dashboard';
+    const masterUsesHashRouting = (environment.portals.masterSettings ?? '').includes('/#/');
+
+    return masterUsesHashRouting
+      ? `${masterPortal}/#${helpDeskPath}`
+      : `${masterPortal}${helpDeskPath}`;
+  }
+
+  private getMasterHelpDeskMenuLink(route: string): string {
+    const dashboardLink = this.getMasterHelpDeskLink();
+    const routeSuffix = route.replace(/^\/+/, '').replace(/^help-desk\/?/, '') || 'dashboard';
+
+    if (dashboardLink.endsWith('/dashboard')) {
+      return dashboardLink.replace(/\/dashboard$/, `/${routeSuffix}`);
+    }
+
+    return `${dashboardLink.replace(/\/+$/, '')}/${routeSuffix}`;
+  }
+
+  private openInNewTab(targetUrl: string): void {
+    const popup = window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    if (!popup) {
+      console.warn('Popup blocked while opening Help Desk in new tab.');
+    }
+  }
 
   logout() {
     this.apiService.logout();

@@ -20,7 +20,10 @@
   <div class="portals-option-wrapper {{ showPortalOptions ? 'show' : '' }}" (mouseleave)="showPortalOptions = false">
     <div class="portal-items">
       @for (portal of portalList; track portal) {
-      <a class="item" [href]="portal.link">
+      <a
+        class="item"
+        [attr.href]="portal.newTab ? null : portal.link"
+        (click)="onPortalClick($event, portal)">
         <i class="{{ portal.icon }} w-50"></i>
         <span>{{ portal.label }}</span>
       </a>
@@ -43,7 +46,10 @@
             @if (item.separator) {
               <div class="menu-divider"></div>
             }
-            <a class="item {{ item.separator ? 'item-highlight' : '' }}" [routerLink]="item.routerLink" (click)="hideHelpDeskDropdown()">
+            <a
+              class="item {{ item.separator ? 'item-highlight' : '' }}"
+              [attr.href]="item.newTab ? null : item.link"
+              (click)="onHelpDeskMenuClick($event, item)">
               <i class="{{ item.icon }} me-2"></i>
               {{ item.label }}
             </a>
@@ -72,7 +78,10 @@
         <span class="fw-bold text-muted px-2">Help</span>
       </div>
       @for (item of helpDeskChildren; track item.label) {
-        <a class="item help-desk-mobile-item" [routerLink]="item.routerLink" (click)="showUsermenu = false">
+        <a
+          class="item help-desk-mobile-item"
+          [attr.href]="item.newTab ? null : item.link"
+          (click)="onHelpDeskMenuClick($event, item)">
           <i class="{{ item.icon }} me-2"></i>
           {{ item.label }}
         </a>
