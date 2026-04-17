@@ -101,3 +101,49 @@ ul {
 .swal2-container {
   z-index: 110000 !important;
 }
+
+/* Global PrimeNG RadioButton style: strong filled selected state */
+.p-radiobutton .p-radiobutton-box {
+  width: 1.08rem !important;
+  height: 1.08rem !important;
+  border-radius: 50% !important;
+  border: 1.5px solid #9fb1c5 !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+  transition: border-color 0.18s ease, background-color 0.18s ease,
+    box-shadow 0.18s ease !important;
+}
+
+.p-radiobutton .p-radiobutton-box:not(.p-disabled):not(.p-highlight):hover {
+  border-color: #7f97b1 !important;
+}
+
+.p-radiobutton .p-radiobutton-box.p-highlight {
+  background: #0f9d78 !important;
+  border-color: #0f9d78 !important;
+}
+
+.p-radiobutton.p-radiobutton-checked .p-radiobutton-box {
+  background: #0f9d78 !important;
+  border-color: #0f9d78 !important;
+}
+
+.p-radiobutton .p-radiobutton-box.p-highlight .p-radiobutton-icon {
+  width: 0.42rem !important;
+  height: 0.42rem !important;
+  transform: none !important;
+  background: #ffffff !important;
+  border-radius: 50% !important;
+}
+
+.p-radiobutton.p-radiobutton-checked .p-radiobutton-box .p-radiobutton-icon {
+  width: 0.42rem !important;
+  height: 0.42rem !important;
+  transform: none !important;
+  background: #ffffff !important;
+  border-radius: 50% !important;
+}
+
+.p-radiobutton .p-radiobutton-box.p-focus {
+  box-shadow: 0 0 0 0.2rem rgba(15, 157, 120, 0.18) !important;
+}

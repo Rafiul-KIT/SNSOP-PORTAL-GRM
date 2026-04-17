@@ -86,6 +86,40 @@ export interface ITSearchParams {
   size?: number;
 }
 
+export interface ITDashboardCount {
+  totalRequests: number;
+  resolvedRequests: number;
+}
+
+export interface ITDashboardModuleSummary {
+  moduleId: number;
+  moduleName: string;
+  totalRequests: number;
+  resolvedRequests: number;
+}
+
+export interface ITDashboardMonthReport {
+  month: string;
+  year: number;
+  monthNumber: number;
+  reportedCount: number;
+}
+
+export interface ITDashboardData {
+  totalRequests: number;
+  countsByStatus: Record<string, ITDashboardCount>;
+  requestsByModule: ITDashboardModuleSummary[];
+  reportedIssuesLastSixMonths: ITDashboardMonthReport[];
+  countsByPriority: Record<string, ITDashboardCount>;
+}
+
+export interface ITReportSummaryRow {
+  reportType: string;
+  currentMonth: number;
+  previousMonth: number;
+  trend: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -187,6 +221,69 @@ export class ItSupportService {
       return response?.success && Array.isArray(response.data) ? response.data : [];
     } catch {
       return [];
+    }
+  }
+
+  async getDashboard(): Promise<ITDashboardData | null> {
+    try {
+      const res = await this.api.GET<any>(`${this.baseEndpoint}/dashboard`);
+      const response = this.parseApiResponse<ITDashboardData>(res);
+      return response?.success ? response.data : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async getReportSummary(month?: string): Promise<ITReportSummaryRow[]> {
+    const queryParams: Record<string, any> = {};
+    if (month?.trim()) {
+      queryParams['month'] = month.trim();
+    }
+
+    try {
+      const res = await this.api.GET<any>(`${this.baseEndpoint}/report/summary`, queryParams);
+      const response = this.parseApiResponse<ITReportSummaryRow[]>(res);
+      return response?.success && Array.isArray(response.data) ? response.data : [];
+    } catch {
+      return [];
+    }
+  }
+
+  async getReportSummaryPdf(month?: string): Promise<Blob | null> {
+    const queryParams: Record<string, any> = {};
+    if (month?.trim()) {
+      queryParams['month'] = month.trim();
+    }
+
+    try {
+      const res = await this.api.GET<Blob>(
+        `${this.baseEndpoint}/report/summary/pdf`,
+        queryParams,
+        'global',
+        { responseType: 'blob' }
+      );
+      return (res as any)?.data || null;
+    } catch {
+      return null;
+    }
+  }
+
+  async getReportSummaryCsv(month?: string): Promise<Blob | null> {
+    const queryParams: Record<string, any> = {};
+    if (month?.trim()) {
+      queryParams['month'] = month.trim();
+    }
+
+    try {
+      const res = await this.api.GET<Blob>(
+        `${this.baseEndpoint}/report/summary/csv`,
+        queryParams,
+        'global',
+        { responseType: 'blob' }
+      );
+      return (res as any)?.data || null;
+    } catch {
+      return null;
     }
   }
 

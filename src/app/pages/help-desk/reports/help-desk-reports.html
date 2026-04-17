@@ -3,15 +3,48 @@
 </div>
 
 <div class="helpdesk-container">
+  @if (isLoading) {
+    <app-loader></app-loader>
+  }
   <!-- Page Header -->
   <div class="page-header">
-    <div>
+    <div class="page-headline">
+      <span class="page-kicker">Help Desk Analytics</span>
       <h2 class="page-title">Reports</h2>
       <p class="page-subtitle">Analyze ticket volume, SLA compliance, user satisfaction, and support performance trends.</p>
     </div>
     <div class="header-actions">
-      <p-button label="Export Report" icon="fas fa-download" [outlined]="true" severity="primary" size="small"></p-button>
-      <p-button label="Export Summary" icon="fas fa-file-export" severity="primary" size="small"></p-button>
+      <div class="action-group">
+        <p-button
+          label="Export Summary"
+          icon="fas fa-file-export"
+          severity="primary"
+          size="small"
+          (onClick)="exportSummaryPdf()"
+        ></p-button>
+        <p-button
+          label="Export CSV"
+          icon="fas fa-file-csv"
+          [outlined]="true"
+          severity="secondary"
+          size="small"
+          (onClick)="exportSummaryCsv()"
+        ></p-button>
+      </div>
+      <div class="month-picker-wrap">
+        <p-datepicker
+          inputId="reportMonthFilter"
+          [(ngModel)]="selectedMonthDate"
+          (onSelect)="onMonthChange()"
+          view="month"
+          dateFormat="MM yy"
+          [readonlyInput]="true"
+          [showIcon]="true"
+          [maxDate]="maxMonthDate"
+          appendTo="body"
+          styleClass="month-picker"
+        ></p-datepicker>
+      </div>
     </div>
   </div>
 
@@ -19,26 +52,26 @@
   <div class="row g-2 g-md-3 mb-3">
     <div class="col-6 col-md-3">
       <div class="stat-card" style="background-color: #e8f4fd; border: 2px solid #e8f4fd;">
-        <div class="stat-label">Resolution within SLA</div>
-        <div class="stat-value">{{ kpis.resolutionWithinSla }}</div>
+        <div class="stat-label">Current Month Total</div>
+        <div class="stat-value">{{ kpis.totalCurrent }}</div>
       </div>
     </div>
     <div class="col-6 col-md-3">
       <div class="stat-card" style="background-color: #fff8e1; border: 2px solid #fff8e1;">
-        <div class="stat-label">Average User Rating</div>
-        <div class="stat-value">{{ kpis.avgUserRating }}</div>
+        <div class="stat-label">Previous Month Total</div>
+        <div class="stat-value">{{ kpis.totalPrevious }}</div>
       </div>
     </div>
     <div class="col-6 col-md-3">
       <div class="stat-card" style="background-color: #e0f2f1; border: 2px solid #e0f2f1;">
-        <div class="stat-label">Total Re-submissions</div>
-        <div class="stat-value">{{ kpis.totalResubmissions }}</div>
+        <div class="stat-label">Average Trend</div>
+        <div class="stat-value">{{ formatTrend(kpis.avgTrend) }}</div>
       </div>
     </div>
     <div class="col-6 col-md-3">
       <div class="stat-card" style="background-color: #f3e5f5; border: 2px solid #f3e5f5;">
-        <div class="stat-label">Open High Priority</div>
-        <div class="stat-value">{{ kpis.openHighPriority }}</div>
+        <div class="stat-label">Improved Report Types</div>
+        <div class="stat-value">{{ kpis.improvedReportTypes }}</div>
       </div>
     </div>
   </div>
@@ -47,7 +80,7 @@
   <div class="card p-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="card-section-title mb-0">Reporting Matrix</h5>
-      <p-button label="Export Excel" icon="fas fa-file-excel" [outlined]="true" severity="secondary" size="small"></p-button>
+      <p-button label="Refresh" icon="fas fa-rotate-right" [outlined]="true" severity="secondary" size="small" (onClick)="loadReportSummary()"></p-button>
     </div>
     <div class="table-wrapper">
       <p-table [value]="reportMatrix" [tableStyle]="{ 'min-width': '500px' }" size="small">
@@ -61,10 +94,15 @@
         </ng-template>
         <ng-template pTemplate="body" let-row>
           <tr>
-            <td class="text-primary fw-semibold">{{ row.type }}</td>
-            <td>{{ row.current }}</td>
-            <td>{{ row.previous }}</td>
-            <td [class]="getTrendClass(row.trend)">{{ row.trend }}</td>
+            <td class="text-primary fw-semibold">{{ row.reportType }}</td>
+            <td>{{ row.currentMonth }}</td>
+            <td>{{ row.previousMonth }}</td>
+            <td [class]="getTrendClass(row.trend)">{{ formatTrend(row.trend) }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="4" class="text-center text-muted py-3">No summary data found for the selected month.</td>
           </tr>
         </ng-template>
       </p-table>

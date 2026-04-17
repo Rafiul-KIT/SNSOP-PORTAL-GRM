@@ -83,7 +83,7 @@ export class HelpDeskStatusTracker {
 
   onView(): void {
     if (this.ticketResult) {
-      this.router.navigate(['/help-desk/support-management', this.ticketResult.id]);
+      this.router.navigate(['/help-desk/request-details', this.ticketResult.id]);
     }
   }
 

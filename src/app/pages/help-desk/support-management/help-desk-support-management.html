@@ -22,41 +22,7 @@
         <!-- <span class="text-muted small d-none d-sm-inline">{{ getWorkflowContextText() }}</span> -->
       </div>
 
-      <div class="row g-2 mb-3 align-items-end">
-        <div class="col-12 col-md-4">
-          <input
-            type="text"
-            pInputText
-            class="w-100"
-            [(ngModel)]="searchText"
-            placeholder="Search by title or tracking number"
-            (keyup.enter)="applyFilters()"
-          />
-        </div>
-        <div class="col-6 col-md-3">
-          <p-select
-            [options]="statuses"
-            [(ngModel)]="selectedStatus"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Status"
-            class="w-100"
-          />
-        </div>
-        <div class="col-6 col-md-3">
-          <p-select
-            [options]="priorityOptions"
-            [(ngModel)]="selectedPriority"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Priority"
-            class="w-100"
-          />
-        </div>
-        <div class="col-12 col-md-2">
-          <p-button label="Search" severity="primary" class="w-100" (onClick)="applyFilters()"></p-button>
-        </div>
-      </div>
+  
 
       @if (requests.length === 0) {
         <div class="text-center text-muted py-4">
@@ -67,6 +33,52 @@
         <div class="table-wrapper">
           <p-table [value]="requests" [tableStyle]="{ 'min-width': '900px' }" size="small" [stripedRows]="true">
             <ng-template pTemplate="header">
+                  <tr>
+                <th class="fw-bold">  <div class="">
+          <label class="small fw-semibold mb-1 d-block">Search</label>
+          <input
+            type="text"
+            pInputText
+            class="w-100"
+            [(ngModel)]="searchText"
+            placeholder="Search by title or tracking number"
+            (keyup.enter)="applyFilters()"
+          />
+        </div></th>
+                <th class="fw-bold"></th>
+                <th class="fw-bold">  <div class="">
+          <label class="small fw-semibold mb-1 d-block">Status</label>
+          <p-select
+            [options]="statuses"
+            [(ngModel)]="selectedStatus"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Status"
+            class="w-100"
+          />
+        </div></th>
+                <th class="fw-bold"> <div class="">
+          <label class="small fw-semibold mb-1 d-block">Priority</label>
+          <p-select
+            [options]="priorityOptions"
+            [(ngModel)]="selectedPriority"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Priority"
+            class="w-100"
+          />
+        </div></th>
+                <th class="fw-bold"></th>
+                <th class="fw-bold"></th>
+                <th class="fw-bold">   <div class="">
+      <p-button 
+  label="Search" 
+  severity="primary" 
+  [style]="{ width: '50%' }"
+  (onClick)="applyFilters()">
+</p-button>
+        </div></th>
+              </tr>
               <tr>
                 <th class="fw-bold">Tracking No.</th>
                 <th class="fw-bold">Title</th>

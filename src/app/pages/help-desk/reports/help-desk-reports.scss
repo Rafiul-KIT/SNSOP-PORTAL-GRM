@@ -7,9 +7,33 @@
 .page-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+
+.page-headline {
+  display: flex;
+  flex-direction: column;
+}
+
+.page-kicker {
+  display: inline-flex;
+  width: fit-content;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #475569;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 0.14rem 0.55rem;
+  margin-bottom: 0.4rem;
 }
 
 .page-title {
@@ -27,8 +51,54 @@
 
 .header-actions {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.6rem;
   flex-shrink: 0;
+}
+
+.action-group {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.month-picker-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+:host ::ng-deep .header-actions .p-button {
+  border-radius: 8px;
+  font-weight: 600;
+  letter-spacing: 0;
+  box-shadow: none;
+}
+
+:host ::ng-deep .month-picker.p-datepicker {
+  min-width: 190px;
+}
+
+:host ::ng-deep .month-picker.p-datepicker .p-inputtext {
+  min-width: 190px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-weight: 500;
+  color: #334155;
+  padding: 0.42rem 0.65rem;
+}
+
+:host ::ng-deep .month-picker.p-datepicker .p-inputtext:hover {
+  border-color: #94a3b8;
+}
+
+:host ::ng-deep .month-picker.p-datepicker .p-inputtext:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+:host ::ng-deep .month-picker.p-datepicker .p-datepicker-trigger {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 .stat-card {
@@ -92,11 +162,26 @@
 
   .page-header {
     flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.75rem;
   }
 
   .header-actions {
     width: 100%;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .action-group {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .month-picker-wrap {
+    width: 100%;
   }
 
   .page-title {
@@ -121,5 +206,15 @@
 
   .card {
     padding: 0.75rem !important;
+  }
+
+  :host ::ng-deep .month-picker.p-datepicker {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  :host ::ng-deep .month-picker.p-datepicker .p-inputtext {
+    width: 100%;
+    min-width: 100%;
   }
 }
