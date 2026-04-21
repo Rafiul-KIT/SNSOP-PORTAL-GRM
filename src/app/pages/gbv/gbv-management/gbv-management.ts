@@ -119,9 +119,9 @@ export class GBVManagement implements OnInit, OnDestroy {
       date: [{ value: this.today, disabled: true }],
 
       stateId: [null, Validators.required],
-      countyId: [null, Validators.required],
-      payamId: [null, Validators.required],
-      bomaId: [null, Validators.required],
+      countyId: [{ value: null, disabled: true }, Validators.required],
+      payamId: [{ value: null, disabled: true }, Validators.required],
+      bomaId: [{ value: null, disabled: true }, Validators.required],
       incidentOccurredAt: [null, [Validators.required, this.noFutureDateValidator()]],
 
       contactFocalPersonName: ['', [Validators.required, this.trimRequiredValidator(), Validators.maxLength(120), Validators.pattern(/^[A-Za-z\s]+$/)]],
@@ -197,22 +197,31 @@ export class GBVManagement implements OnInit, OnDestroy {
   onStateChange(event: any): void {
     this.counties = []; this.payams = []; this.bomas = [];
     this.gbvForm.patchValue({ countyId: null, payamId: null, bomaId: null });
+    this.gbvForm.get('payamId')?.disable({ emitEvent: false });
+    this.gbvForm.get('bomaId')?.disable({ emitEvent: false });
     if (event.value) {
+      this.gbvForm.get('countyId')?.enable({ emitEvent: false });
       this.lookupService.getCountyListByStateId(event.value.toString()).then((data: any[]) => {
         this.counties = data.map((item) => ({ label: item.name, value: parseInt(item.id, 10) }));
         this.cdr.detectChanges();
       });
+    } else {
+      this.gbvForm.get('countyId')?.disable({ emitEvent: false });
     }
   }
 
   onCountyChange(event: any): void {
     this.payams = []; this.bomas = [];
     this.gbvForm.patchValue({ payamId: null, bomaId: null });
+    this.gbvForm.get('bomaId')?.disable({ emitEvent: false });
     if (event.value) {
+      this.gbvForm.get('payamId')?.enable({ emitEvent: false });
       this.lookupService.getPayamListByCountyId(event.value.toString()).then((data: any[]) => {
         this.payams = data.map((item) => ({ label: item.name, value: parseInt(item.id, 10) }));
         this.cdr.detectChanges();
       });
+    } else {
+      this.gbvForm.get('payamId')?.disable({ emitEvent: false });
     }
   }
 
@@ -220,10 +229,13 @@ export class GBVManagement implements OnInit, OnDestroy {
     this.bomas = [];
     this.gbvForm.patchValue({ bomaId: null });
     if (event.value) {
+      this.gbvForm.get('bomaId')?.enable({ emitEvent: false });
       this.lookupService.getBomaListByPayamId(event.value.toString()).then((data: any[]) => {
         this.bomas = data.map((item) => ({ label: item.name, value: parseInt(item.id, 10) }));
         this.cdr.detectChanges();
       });
+    } else {
+      this.gbvForm.get('bomaId')?.disable({ emitEvent: false });
     }
   }
 
@@ -873,6 +885,9 @@ export class GBVManagement implements OnInit, OnDestroy {
     this.counties = [];
     this.payams = [];
     this.bomas = [];
+    this.gbvForm.get('countyId')?.disable({ emitEvent: false });
+    this.gbvForm.get('payamId')?.disable({ emitEvent: false });
+    this.gbvForm.get('bomaId')?.disable({ emitEvent: false });
     this.grievanceAttachmentFile = null;
     this.consentAttachmentFile = null;
     this.cdr.detectChanges();

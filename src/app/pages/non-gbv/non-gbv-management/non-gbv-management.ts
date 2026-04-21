@@ -219,9 +219,9 @@ export class NonGbvManagement implements OnInit, OnDestroy {
       serialNumber: [{ value: '', disabled: true }],
       date: [{ value: this.today, disabled: true }],
       stateName: [null, Validators.required],
-      countyName: [null, Validators.required],
-      payamName: [null, Validators.required],
-      bomaName: [null, Validators.required],
+      countyName: [{ value: null, disabled: true }, Validators.required],
+      payamName: [{ value: null, disabled: true }, Validators.required],
+      bomaName: [{ value: null, disabled: true }, Validators.required],
       description: ['', [Validators.required, this.trimRequiredValidator(), Validators.maxLength(3000)]],
       attachment: [null, Validators.required],
       reportingChannel: [null, Validators.required],
@@ -632,8 +632,11 @@ export class NonGbvManagement implements OnInit, OnDestroy {
       payamName: null,
       bomaName: null,
     });
+    this.grievanceForm.get('payamName')?.disable({ emitEvent: false });
+    this.grievanceForm.get('bomaName')?.disable({ emitEvent: false });
 
     if (stateId) {
+      this.grievanceForm.get('countyName')?.enable({ emitEvent: false });
       this.lookupService
         .getCountyListByStateId(stateId.toString())
         .then((data) => {
@@ -644,6 +647,7 @@ export class NonGbvManagement implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         });
     } else {
+      this.grievanceForm.get('countyName')?.disable({ emitEvent: false });
       this.cdr.detectChanges();
     }
   }
@@ -653,8 +657,10 @@ export class NonGbvManagement implements OnInit, OnDestroy {
     this.payams = [];
     this.bomas = [];
     this.grievanceForm.patchValue({ payamName: null, bomaName: null });
+    this.grievanceForm.get('bomaName')?.disable({ emitEvent: false });
 
     if (countyId) {
+      this.grievanceForm.get('payamName')?.enable({ emitEvent: false });
       this.lookupService
         .getPayamListByCountyId(countyId.toString())
         .then((data) => {
@@ -665,6 +671,7 @@ export class NonGbvManagement implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         });
     } else {
+      this.grievanceForm.get('payamName')?.disable({ emitEvent: false });
       this.cdr.detectChanges();
     }
   }
@@ -675,6 +682,7 @@ export class NonGbvManagement implements OnInit, OnDestroy {
     this.grievanceForm.patchValue({ bomaName: null });
 
     if (payamId) {
+      this.grievanceForm.get('bomaName')?.enable({ emitEvent: false });
       this.lookupService
         .getBomaListByPayamId(payamId.toString())
         .then((data) => {
@@ -685,6 +693,7 @@ export class NonGbvManagement implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         });
     } else {
+      this.grievanceForm.get('bomaName')?.disable({ emitEvent: false });
       this.cdr.detectChanges();
     }
   }
@@ -793,6 +802,9 @@ export class NonGbvManagement implements OnInit, OnDestroy {
     this.bomas = [];
     this.grievanceTypes = [];
     this.attachmentFile = null;
+    this.grievanceForm.get('countyName')?.disable({ emitEvent: false });
+    this.grievanceForm.get('payamName')?.disable({ emitEvent: false });
+    this.grievanceForm.get('bomaName')?.disable({ emitEvent: false });
     this.syncSupportTypeValidator(true);
     this.cdr.detectChanges();
   }
