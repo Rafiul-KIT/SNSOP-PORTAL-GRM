@@ -212,6 +212,7 @@ small.text-danger {
 
   .p-inputtext:disabled,
   .p-select.p-disabled,
+  .p-textarea:disabled,
   .p-inputnumber.p-disabled .p-inputtext {
     background: #eef2f7 !important;
     border-color: #c6d1e0 !important;
@@ -229,6 +230,12 @@ small.text-danger {
     border-radius: 8px;
     background: #ffffff;
     padding: 0.32rem 0.7rem;
+  }
+
+  .yes-no-radio-group.control-disabled {
+    background: #eef2f7 !important;
+    border-color: #c6d1e0 !important;
+    box-shadow: inset 0 1px 2px rgba(23, 42, 66, 0.08) !important;
   }
 
   .yes-no-option {

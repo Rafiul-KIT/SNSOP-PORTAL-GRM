@@ -146,7 +146,7 @@ export class GBVManagement implements OnInit, OnDestroy {
       complainantBeneficiary: [null, this.nullNotAllowedValidator()],
       complainantBeneficiarySelectionCriteria: [null],
       suspectKnown: [null],
-      suspectAssociatedWithProject: [null],
+      suspectAssociatedWithProject: [{ value: null, disabled: true }],
       suspectDetails: [{ value: '', disabled: true }, [Validators.maxLength(1000)]],
       recommendedReferralServiceId: [null],
       availableInfoSuspectedPerpetrator: [{ value: '', disabled: true }, [Validators.maxLength(1000)]],
@@ -320,6 +320,7 @@ export class GBVManagement implements OnInit, OnDestroy {
       this.subscriptions.push(
         suspectKnownCtrl.valueChanges.subscribe((val) => this.syncSuspectDetails(val))
       );
+      this.syncSuspectDetails(suspectKnownCtrl.value);
     }
 
     // Suspect Associated With Project → enable/disable Available Info on Suspected Perpetrator
@@ -328,6 +329,7 @@ export class GBVManagement implements OnInit, OnDestroy {
       this.subscriptions.push(
         suspectAssociatedCtrl.valueChanges.subscribe((val) => this.syncAvailableInfoPerpetrator(val))
       );
+      this.syncAvailableInfoPerpetrator(suspectAssociatedCtrl.value);
     }
 
     // Recommended Referral Service → enable/disable Referral Services Recommended Details when "Other" (7)
@@ -336,6 +338,7 @@ export class GBVManagement implements OnInit, OnDestroy {
       this.subscriptions.push(
         referralServiceCtrl.valueChanges.subscribe((val) => this.syncReferralDetails(val))
       );
+      this.syncReferralDetails(referralServiceCtrl.value);
     }
   }
 
@@ -376,13 +379,20 @@ export class GBVManagement implements OnInit, OnDestroy {
   }
 
   private syncSuspectDetails(suspectKnown: any): void {
-    const ctrl = this.gbvForm.get('suspectDetails');
-    if (!ctrl) return;
+    const suspectDetailsCtrl = this.gbvForm.get('suspectDetails');
+    const suspectAssociatedCtrl = this.gbvForm.get('suspectAssociatedWithProject');
+    if (!suspectDetailsCtrl || !suspectAssociatedCtrl) return;
+
     if (suspectKnown === true) {
-      ctrl.enable({ emitEvent: false });
+      suspectDetailsCtrl.enable({ emitEvent: false });
+      suspectAssociatedCtrl.enable({ emitEvent: false });
+      this.syncAvailableInfoPerpetrator(suspectAssociatedCtrl.value);
     } else {
-      ctrl.setValue('', { emitEvent: false });
-      ctrl.disable({ emitEvent: false });
+      suspectDetailsCtrl.setValue('', { emitEvent: false });
+      suspectDetailsCtrl.disable({ emitEvent: false });
+      suspectAssociatedCtrl.setValue(null, { emitEvent: false });
+      suspectAssociatedCtrl.disable({ emitEvent: false });
+      this.syncAvailableInfoPerpetrator(null);
     }
   }
 
@@ -400,12 +410,18 @@ export class GBVManagement implements OnInit, OnDestroy {
   private syncReferralDetails(referralServiceId: any): void {
     const ctrl = this.gbvForm.get('referralServicesRecommendedDetails');
     if (!ctrl) return;
-    if (referralServiceId === 7) {
+    if (this.isOtherReferralServiceSelected(referralServiceId)) {
       ctrl.enable({ emitEvent: false });
     } else {
       ctrl.setValue('', { emitEvent: false });
       ctrl.disable({ emitEvent: false });
     }
+  }
+
+  private isOtherReferralServiceSelected(referralServiceId: any): boolean {
+    if (referralServiceId === null || referralServiceId === undefined) return false;
+    const selected = this.referralServices.find((item) => item.value === referralServiceId);
+    return selected?.label?.toLowerCase?.().includes('other') ?? false;
   }
 
   isIncidentReporterOtherSelected(): boolean {

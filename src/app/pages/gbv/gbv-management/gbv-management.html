@@ -197,7 +197,7 @@
             </div>
             <div class="col-md-6">
               <label class="form-label fw-bold d-block mb-2">Suspect Associated With Project</label>
-              <div class="yes-no-radio-group">
+              <div class="yes-no-radio-group" [class.control-disabled]="gbvForm.get('suspectAssociatedWithProject')?.disabled">
                 <div class="yes-no-option">
                   <p-radiobutton
                     inputId="suspectAssociatedYes"
