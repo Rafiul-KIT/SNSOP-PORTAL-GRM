@@ -12,7 +12,7 @@
       <div class="step-section">
         <h5><i class="bi bi-1-circle-fill text-primary me-2"></i> Select & Download Template</h5>
         <hr>
-        <div class="row">
+        <div class="row g-3 align-items-end">
           <div class="col-md-6">
             <div class="form-group">
               <label for="templateGrievanceType" class="form-label fw-bold">Template Type</label>
@@ -30,8 +30,8 @@
               </select>
             </div>
           </div>
-          <div class="col-md-6 d-flex align-items-end">
-            <button class="btn btn-primary w-100" (click)="downloadTemplate()" [disabled]="!templateGrievanceType || isTemplateDownloading">
+          <div class="col-md-6">
+            <button class="btn btn-primary w-100 action-btn" (click)="downloadTemplate()" [disabled]="!templateGrievanceType || isTemplateDownloading">
               @if (!isTemplateDownloading) {
                 <span><i class="bi bi-download me-2"></i> Download Template</span>
               } @else {
@@ -47,8 +47,8 @@
       <div class="step-section mt-4">
         <h5><i class="bi bi-2-circle-fill text-primary me-2"></i> Upload & Import</h5>
         <hr>
-        <div class="row">
-          <div class="col-md-4">
+        <div class="row g-3 align-items-end">
+          <div class="col-lg-3 col-md-6">
             <div class="form-group">
               <label for="uploadGrievanceType" class="form-label fw-bold">Grievance Type</label>
               <select
@@ -65,24 +65,26 @@
               </select>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-lg-4 col-md-6">
             <div class="form-group">
               <label for="fileInput" class="form-label fw-bold">Upload Excel File</label>
               <input type="file" class="form-control" id="fileInput" (change)="onFileChange($event)" accept=".xlsx, .xls">
             </div>
           </div>
-          <div class="col-md-4 d-flex align-items-end gap-2">
-            <button class="btn btn-success flex-fill" (click)="onImport()" [disabled]="getImportButtonDisabledState()">
+          <div class="col-lg-5">
+            <div class="import-actions">
+            <button class="btn btn-success action-btn" (click)="onImport()" [disabled]="getImportButtonDisabledState()">
               @if (!isImporting) {
-                <span><i class="bi bi-check-circle-fill me-2"></i> Import Data</span>
+                <span><i class="bi bi-check-circle-fill "></i> Import Data</span>
               } @else {
                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                 <span> Importing...</span>
               }
             </button>
-            <button class="btn btn-secondary" type="button" (click)="reset()" [disabled]="isImporting">
+            <button class="btn btn-secondary action-btn" type="button" (click)="reset()" [disabled]="isImporting">
               <i class="bi bi-arrow-repeat me-2"></i> Reset
             </button>
+            </div>
           </div>
         </div>
       </div>

@@ -9,6 +9,21 @@
     background-color: #f8f9fa;
 }
 
+.import-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+    width: 100%;
+}
+
+.action-btn {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
 .form-label.fw-bold {
     font-weight: 600 !important;
 }
@@ -16,4 +31,10 @@
 .bi {
     vertical-align: -.125em;
     fill: currentColor;
+}
+
+@media (max-width: 767.98px) {
+    .import-actions {
+        grid-template-columns: 1fr;
+    }
 }
