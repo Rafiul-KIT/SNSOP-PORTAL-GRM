@@ -69,6 +69,7 @@ export class ExcelImporting implements OnInit {
       });
       return;
     }
+    
 
     this.isTemplateDownloading = true;
     this.cdr.detectChanges();
