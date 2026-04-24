@@ -15,106 +15,77 @@
         <div class="row">
           <div class="col-md-6">
             <div class="form-group">
-              <label for="gbvType" class="form-label fw-bold">Template Type</label>
-              <select class="form-select" id="gbvType" name="gbvType" [(ngModel)]="selectedGBVType">
+              <label for="templateGrievanceType" class="form-label fw-bold">Template Type</label>
+              <select
+                class="form-select"
+                id="templateGrievanceType"
+                name="templateGrievanceType"
+                [ngModel]="templateGrievanceType"
+                (ngModelChange)="onTemplateGrievanceTypeChange($event)"
+              >
                 <option value="" disabled>-- Select a template type --</option>
-                <option value="type1">Gender Based Violence</option>
-                <option value="type2">Non Gender Based Violence</option>
+                @for (type of grievanceTypeOptions; track type.value) {
+                  <option [value]="type.value">{{ type.label }}</option>
+                }
               </select>
             </div>
           </div>
           <div class="col-md-6 d-flex align-items-end">
-            <button class="btn btn-primary w-100" (click)="downloadTemplate()" [disabled]="!selectedGBVType">
-              <i class="bi bi-download me-2"></i> Download Template
+            <button class="btn btn-primary w-100" (click)="downloadTemplate()" [disabled]="!templateGrievanceType || isTemplateDownloading">
+              @if (!isTemplateDownloading) {
+                <span><i class="bi bi-download me-2"></i> Download Template</span>
+              } @else {
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <span> Downloading...</span>
+              }
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Step 2: Upload and Analyze -->
+      <!-- Step 2: Upload and Import -->
       <div class="step-section mt-4">
-        <h5><i class="bi bi-2-circle-fill text-primary me-2"></i> Upload & Analyze</h5>
+        <h5><i class="bi bi-2-circle-fill text-primary me-2"></i> Upload & Import</h5>
         <hr>
         <div class="row">
-          <div class="col-md-6">
+          <div class="col-md-4">
+            <div class="form-group">
+              <label for="uploadGrievanceType" class="form-label fw-bold">Grievance Type</label>
+              <select
+                class="form-select"
+                id="uploadGrievanceType"
+                name="uploadGrievanceType"
+                [ngModel]="uploadGrievanceType"
+                (ngModelChange)="onUploadGrievanceTypeChange($event)"
+              >
+                <option value="" disabled>-- Select grievance type --</option>
+                @for (type of grievanceTypeOptions; track type.value) {
+                  <option [value]="type.value">{{ type.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+          <div class="col-md-4">
             <div class="form-group">
               <label for="fileInput" class="form-label fw-bold">Upload Excel File</label>
               <input type="file" class="form-control" id="fileInput" (change)="onFileChange($event)" accept=".xlsx, .xls">
             </div>
           </div>
-          <div class="col-md-6 d-flex align-items-end">
-            <button class="btn btn-warning w-100" (click)="onAnalyze()" [disabled]="!selectedFile || isAnalyzing">
-              @if (!isAnalyzing) {
-                <span><i class="bi bi-bar-chart-line-fill me-2"></i> Analyze</span>
+          <div class="col-md-4 d-flex align-items-end gap-2">
+            <button class="btn btn-success flex-fill" (click)="onImport()" [disabled]="getImportButtonDisabledState()">
+              @if (!isImporting) {
+                <span><i class="bi bi-check-circle-fill me-2"></i> Import Data</span>
               } @else {
                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                <span> Analyzing...</span>
+                <span> Importing...</span>
               }
+            </button>
+            <button class="btn btn-secondary" type="button" (click)="reset()" [disabled]="isImporting">
+              <i class="bi bi-arrow-repeat me-2"></i> Reset
             </button>
           </div>
         </div>
       </div>
-
-      <!-- Step 3: Preview and Import -->
-      @if (isPreview) {
-        <div class="step-section mt-4">
-          <h5><i class="bi bi-3-circle-fill text-primary me-2"></i> Preview & Import</h5>
-          <hr>
-          <div class="alert" [ngClass]="getAlertClass()">
-            <strong>Analysis Report:</strong>
-            <ul>
-              @for (error of analysisErrors; track error) {
-                <li>{{ error }}</li>
-              }
-            </ul>
-          </div>
-
-          @if (previewHeaders.length > 0) {
-            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-              <table class="table table-sm table-bordered table-hover">
-                <thead class="table-light">
-                  <tr>
-                    @for (header of previewHeaders; track header) {
-                      <th>{{ header }}</th>
-                    }
-                    <th>Validation Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (row of analysisData; track $index) {
-                    <tr [class.table-danger]="row.error">
-                      @for (cell of row.values; let i = $index; track i) {
-                        <td>{{ cell }}</td>
-                      }
-                      <td>
-                        @if (row.error) {
-                          <span class="badge bg-danger">{{ row.error }}</span>
-                        } @else {
-                          <span class="badge bg-success">OK</span>
-                        }
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          }
-
-          <div class="text-center mt-3">
-              <button class="btn btn-success" (click)="onImport()" [disabled]="getImportButtonDisabledState()">
-                @if (!isImporting) {
-                  <span><i class="bi bi-check-circle-fill me-2"></i> Import Data</span>
-                } @else {
-                  <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                  <span> Importing...</span>
-                }
-              </button>
-              <button class="btn btn-secondary ms-2" (click)="reset()">
-                  <i class="bi bi-arrow-repeat me-2"></i> Start Over
-              </button>
-          </div>
-        </div>
-      }
 
     </div>
   </div>

@@ -200,11 +200,11 @@ export class Header {
         ],
       },
    
-      // {
-      //   label: 'Excel Importing',
-      //   icon: 'fas fa-download',
-      //   routerLink: 'excel-importing',
-      // },
+      {
+        label: 'Excel Importing',
+        icon: 'fas fa-download',
+        routerLink: 'excel-importing',
+      },
 
 
     ];
