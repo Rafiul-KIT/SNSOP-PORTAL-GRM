@@ -51,6 +51,7 @@ export class Header {
       link: environment.portals.surveyCTO,
       icon: 'fas fa-poll',
     },
+ 
     {
       label: 'Help Desk',
       link: this.getMasterHelpDeskLink(),
@@ -61,6 +62,12 @@ export class Header {
       link: environment.portals.mNe,
       icon: 'fas fa-chart-bar'
     },
+     {
+        label: 'Economic Opportunities',
+        link: environment.portals.economicOpportunities,
+        icon: 'fas fa-briefcase',
+    
+      },
 
     
   ];
@@ -292,6 +299,13 @@ export class Header {
   };
 
   onPortalClick(event: MouseEvent, portal: any): void {
+    if (portal?.command) {
+      event.preventDefault();
+      event.stopPropagation();
+      portal.command();
+      return;
+    }
+
     if (!portal?.newTab || !portal?.link) return;
 
     event.preventDefault();
@@ -337,7 +351,9 @@ export class Header {
 
   private openInNewTab(targetUrl: string): void {
     const popup = window.open(targetUrl, '_blank', 'noopener,noreferrer');
- 
+    if (!popup) {
+      console.warn('Popup blocked while opening Help Desk in new tab.');
+    }
   }
 
   logout() {

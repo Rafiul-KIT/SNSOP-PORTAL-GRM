@@ -13,6 +13,7 @@ export const environment = {
     payment: 'https://localhost:4030',
     grm: 'https://localhost:4040',
     report: 'https://localhost:4050',
+    economicOpportunities: 'https://localhost:4010/#/economic-opportunities/dashboard',
   },
   authBackend: 'https://devgwapp.southsudansafetynet.info/mis_auth',
   cookie_name:'mis_ta'
