@@ -88,9 +88,6 @@ export const routeGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: 
       '/beneficiary-approval/',
       '/beneficiary-audit/',
       '/beneficiary/momo-update/',
-      '/help-desk/',
-      '/help-desk/support-management',
-      '/help-desk/support-management/:id',
     ];
 
     // Check if the route starts with any of the dynamic prefixes
