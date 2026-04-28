@@ -50,6 +50,8 @@ interface GbvGrievance {
   statusBadgeClass?: string;
   isOverdue?: boolean;
   daysElapsed?: number;
+  afterMgmtActionClosedAt?: string;
+  afterMgmtActionClosedAtDisplay?: string;
 }
 
 @Component({
@@ -110,6 +112,12 @@ export class GbvList implements OnInit {
     { label: 'Referred', value: 15 },
   ];
 
+  // Gender options
+  genderOptions = [
+    { label: 'Male', value: 0 },
+    { label: 'Female', value: 1 },
+  ];
+
   constructor(
     private fb: FormBuilder,
     private messageService: MessageService,
@@ -141,6 +149,7 @@ export class GbvList implements OnInit {
       payam: [{ value: null, disabled: true }],
       boma: [{ value: null, disabled: true }],
       status: [null],
+      complainantGender: [null],
     });
   }
 
@@ -217,6 +226,7 @@ export class GbvList implements OnInit {
       payamId: f.payam?.id || null,
       bomaId: f.boma?.id || null,
       status: f.status || null,
+      complainantGender: f.complainantGender ?? null,
     };
   }
 
@@ -290,6 +300,7 @@ export class GbvList implements OnInit {
       payam: { value: null, disabled: true },
       boma: { value: null, disabled: true },
       status: null,
+      complainantGender: null,
     });
     this.counties = [];
     this.payams = [];
@@ -362,6 +373,7 @@ export class GbvList implements OnInit {
         '';
       const createdAt = row.createdAt ?? row.created_at ?? '';
       const incidentOccurredAt = row.incidentOccurredAt ?? row.incidentDate ?? '';
+      const afterMgmtActionClosedAt = row.afterMgmtActionClosedAt ?? row.after_mgmt_action_closed_at ?? '';
       const beneficiaryRaw = row.isComplainantBeneficiary ?? '';
       const statusLabel = this.getStatusLabel(row.status);
       const isResolved = String(row.status).toLowerCase() === '5' || String(row.status).toLowerCase() === 'resolved';
@@ -380,6 +392,8 @@ export class GbvList implements OnInit {
         createdAtDisplay: this.formatDisplayDate(createdAt),
         incidentOccurredAt,
         incidentOccurredAtDisplay: this.formatDisplayDate(incidentOccurredAt),
+        afterMgmtActionClosedAt,
+        afterMgmtActionClosedAtDisplay: this.formatDisplayDate(afterMgmtActionClosedAt),
         beneficiaryStatus:
           beneficiaryRaw === 'YES'
             ? 'Beneficiary'
@@ -415,6 +429,7 @@ export class GbvList implements OnInit {
       payamId: f.payam?.id ?? null,
       bomaId: f.boma?.id ?? null,
       status: f.status ?? null,
+      complainantGender: f.complainantGender ?? null,
     });
   }
 
@@ -428,6 +443,7 @@ export class GbvList implements OnInit {
       id: saved.id,
       trackingNumber: saved.trackingNumber || '',
       status: saved.status,
+      complainantGender: saved.complainantGender ?? null,
     });
 
     if (!saved.stateId) return;

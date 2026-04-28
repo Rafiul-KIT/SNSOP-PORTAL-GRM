@@ -47,6 +47,8 @@ interface NonGbvGrievance {
   statusBadgeClass?: string;
   isOverdue?: boolean;
   daysElapsed?: number;
+  resolvedOn?: string;
+  resolvedOnDisplay?: string;
 }
 
 @Component({
@@ -106,6 +108,12 @@ export class NonGbvList implements OnInit {
     { label: 'Resolved', value: 5 },
   ];
 
+  // Gender options
+  genderOptions = [
+    { label: 'Male', value: 0 },
+    { label: 'Female', value: 1 },
+  ];
+
   constructor(
     private fb: FormBuilder,
     private messageService: MessageService,
@@ -137,6 +145,7 @@ export class NonGbvList implements OnInit {
       payam: [{ value: null, disabled: true }],
       boma: [{ value: null, disabled: true }],
       status: [null],
+      complainantGender: [null],
     });
   }
 
@@ -213,6 +222,7 @@ export class NonGbvList implements OnInit {
       payamId: f.payam?.id || null,
       bomaId: f.boma?.id || null,
       status: f.status || null, // Assuming 0 or null is acceptable for empty status
+      complainantGender: f.complainantGender ?? null,
     };
   }
 
@@ -284,6 +294,7 @@ export class NonGbvList implements OnInit {
       payam: { value: null, disabled: true },
       boma: { value: null, disabled: true },
       status: null,
+      complainantGender: null,
     });
     this.counties = [];
     this.payams = [];
@@ -372,6 +383,7 @@ export class NonGbvList implements OnInit {
         daysElapsed = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
         isOverdue = daysElapsed > 15;
       }
+      const resolvedOn = (item as any).resolvedOn ?? (item as any).resolved_on ?? '';
       return {
         ...item,
         incidentOccurredAtDisplay: this.formatDisplayDate(item.incidentOccurredAt),
@@ -380,6 +392,8 @@ export class NonGbvList implements OnInit {
         statusBadgeClass: this.getStatusBadgeClass(item.status),
         isOverdue,
         daysElapsed,
+        resolvedOn,
+        resolvedOnDisplay: this.formatDisplayDate(resolvedOn),
       };
     });
   }
@@ -405,6 +419,7 @@ export class NonGbvList implements OnInit {
       payamId: f.payam?.id ?? null,
       bomaId: f.boma?.id ?? null,
       status: f.status ?? null,
+      complainantGender: f.complainantGender ?? null,
     });
   }
 
@@ -418,6 +433,7 @@ export class NonGbvList implements OnInit {
       id: saved.id,
       trackingNumber: saved.trackingNumber || '',
       status: saved.status,
+      complainantGender: saved.complainantGender ?? null,
     });
 
     if (!saved.stateId) return;

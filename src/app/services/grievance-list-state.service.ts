@@ -10,6 +10,7 @@ export interface GrievanceListState {
   payamId: string | null;
   bomaId: string | null;
   status: string | number | null;
+  complainantGender: string | null;
 }
 
 @Injectable({

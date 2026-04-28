@@ -55,6 +55,14 @@
         </p-floatlabel>
       </div>
 
+      <!-- Complainant Gender -->
+      <div class="col-md-3">
+        <p-floatlabel variant="on" class="w-100">
+          <p-select [options]="genderOptions" optionLabel="label" optionValue="value" appendTo="body" formControlName="complainantGender" />
+          <label>Complainant Gender</label>
+        </p-floatlabel>
+      </div>
+
       <div class="col-12">
         <div class="d-grid d-sm-flex justify-content-end align-items-center gap-2">
           <p-button label="Reset" icon="pi pi-refresh" severity="danger" size="small" [outlined]="true" (onClick)="resetForm()" />
@@ -67,7 +75,7 @@
   <p-table [value]="grievances" [loading]="isTableLoading" [tableStyle]="{ 'min-width': '100%', 'margin-bottom': '5px' }" dataKey="id" [rowTrackBy]="trackById" size="small">
     <ng-template pTemplate="header">
       <tr>
-        <th colspan="9" class="text-end">
+        <th colspan="10" class="text-end">
           <p class="fw-bold mb-2">
             Showing <kbd>{{ grievances.length }}</kbd> of
             <kbd>{{ totalRecords }}</kbd> grievances
@@ -83,6 +91,7 @@
         <!-- <th class="text-center">Complainant Name</th> -->
         <th class="text-center">Reporting Channel</th>
         <th class="text-center">Beneficiary Status</th>
+        <th class="text-center">Resolution Date</th>
         <th class="text-center">Status</th>
         <th class="text-center">Action</th>
       </tr>
@@ -101,6 +110,7 @@
         <!-- <td class="text-center">{{ item.complainantName }}</td> -->
         <td class="text-center">{{ item.reportingChannel }}</td>
         <td class="text-center">{{ item.beneficiaryStatus === 'LIPW' ? 'LIPW' : 'Complainant' }}</td>
+        <td class="text-center">{{ item.afterMgmtActionClosedAtDisplay }}</td>
         <td class="text-center">
           <span [class]="'badge ' + item.statusBadgeClass">
             {{ item.statusLabel }}
@@ -115,7 +125,7 @@
 
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="9" class="text-center text-danger">
+        <td colspan="10" class="text-center text-danger">
           <b>No GBV grievances found!</b>
         </td>
       </tr>

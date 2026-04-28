@@ -405,6 +405,7 @@ export class NonGbvProcessList implements OnInit {
       payamId: f.payam?.id ?? null,
       bomaId: f.boma?.id ?? null,
       status: f.status ?? null,
+      complainantGender: f.complainantGender ?? null,
     });
   }
 
