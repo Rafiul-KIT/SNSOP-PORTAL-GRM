@@ -113,6 +113,11 @@ export class GeoBasedDetailReport implements OnInit {
     { label: 'Non-GBV', value: 'NGBV' },
   ];
 
+  genderOptions = [
+    { label: 'Male', value: 0 },
+    { label: 'Female', value: 1 },
+  ];
+
   constructor(
     private fb: FormBuilder,
     private api: ApiService,
@@ -134,6 +139,7 @@ export class GeoBasedDetailReport implements OnInit {
       boma: [{ value: null, disabled: true }],
       status: [null],
       category: [null],
+      complainantGender: [null],
     });
   }
 
@@ -290,6 +296,9 @@ export class GeoBasedDetailReport implements OnInit {
     if (raw.county?.id) filters['countyId'] = raw.county.id;
     if (raw.payam?.id) filters['payamId'] = raw.payam.id;
     if (raw.boma?.id) filters['bomaId'] = raw.boma.id;
+    if (raw.complainantGender !== null && raw.complainantGender !== undefined) {
+      filters['complainantGender'] = raw.complainantGender;
+    }
 
     if (withPagination) {
       filters['page'] = this.page;
