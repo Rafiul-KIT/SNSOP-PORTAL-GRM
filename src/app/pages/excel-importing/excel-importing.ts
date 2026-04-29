@@ -89,7 +89,7 @@ export class ExcelImporting implements OnInit {
       Swal.close();
     } catch (err: any) {
       Swal.close();
-      const msg = err?.response?.data?.message || err?.response?.data?.detail || 'Failed to download template.';
+      const msg = this.getDownloadErrorMessage(err);
       Swal.fire({ title: 'Error', text: msg, icon: 'error', confirmButtonColor: '#0d6efd' });
     } finally {
       this.isTemplateDownloading = false;
@@ -170,7 +170,7 @@ export class ExcelImporting implements OnInit {
       }
     } catch (err: any) {
       Swal.close();
-      const msg = err?.response?.data?.message || err?.response?.data?.detail || 'An error occurred while importing.';
+      const msg = this.getImportErrorMessage(err);
       Swal.fire({ title: 'Error', text: msg, icon: 'error', confirmButtonColor: '#0d6efd' });
     } finally {
       this.isImporting = false;
@@ -227,5 +227,36 @@ export class ExcelImporting implements OnInit {
     anchor.click();
     document.body.removeChild(anchor);
     window.URL.revokeObjectURL(url);
+  }
+
+  private getDownloadErrorMessage(error: any): string {
+    return this.extractApiErrorMessage(error) || 'Failed to download template.';
+  }
+
+  private getImportErrorMessage(error: any): string {
+    const apiMessage = this.extractApiErrorMessage(error);
+    const status = error?.response?.status;
+
+    if (status === 500 ) {
+      return 'Please make sure you are using the correct template and that the file is filled in properly, then try again.';
+    }
+
+    return apiMessage || 'An error occurred while importing the Excel file.';
+  }
+
+  private extractApiErrorMessage(error: any): string | null {
+    const data = error?.response?.data;
+    const message = data?.message || data?.detail || data?.error;
+
+    if (typeof message === 'string' && message.trim()) {
+      return message.trim();
+    }
+
+    return null;
+  }
+
+  private isGenericServerErrorMessage(message: string): boolean {
+    const normalized = message.trim().toLowerCase();
+    return normalized === 'internal server error' || normalized === 'server error';
   }
 }
