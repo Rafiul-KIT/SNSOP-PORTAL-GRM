@@ -20,9 +20,11 @@
   <div class="portals-option-wrapper {{ showPortalOptions ? 'show' : '' }}" (mouseleave)="showPortalOptions = false">
     <div class="portal-items">
       @for (portal of portalList; track portal) {
+        <!-- portal.newTab ? null : -->
       <a
         class="item"
-        [attr.href]="portal.newTab ? null : portal.link"
+        [attr.href]=" portal.link"
+        
         (click)="onPortalClick($event, portal)">
         <i class="{{ portal.icon }} w-50"></i>
         <span>{{ portal.label }}</span>
@@ -32,7 +34,7 @@
   </div>
   <!-- Logged In User -->
   @if(userInfo){
-  <div class="help-desk-desktop pe-1">
+  <!-- <div class="help-desk-desktop pe-1">
     @if(canAccessHelpDesk){
       <div class="help-desk-menu-container">
         <button class="helpdesk-trigger" (click)="toggleHelpDeskDropdown()">
@@ -57,7 +59,7 @@
         </div>
       </div>
     }
-  </div>
+  </div> -->
 
   <p-button [text]="true" icon="fas fa-user-circle fa-lg" severity="info"
     (onClick)="showUsermenu = !showUsermenu"></p-button>
