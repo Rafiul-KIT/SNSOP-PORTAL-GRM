@@ -13,7 +13,7 @@ export const environment = {
     mNe: 'https://newmis.southsudansafetynet.info/trial/master/#/monitoring-evaluation/beneficiary-enrolment-summary',
     economicOpportunities: 'https://newmis.southsudansafetynet.info/trial/master/#/economic-opportunities/dashboard',
     grm: 'https://newmis.southsudansafetynet.info/trial/grm',
-    report: 'https://newmis.southsudansafetynet.info/trial/master/#/home/metabase',
+    report: 'https://newmis.southsudansafetynet.info/trial/master/#/home/report',
   },
     authBackend: 'https://devgwapp.southsudansafetynet.info/mis_auth',
   cookie_name:'mis_ta'

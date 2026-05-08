@@ -13,7 +13,7 @@ export const environment = {
      economicOpportunities: 'https://mis.southsudansafetynet.info/v2/#/economic-opportunities/dashboard',
     payment: 'https://mis.southsudansafetynet.info/v2/payment',
     grm: 'https://mis.southsudansafetynet.info/v2/grm',
-    report: 'https://mis.southsudansafetynet.info/v2/#/home/metabase',
+    report: 'https://mis.southsudansafetynet.info/v2/#/home/report',
   },
   authBackend: 'https://gwapp.southsudansafetynet.info/mis_auth',
   cookie_name:'mis_ta'
