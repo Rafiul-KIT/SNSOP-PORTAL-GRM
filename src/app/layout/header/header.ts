@@ -39,7 +39,7 @@ export class Header {
     {
       label: 'Report',
       // link: environment.portals.report,
-      link: environment.portals.UnderConstruction,
+      link: environment.portals.underconstruction,
       icon: 'fas fa-chart-line',
     },
     {
@@ -56,7 +56,7 @@ export class Header {
     {
       label: 'Help Desk',
       // link: this.getMasterHelpDeskLink(),
-      link: environment.portals.UnderConstruction,
+      link: environment.portals.underconstruction,
       icon: 'fas fa-headset',
       newTab: true,
     },
@@ -67,7 +67,7 @@ export class Header {
      {
         label: 'Economic Opportunities',
         // link: environment.portals.economicOpportunities,
-        link: environment.portals.UnderConstruction,
+        link: environment.portals.underconstruction,
         icon: 'fas fa-briefcase',
     
       },
