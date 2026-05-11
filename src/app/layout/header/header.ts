@@ -38,7 +38,8 @@ export class Header {
       icon: 'fas fa-sitemap' },
     {
       label: 'Report',
-      link: environment.portals.report,
+      // link: environment.portals.report,
+      link: environment.portals.UnderConstruction,
       icon: 'fas fa-chart-line',
     },
     {
@@ -52,22 +53,24 @@ export class Header {
       icon: 'fas fa-poll',
     },
  
-    // {
-    //   label: 'Help Desk',
-    //   link: this.getMasterHelpDeskLink(),
-    //   icon: 'fas fa-headset',
-    //   newTab: true,
-    // },
+    {
+      label: 'Help Desk',
+      // link: this.getMasterHelpDeskLink(),
+      link: environment.portals.UnderConstruction,
+      icon: 'fas fa-headset',
+      newTab: true,
+    },
       { label: 'Monitoring & Evaluation',
       link: environment.portals.mNe,
       icon: 'fas fa-chart-bar'
     },
-    //  {
-    //     label: 'Economic Opportunities',
-    //     link: environment.portals.economicOpportunities,
-    //     icon: 'fas fa-briefcase',
+     {
+        label: 'Economic Opportunities',
+        // link: environment.portals.economicOpportunities,
+        link: environment.portals.UnderConstruction,
+        icon: 'fas fa-briefcase',
     
-    //   },
+      },
 
     
   ];
