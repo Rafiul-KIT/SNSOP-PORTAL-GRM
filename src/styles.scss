@@ -1,8 +1,57 @@
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@100..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 @import "primeicons/primeicons.css";
+
+:root {
+  --app-font-family: "Ubuntu", "Noto Sans Bengali", sans-serif;
+}
+
 body {
-  font-family: "Ubuntu", "Noto Sans Bengali", sans-serif;
+  font-family: var(--app-font-family);
   font-size: 14px;
+}
+
+/*
+  Defensive text-font baseline:
+  Prevent accidental icon-font inheritance on normal UI text in some browser/cache states.
+  Keep icon classes out of this reset.
+*/
+body :where(
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  span,
+  label,
+  small,
+  strong,
+  em,
+  a,
+  li,
+  td,
+  th,
+  input,
+  textarea,
+  select,
+  button,
+  .p-button-label,
+  .p-menuitem-text,
+  .p-breadcrumb-item-label,
+  .p-inputtext,
+  .p-select-label,
+  .p-multiselect-label,
+  .p-dropdown-label,
+  .p-datatable,
+  .p-card,
+  .p-dialog,
+  .p-tabview,
+  .p-panel,
+  .p-toast-message-text,
+  .p-tag
+):not(i):not(.pi):not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fat):not(.bi):not([class^="fa-"]):not([class*=" fa-"]) {
+  font-family: var(--app-font-family);
 }
 
 a {
