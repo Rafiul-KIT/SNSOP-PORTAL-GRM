@@ -55,8 +55,8 @@ export class Header {
  
     {
       label: 'Help Desk',
-      // link: this.getMasterHelpDeskLink(),
-      link: environment.portals.underconstruction,
+      link: this.getMasterHelpDeskLink(),
+      // link: environment.portals.underconstruction,
       icon: 'fas fa-headset',
       newTab: true,
     },
@@ -252,10 +252,11 @@ export class Header {
 
   getHelpDeskMenuItems(): any[] {
     const items = [
-      { label: 'Help Desk Dashboard', route: '/help-desk/dashboard', icon: 'fas fa-tachometer-alt', newTab: true },
+      { label: 'Helpdesk Dashboard', route: '/help-desk/dashboard', icon: 'fas fa-tachometer-alt', newTab: true },
       { label: 'Submit Support Request', route: '/help-desk/submit-request', icon: 'fas fa-plus-circle', newTab: true },
       { label: 'My Requests', route: '/help-desk/my-requests', icon: 'fas fa-clipboard-list', newTab: true },
       { label: 'Support Management', route: '/help-desk/support-management', icon: 'fas fa-users-cog', newTab: true },
+      { label: 'Request List', route: '/help-desk/assigned-requests', icon: 'fas fa-user-check', newTab: true },
       { label: 'Status Tracker', route: '/help-desk/status-tracker', icon: 'fas fa-search', newTab: true },
       { label: 'Reports', route: '/help-desk/reports', icon: 'fas fa-chart-bar', newTab: true },
       { separator: true, label: 'User Manual', route: '/help-desk/user-manual', icon: 'fas fa-book', newTab: true }

@@ -23,7 +23,7 @@
         <!-- portal.newTab ? null : -->
       <a
         class="item"
-        [attr.href]=" portal.link"
+        [attr.href]=" portal.newTab ? null : portal.link"
         
         (click)="onPortalClick($event, portal)">
         <i class="{{ portal.icon }} w-50"></i>
@@ -34,12 +34,12 @@
   </div>
   <!-- Logged In User -->
   @if(userInfo){
-  <!-- <div class="help-desk-desktop pe-1">
+  <div class="help-desk-desktop pe-1">
     @if(canAccessHelpDesk){
       <div class="help-desk-menu-container">
         <button class="helpdesk-trigger" (click)="toggleHelpDeskDropdown()">
           <i class="fas fa-headset"></i>
-          <span>Help Desk</span>
+          <span>Helpdesk</span>
           <i class="fas fa-chevron-down chevron" [class.open]="showHelpDeskDropdown"></i>
         </button>
 
@@ -59,7 +59,7 @@
         </div>
       </div>
     }
-  </div> -->
+  </div>
 
   <p-button [text]="true" icon="fas fa-user-circle fa-lg" severity="info"
     (onClick)="showUsermenu = !showUsermenu"></p-button>
