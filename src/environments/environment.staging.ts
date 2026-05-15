@@ -6,6 +6,7 @@ export const environment = {
   globalApi: 'https://devgwapp.southsudansafetynet.info/mis_server/',
   portals: {
     master: 'https://newmis.southsudansafetynet.info/trial/master',
+    underconstruction: 'https://newmis.southsudansafetynet.info/trial/master/#/under-construction',
     masterSettings: 'https://newmis.southsudansafetynet.info/trial/master/#/user-management/users',
     surveyCTO: 'https://newmis.southsudansafetynet.info/trial/master/#/cto-dashboard',
     beneficiary: 'https://newmis.southsudansafetynet.info/trial/beneficiary',
