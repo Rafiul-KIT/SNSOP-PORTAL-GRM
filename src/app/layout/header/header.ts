@@ -36,7 +36,7 @@ export class Header {
     { label: 'GRM', link: environment.portals.grm, icon: 'fas fa-sitemap' },
     {
       label: 'Economic Opportunities',
-      link: environment.portals.economicOpportunities,
+      link: environment.portals.underConstruction,
       // link: environment.portals.UnderConstruction,
       icon: 'fas fa-briefcase',
     },
@@ -52,7 +52,7 @@ export class Header {
     },
     {
       label: 'Report',
-      link: environment.portals.report,
+      link: environment.portals.underConstruction,
       icon: 'fas fa-chart-line',
     },
     // {
@@ -65,7 +65,7 @@ export class Header {
      {
         label: 'DMS',
         icon: 'fas fa-file',
-        link: environment.portals.dms,
+        link: environment.portals.underConstruction,
         tooltipText: 'Document Management System'
       },
     {
