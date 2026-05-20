@@ -33,46 +33,46 @@ export class Header {
       link: environment.portals.payment,
       icon: 'fas fa-credit-card',
     },
-    { label: 'GRM',
-      link: environment.portals.grm,
-      icon: 'fas fa-sitemap' },
+    { label: 'GRM', link: environment.portals.grm, icon: 'fas fa-sitemap' },
     {
-      label: 'Report',
-      link: environment.portals.report,
-      // link: environment.portals.underconstruction,
-      icon: 'fas fa-chart-line',
+      label: 'Economic Opportunities',
+      link: environment.portals.economicOpportunities,
+      // link: environment.portals.UnderConstruction,
+      icon: 'fas fa-briefcase',
     },
     {
-      label: 'Settings',
-      link: environment.portals.masterSettings,
-      icon: 'fas fa-cog',
+      label: 'Monitoring & Evaluation',
+      link: environment.portals.mNe,
+      icon: 'fas fa-chart-bar',
     },
     {
       label: 'Survey CTO',
       link: environment.portals.surveyCTO,
       icon: 'fas fa-poll',
     },
- 
     {
-      label: 'Help Desk',
-      link: this.getMasterHelpDeskLink(),
-      // link: environment.portals.underconstruction,
-      icon: 'fas fa-headset',
-      newTab: true,
+      label: 'Report',
+      link: environment.portals.report,
+      icon: 'fas fa-chart-line',
     },
-      { label: 'Monitoring & Evaluation',
-      link: environment.portals.mNe,
-      icon: 'fas fa-chart-bar'
-    },
+    // {
+    //   label: 'Help Desk',
+    //   link: this.getMasterHelpDeskLink(),
+    //   icon: 'fas fa-headset',
+    //   // link: environment.portals.UnderConstruction,
+    //   newTab: true,
+    // },
      {
-        label: 'Economic Opportunities',
-        link: environment.portals.economicOpportunities,
-        // link: environment.portals.underconstruction,
-        icon: 'fas fa-briefcase',
-    
+        label: 'DMS',
+        icon: 'fas fa-file',
+        link: environment.portals.dms,
+        tooltipText: 'Document Management System'
       },
-
-    
+    {
+      label: 'Settings',
+      link: environment.portals.masterSettings,
+      icon: 'fas fa-cog',
+    },
   ];
 
   constructor(
@@ -168,11 +168,11 @@ export class Header {
             icon: 'fas fa-list',
             routerLink: 'gbv-management/process',
           },
-         
+
         ],
       },
-      
-      
+
+
        {
         label: 'Non GBV Grievances',
         icon: 'fas fa-balance-scale-left',
@@ -199,7 +199,7 @@ export class Header {
         icon: 'fas fa-bullhorn',
         routerLink: 'grievances-status-report',
       },
-     
+
       {
         label: 'GRM Report',
 
@@ -227,7 +227,7 @@ export class Header {
           },
         ],
       },
-   
+
       {
         label: 'Excel Importing',
         icon: 'fas fa-download',

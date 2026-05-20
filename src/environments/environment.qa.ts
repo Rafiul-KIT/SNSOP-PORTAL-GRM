@@ -8,14 +8,15 @@ export const environment = {
   portals: {
     master: 'https://qa-mis.southsudansafetynet.info/v2/',
     masterSettings: 'https://qa-mis.southsudansafetynet.info/v2/#/user-management/users',
-      mNe: 'https://qa-mis.southsudansafetynet.info/v2/#/monitoring-evaluation/beneficiary-enrolment-summary',
     surveyCTO: 'https://qa-mis.southsudansafetynet.info/v2/#/cto-dashboard',
     beneficiary: 'https://qa-mis.southsudansafetynet.info/v2/beneficiary/',
+    mNe: 'https://qa-mis.southsudansafetynet.info/v2/#/monitoring-evaluation/beneficiary-enrolment-summary',
     payment: 'https://qa-mis.southsudansafetynet.info/v2/payment',
     grm: 'https://qa-mis.southsudansafetynet.info/v2/grm',
     report: 'https://qa-mis.southsudansafetynet.info/v2/#/home/metabase',
     economicOpportunities: 'https://qa-mis.southsudansafetynet.info/v2/#/economic-opportunities/dashboard',
-    underconstruction: 'https://qa-mis.southsudansafetynet.info/v2/#/under-construction',
+    underConstruction: 'https://qa-mis.southsudansafetynet.info/v2/#/under-construction',
+    dms: 'https://qa-mis.southsudansafetynet.info/v2/dms/dashboard'
   },
   cookie_name:'mis_ta'
 };

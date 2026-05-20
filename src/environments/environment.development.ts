@@ -4,6 +4,7 @@ export const environment = {
   useHash: false,
   domain: 'localhost', // or 'snsopmis.local' if you use hosts file trick
   globalApi: 'https://devgwapp.southsudansafetynet.info/mis_server/', // your Spring Boot backend in dev
+  authBackend: 'https://devgwapp.southsudansafetynet.info/mis_auth/',
   portals: {
     master: 'https://localhost:4010',
     masterSettings: 'https://localhost:4010/#/user-management/users',
@@ -14,8 +15,8 @@ export const environment = {
     grm: 'https://localhost:4040',
     report: 'https://localhost:4010/#/home/metabase',
     economicOpportunities: 'https://localhost:4010/#/economic-opportunities/dashboard',
-    underconstruction: 'https://localhost:4010/#/under-construction',
+    underConstruction: 'https://localhost:4010/#/under-construction',
+    dms: 'https://localhost:8086'
   },
-  authBackend: 'https://devgwapp.southsudansafetynet.info/mis_auth',
   cookie_name:'mis_ta'
 };

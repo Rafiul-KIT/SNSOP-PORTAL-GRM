@@ -4,18 +4,19 @@ export const environment = {
   useHash: true,
   domain: 'https://newmis.southsudansafetynet.info',
   globalApi: 'https://devgwapp.southsudansafetynet.info/mis_server/',
+  authBackend: 'https://devgwapp.southsudansafetynet.info/mis_auth/',
   portals: {
     master: 'https://newmis.southsudansafetynet.info/trial/master',
-    underconstruction: 'https://newmis.southsudansafetynet.info/trial/master/#/under-construction',
     masterSettings: 'https://newmis.southsudansafetynet.info/trial/master/#/user-management/users',
     surveyCTO: 'https://newmis.southsudansafetynet.info/trial/master/#/cto-dashboard',
     beneficiary: 'https://newmis.southsudansafetynet.info/trial/beneficiary',
+      mNe: 'https://newmis.southsudansafetynet.info/trial/master/#/monitoring-evaluation/beneficiary-enrolment-summary',
     payment: 'https://newmis.southsudansafetynet.info/trial/payment',
-    mNe: 'https://newmis.southsudansafetynet.info/trial/master/#/monitoring-evaluation/beneficiary-enrolment-summary',
-    economicOpportunities: 'https://newmis.southsudansafetynet.info/trial/master/#/economic-opportunities/dashboard',
     grm: 'https://newmis.southsudansafetynet.info/trial/grm',
     report: 'https://newmis.southsudansafetynet.info/trial/master/#/home/metabase',
+    economicOpportunities: 'https://newmis.southsudansafetynet.info/trial/master/#/economic-opportunities/dashboard',
+    underConstruction: 'https://newmis.southsudansafetynet.info/trial/master/#/under-construction',
+    dms: 'https://newmis.southsudansafetynet.info/trial/dms/dashboard'
   },
-    authBackend: 'https://devgwapp.southsudansafetynet.info/mis_auth',
   cookie_name:'mis_ta'
 };
