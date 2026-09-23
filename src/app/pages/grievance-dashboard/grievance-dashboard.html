@@ -11,12 +11,12 @@
   @if (error) {
   <div class="error-state">
     <div class="error-icon-wrapper">
-      <i class="bi bi-exclamation-triangle"></i>
+      <i class="pi pi-exclamation-triangle"></i>
     </div>
     <h3 class="error-title">Something went wrong</h3>
     <p class="error-message">{{ error }}</p>
     <button class="retry-btn" (click)="fetchDashboardData()">
-      <i class="bi bi-arrow-clockwise"></i>
+      <i class="pi pi-refresh"></i>
       Try Again
     </button>
   </div>
@@ -27,16 +27,16 @@
   <p-tabs [(value)]="activeTab" class="dashboard-tabs">
     <p-tablist>
       <p-tab value="0">
-        <i class="bi bi-collection tab-icon"></i>
+        <i class="pi pi-list tab-icon"></i>
         All Grievances
       </p-tab>
     
       <p-tab value="1">
-        <i class="bi bi-shield-exclamation tab-icon"></i>
+        <i class="pi pi-shield tab-icon"></i>
         GBV Grievances
       </p-tab>
         <p-tab value="2">
-        <i class="bi bi-file-earmark-text tab-icon"></i>
+        <i class="pi pi-file tab-icon"></i>
         Non-GBV Grievances
       </p-tab>
     </p-tablist>
@@ -48,7 +48,7 @@
           <div class="stats-grid">
             <div class="stat-card stat-card--primary">
               <div class="stat-card__icon">
-                <i class="bi bi-collection"></i>
+                <i class="pi pi-list"></i>
               </div>
               <div class="stat-card__info">
                 <span class="stat-card__title">Total Grievances</span>
@@ -57,7 +57,7 @@
             </div>
             <div class="stat-card stat-card--warning">
               <div class="stat-card__icon">
-                <i class="bi bi-hourglass-split"></i>
+                <i class="pi pi-hourglass"></i>
               </div>
               <div class="stat-card__info">
                 <span class="stat-card__title">Pending</span>
@@ -66,7 +66,7 @@
             </div>
             <div class="stat-card stat-card--success">
               <div class="stat-card__icon">
-                <i class="bi bi-check-circle"></i>
+                <i class="pi pi-check-circle"></i>
               </div>
               <div class="stat-card__info">
                 <span class="stat-card__title">Resolved</span>
@@ -75,7 +75,7 @@
             </div>
             <div class="stat-card stat-card--info">
               <div class="stat-card__icon">
-                <i class="bi bi-clock-history"></i>
+                <i class="pi pi-history"></i>
               </div>
               <div class="stat-card__info">
                 <span class="stat-card__title">Resolved %</span>
@@ -88,7 +88,7 @@
             <div class="chart-card">
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
-                  <span class="chart-icon chart-icon--indigo"><i class="bi bi-pie-chart"></i></span>
+                  <span class="chart-icon chart-icon--indigo"><i class="pi pi-chart-pie"></i></span>
                   Grievances by Status
                 </h3>
               </div>
@@ -104,7 +104,7 @@
             <div class="chart-card">
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
-                  <span class="chart-icon chart-icon--blue"><i class="bi bi-geo-alt"></i></span>
+                  <span class="chart-icon chart-icon--blue"><i class="pi pi-map-marker"></i></span>
                   Locations by Grievances
                 </h3>
               </div>
@@ -123,7 +123,7 @@
           <div class="chart-card chart-card--full">
             <div class="chart-card__header">
               <h3 class="chart-card__title">
-                <span class="chart-icon chart-icon--amber"><i class="bi bi-stopwatch"></i></span>
+                <span class="chart-icon chart-icon--amber"><i class="pi pi-stopwatch"></i></span>
                 Avg Resolution Time by Location
               </h3>
             </div>
@@ -147,7 +147,7 @@
           <div class="stats-grid">
             <div class="stat-card stat-card--primary">
               <div class="stat-card__icon">
-                <i class="bi bi-file-earmark-text"></i>
+                <i class="pi pi-file"></i>
               </div>
                 <div class="stat-card__info">
                 <span class="stat-card__title">Total Grievances</span>
@@ -156,7 +156,7 @@
             </div>
             <div class="stat-card stat-card--warning">
               <div class="stat-card__icon">
-                <i class="bi bi-hourglass-split"></i>
+                <i class="pi pi-hourglass"></i>
               </div>
               <div class="stat-card__info">
                 <span class="stat-card__title">Pending</span>
@@ -165,7 +165,7 @@
             </div>
             <div class="stat-card stat-card--success">
               <div class="stat-card__icon">
-                <i class="bi bi-check-circle"></i>
+                <i class="pi pi-check-circle"></i>
               </div>
               <div class="stat-card__info">
                 <span class="stat-card__title">Resolved</span>
@@ -174,7 +174,7 @@
             </div>
             <div class="stat-card stat-card--info">
               <div class="stat-card__icon">
-                <i class="bi bi-clock-history"></i>
+                <i class="pi pi-history"></i>
               </div>
               <div class="stat-card__info">
                 <span class="stat-card__title">Resolved %</span>
@@ -189,7 +189,7 @@
             <div class="chart-card">
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
-                  <span class="chart-icon chart-icon--indigo"><i class="bi bi-pie-chart"></i></span>
+                  <span class="chart-icon chart-icon--indigo"><i class="pi pi-chart-pie"></i></span>
                   Grievances by Status
                 </h3>
               </div>
@@ -206,7 +206,7 @@
             <div class="chart-card">
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
-                  <span class="chart-icon chart-icon--blue"><i class="bi bi-geo-alt"></i></span>
+                  <span class="chart-icon chart-icon--blue"><i class="pi pi-map-marker"></i></span>
                   Locations by Grievances
                 </h3>
               </div>
@@ -228,7 +228,7 @@
                 <div class="chart-card">
                   <div class="chart-card__header">
                     <h3 class="chart-card__title">
-                      <span class="chart-icon chart-icon--purple"><i class="bi bi-tags"></i></span>
+                      <span class="chart-icon chart-icon--purple"><i class="pi pi-tags"></i></span>
                       Grievances by Type
                     </h3>
                   </div>
@@ -242,7 +242,7 @@
             <div class="chart-card">
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
-                  <span class="chart-icon chart-icon--amber"><i class="bi bi-stopwatch"></i></span>
+                  <span class="chart-icon chart-icon--amber"><i class="pi pi-stopwatch"></i></span>
                   Avg Resolution Time by Location
                 </h3>
               </div>
@@ -264,7 +264,7 @@
           <div class="stats-grid">
             <div class="stat-card stat-card--primary">
               <div class="stat-card__icon">
-                <i class="bi bi-shield-exclamation"></i>
+                <i class="pi pi-shield"></i>
               </div>
               <div class="stat-card__info">
                 <span class="stat-card__title">Total Grievances</span>
@@ -273,7 +273,7 @@
             </div>
             <div class="stat-card stat-card--warning">
               <div class="stat-card__icon">
-                <i class="bi bi-hourglass-split"></i>
+                <i class="pi pi-hourglass"></i>
               </div>
               <div class="stat-card__info">
                 <span class="stat-card__title">Pending</span>
@@ -282,7 +282,7 @@
             </div>
             <div class="stat-card stat-card--success">
               <div class="stat-card__icon">
-                <i class="bi bi-check-circle"></i>
+                <i class="pi pi-check-circle"></i>
               </div>
               <div class="stat-card__info">
                 <span class="stat-card__title">Resolved</span>
@@ -291,7 +291,7 @@
             </div>
             <div class="stat-card stat-card--info">
               <div class="stat-card__icon">
-                <i class="bi bi-clock-history"></i>
+                <i class="pi pi-history"></i>
               </div>
               <div class="stat-card__info">
                 <span class="stat-card__title">Resolved %</span>
@@ -306,7 +306,7 @@
             <div class="chart-card">
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
-                  <span class="chart-icon chart-icon--rose"><i class="bi bi-pie-chart"></i></span>
+                  <span class="chart-icon chart-icon--rose"><i class="pi pi-chart-pie"></i></span>
                   Grievances by Status
                 </h3>
               </div>
@@ -323,7 +323,7 @@
             <div class="chart-card">
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
-                  <span class="chart-icon chart-icon--blue"><i class="bi bi-geo-alt"></i></span>
+                  <span class="chart-icon chart-icon--blue"><i class="pi pi-map-marker"></i></span>
                   Locations by Grievances
                 </h3>
               </div>
@@ -345,7 +345,7 @@
             <div class="chart-card chart-card--compact">
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
-                  <span class="chart-icon chart-icon--cyan"><i class="bi bi-building"></i></span>
+                  <span class="chart-icon chart-icon--cyan"><i class="pi pi-building"></i></span>
                   Referral Services
                 </h3>
               </div>
@@ -359,7 +359,7 @@
             <div class="chart-card chart-card--compact">
               <div class="chart-card__header">
                 <h3 class="chart-card__title">
-                  <span class="chart-icon chart-icon--orange"><i class="bi bi-person-exclamation"></i></span>
+                  <span class="chart-icon chart-icon--orange"><i class="pi pi-user"></i></span>
                   Perpetrator Info
                 </h3>
               </div>
@@ -375,7 +375,7 @@
           <div class="chart-card chart-card--full">
             <div class="chart-card__header">
               <h3 class="chart-card__title">
-                <span class="chart-icon chart-icon--amber"><i class="bi bi-stopwatch"></i></span>
+                <span class="chart-icon chart-icon--amber"><i class="pi pi-stopwatch"></i></span>
                 Avg Resolution Time by Location
               </h3>
             </div>
@@ -393,4 +393,3 @@
   }
 </div>
 }
-

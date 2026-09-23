@@ -2,7 +2,6 @@ export const environment = {
   production: false,
   env: 'local',
   useHash: false,
-  domain: 'localhost', // or 'snsopmis.local' if you use hosts file trick
   globalApi: 'https://devgwapp.southsudansafetynet.info/mis_server/', // your Spring Boot backend in dev
   authBackend: 'https://devgwapp.southsudansafetynet.info/mis_auth/',
   portals: {
